@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+FlavorConfig appFlavor = FlavorConfig();
+
 class FlavorConfig {
   FlavorConfig({
     this.appTitle = 'Template',

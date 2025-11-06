@@ -11,7 +11,33 @@
             "flutterMode": "debug",
             "args": [
                 "--flavor",
-                "dev"
+                "dev",
+                "-t",
+                "lib/main_dev.dart"
+            ]
+        },
+        {
+            "name": "release template (dev mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "dev",
+                "-t",
+                "lib/main_dev.dart"
+            ]
+        },
+        {
+            "name": "debug template (prod mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "prod",
+                "-t",
+                "lib/main_prod.dart"
             ]
         },
         {
@@ -21,27 +47,9 @@
             "flutterMode": "release",
             "args": [
                 "--flavor",
-                "dev"
-            ]
-        },
-        {
-            "name": "debug template",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "debug",
-            "args": [
-                "--flavor",
-                "prod"
-            ]
-        },
-        {
-            "name": "release template",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release",
-            "args": [
-                "--flavor",
-                "prod"
+                "prod",
+                "-t",
+                "lib/main_prod.dart"
             ]
         }
     ]

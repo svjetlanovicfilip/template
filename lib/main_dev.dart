@@ -1,9 +1,10 @@
-import './main.dart' as m;
+import './main.dart';
 
 import 'config/flavor/flavor_config.dart';
+import 'firebase_options_dev.dart';
 
-void mainDev() {
-  FlavorConfig(appTitle: 'Template Dev');
+void main() {
+  appFlavor = FlavorConfig(appTitle: 'Template Dev');
 
-  m.main();
+  mainApp(DefaultFirebaseOptions.currentPlatform);
 }

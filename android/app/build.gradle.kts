@@ -1,11 +1,30 @@
 plugins {
     id("com.android.application")
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services")
+    // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
+
+    flavorDimensions("flavor-type")
+
+    productFlavors {
+        create("dev") {
+            dimension = "flavor-type"
+            applicationId = "com.example.template.dev"
+            resValue("string", "app_name", "Template Dev")
+        }
+        create("prod") {
+            dimension = "flavor-type"
+            applicationId = "com.example.template"
+            resValue("string", "app_name", "Template")
+        }
+    }
+
     namespace = "com.example.template"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
@@ -24,27 +43,10 @@ android {
         applicationId = "com.example.template"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-    }
-
-
-    flavorDimensions "flavor-type"
-
-    productFlavors {
-        
-        dev {
-            dimension "flavor-type"
-            applicationId "com.example.template.dev"
-            resValue "string", "app_name", "Template Dev"
-        }
-        prod {
-            dimension "flavor-type"
-            applicationId "com.example.template"
-            resValue "string", "app_name", "Template"
-        }
     }
 
     buildTypes {

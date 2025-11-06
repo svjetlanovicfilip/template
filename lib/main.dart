@@ -1,6 +1,13 @@
+import 'package:calendar_view/calendar_view.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+import 'config/flavor/flavor_config.dart';
+
+Future<void> mainApp(FirebaseOptions options) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: options);
+
   runApp(const MyApp());
 }
 
@@ -9,18 +16,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return CalendarControllerProvider(
+      controller: EventController(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        ),
+        home: MyHomePage(title: appFlavor.appTitle),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({required this.title, super.key});
 
   final String title;
 
@@ -29,14 +39,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,22 +46,33 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: DayView(
+        startHour: 5,
+        onDateTap: (date) {
+          print(date);
+        },
+        eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
+          return Container(child: Icon(Icons.plus_one));
+        },
+        // hourIndicatorSettings: HourIndicatorSettings(startHour: 6),
+        // hourLinePainter:
+        //     (
+        //       lineColor,
+        //       lineHeight,
+        //       offset,
+        //       minuteHeight,
+        //       showVerticalLine,
+        //       verticalLineOffset,
+        //       lineStyle,
+        //       dashWidth,
+        //       dashSpaceWidth,
+        //       emulateVerticalOffsetBy,
+        //       startHour,
+        //       endHour,
+        //     ) {},
+        // timeLineBuilder: (date) {
+        //   return Center(child: Icon(Icons.add, size: 18, color: Colors.grey));
+        // },
       ),
     );
   }
