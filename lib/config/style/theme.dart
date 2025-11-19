@@ -11,7 +11,9 @@ final lightTheme = ThemeData(
     onSecondary: AppColors.onSecondaryLight,
     onSurface: AppColors.onSurfaceLight,
     error: AppColors.errorLight,
+    primaryContainer: AppColors.elevatedButtonBackgroundLight,
   ),
+
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,
     fillColor: AppColors.inputBackgroundLight, // input background
@@ -21,13 +23,13 @@ final lightTheme = ThemeData(
     ),
   ),
   textTheme: const TextTheme(
-    bodyMedium: TextStyle(color: AppColors.onSurfaceLight),
-    labelLarge: TextStyle(fontWeight: FontWeight.w500),
+    bodyMedium: TextStyle(color: AppColors.white, fontSize: 16),
+    headlineSmall: TextStyle(color: AppColors.white, fontSize: 20),
+    labelMedium: TextStyle(color: AppColors.slate800, fontSize: 16),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor:
-          AppColors.elevatedButtonBackgroundLight, // amber-500 equivalent
+      backgroundColor: AppColors.amber500,
       foregroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
