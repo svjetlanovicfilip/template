@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "debug template (dev mode)",
+            "name": "debug tefter (dev mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
@@ -17,7 +17,7 @@
             ]
         },
         {
-            "name": "release template (dev mode)",
+            "name": "release tefter (dev mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
@@ -29,7 +29,7 @@
             ]
         },
         {
-            "name": "debug template (prod mode)",
+            "name": "debug tefter (prod mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
@@ -41,7 +41,7 @@
             ]
         },
         {
-            "name": "release template (prod mode)",
+            "name": "release tefter (prod mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",

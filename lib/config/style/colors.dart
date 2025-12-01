@@ -37,8 +37,41 @@ class AppColors {
 
   // Base
   static const Color white = Color(0xFFFFFFFF);
-}
 
+  //possible event colors
+  static const Color blue500 = Color(0xFF3B82F6);
+  static const Color purple500 = Color(0xFFA855F7);
+  static const Color green500 = Color(0xFF22C55E);
+  static const Color cyan500 = Color(0xFF06B6D4);
+  static const Color pink500 = Color(0xFFEC4899);
+  static const Color yellow500 = Color(0xFFEAB308);
+  static const Color indigo500 = Color(0xFF6366F1);
+  static const Color teal500 = Color(0xFF14B8A6);
+  static const Color rose500 = Color(0xFFF43F5E);
+  static const Color violet500 = Color(0xFF8B5CF6);
+  static const Color emerald500 = Color(0xFF10B981);
+  static const Color orange500 = Color(0xFFF97316);
+  static const Color fuchsia500 = Color(0xFFD946EF);
+  static const Color lime500 = Color(0xFF84CC16);
+
+  static const List<Color> possibleEventColors = [
+    blue500,
+    purple500,
+    amber500,
+    green500,
+    cyan500,
+    pink500,
+    yellow500,
+    indigo500,
+    teal500,
+    rose500,
+    violet500,
+    emerald500,
+    orange500,
+    fuchsia500,
+    lime500,
+  ];
+}
 
 // Login/Signup Background (Vertical gradient):
 // Tailwind: `bg-gradient-to-b from-slate-900 to-slate-800`

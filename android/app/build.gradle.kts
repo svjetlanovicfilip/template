@@ -16,12 +16,12 @@ android {
         create("dev") {
             dimension = "flavor-type"
             applicationId = "com.example.template.dev"
-            resValue("string", "app_name", "Template Dev")
+            resValue("string", "app_name", "Tefter Dev")
         }
         create("prod") {
             dimension = "flavor-type"
             applicationId = "com.example.template"
-            resValue("string", "app_name", "Template")
+            resValue("string", "app_name", "Tefter")
         }
     }
 
@@ -43,7 +43,7 @@ android {
         applicationId = "com.example.template"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
