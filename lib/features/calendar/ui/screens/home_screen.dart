@@ -11,8 +11,8 @@ import '../modals/book_appointment_modal.dart';
 import '../widgets/calendar_day_view.dart';
 import '../widgets/calendar_week_view.dart';
 
-class CalendarManagementScreen extends StatelessWidget {
-  const CalendarManagementScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   CalendarTypeViewCubit get _calendarTypeViewCubit =>
       getIt<CalendarTypeViewCubit>();
