@@ -21,16 +21,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FlutterNativeSplash.remove(); // ensures native splash is gone after first Flutter frame
-    });
+    FlutterNativeSplash.remove();
 
     Future.delayed(const Duration(seconds: 2), () {
-      context.pushReplacementNamed(Routes.home);
+      _authenticationBloc.add(AuthenticationCheckRequested());
     });
-
-    // // fire auth check immediately (no 2s black period)
-    // _authenticationBloc.add(AuthenticationCheckRequested());
   }
 
   @override
