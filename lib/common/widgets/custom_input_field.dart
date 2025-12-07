@@ -8,6 +8,7 @@ class CustomInputField extends StatefulWidget {
     required this.onChanged,
     this.errorText,
     this.isPassword = false,
+    this.hint,              
     super.key,
   });
 
@@ -15,6 +16,7 @@ class CustomInputField extends StatefulWidget {
   final String? errorText;
   final Function(String) onChanged;
   final bool isPassword;
+  final String? hint;       
 
   @override
   State<CustomInputField> createState() => _CustomInputFieldState();
@@ -28,7 +30,6 @@ class _CustomInputFieldState extends State<CustomInputField> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 24),
         Container(
           alignment: Alignment.centerLeft,
           child: Text(
@@ -44,6 +45,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
           autofillHints: const [AutofillHints.email],
           obscureText: _obscureText,
           decoration: InputDecoration(
+            hintText: widget.hint,
             suffixIcon:
                 widget.isPassword
                     ? _VisibilityButton(

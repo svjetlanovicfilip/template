@@ -9,6 +9,11 @@ import 'common/widgets/screens/splash_screen.dart';
 import 'config/style/theme.dart';
 import 'features/calendar/ui/screens/home_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
+import 'features/settings/ui/screens/add_edit_employee_screen.dart';
+import 'features/settings/ui/screens/change_password_screen.dart';
+import 'features/settings/ui/screens/change_title_screen.dart';
+import 'features/settings/ui/screens/employees_screen.dart';
+import 'features/settings/ui/screens/settings_screen.dart';
 
 Future<void> mainApp(FirebaseOptions options) async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +41,11 @@ class MyApp extends StatelessWidget {
           Routes.splash: (context) => const SplashScreen(),
           Routes.login: (context) => const LoginScreen(),
           Routes.home: (context) => const HomeScreen(),
+          Routes.settings: (context) => const SettingsScreen(),
+          Routes.changePasswordScreen: (context) => const ChangePasswordScreen(),
+          Routes.changeTitleScreen: (context) => const ChangeTitleScreen(),
+          Routes.employeesScreen: (context) => const EmployeesScreen(),
+          Routes.addEditmployeesScreen: (context) => const AddEditEmployeeScreen()
         },
       ),
     );

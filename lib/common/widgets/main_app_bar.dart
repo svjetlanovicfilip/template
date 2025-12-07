@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../config/style/colors.dart';
 import '../../features/calendar/data/models/calendar_type_enum.dart';
+import '../constants/routes.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
 import '../di/di_container.dart';
+import '../extensions/context_extension.dart';
 import 'toggle_button_group.dart';
 import 'user_avatar.dart';
 
@@ -44,10 +46,12 @@ class MainAppBar extends StatelessWidget {
                   color: AppColors.slate700,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.person,
-                  size: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.person),
                   color: AppColors.white,
+                  onPressed: () {
+                    context.pushNamed(Routes.settings);
+                  },
                 ),
               ),
             ],
