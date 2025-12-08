@@ -134,33 +134,21 @@ class CalendarDayView extends StatelessWidget {
             ),
           );
         },
-        onEventDoubleTap: (events, date) {
-          print('onEventDoubleTap: $events, $date');
-        },
+        onEventDoubleTap: (events, date) {},
 
-        onEventTap: (events, date) {
-          print('onEventTap: $events, $date');
-        },
+        onEventTap: (events, date) {},
 
         onPageChange: (date, page) {
           _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
         },
 
-        onEventLongTap: (events, date) {
-          print('onEventLongTap: $events, $date');
-        },
+        onEventLongTap: (events, date) {},
 
-        onDateTap: (date) {
-          print('onDateTap: $date');
-        },
+        onDateTap: (date) {},
 
-        onHeaderTitleTap: (date) async {
-          print('onHeaderTitleTap: $date');
-        },
+        onHeaderTitleTap: (date) async {},
 
-        onTimestampTap: (date) {
-          print('onTimestampTap: $date');
-        },
+        onTimestampTap: (date) {},
       ),
     );
   }
