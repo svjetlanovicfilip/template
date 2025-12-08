@@ -140,25 +140,26 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
 
   Future<void> _onSubmit() async {
     setState(() {
-      _nameError = null;
-      _lastNameError = null;
-      _usernameError = null;
-      _emailError = null;
-      _passwordError = null;
+      _nameError = _name.trim().isEmpty ? 'Ime ne smije biti prazno' : null;
+      _lastNameError =
+          _lastName.trim().isEmpty ? 'Prezime ne smije biti prazno' : null;
+      _usernameError =
+          _username.trim().isEmpty
+              ? 'Korisničko ime ne smije biti prazno'
+              : null;
+      _emailError = _email.trim().isEmpty ? 'Email ne smije biti prazan' : null;
+      _passwordError =
+          _password.trim().isEmpty ? 'Lozinka ne smije biti prazna' : null;
     });
 
-    if (_name.trim().isEmpty ||
-        _lastName.trim().isEmpty ||
-        _username.trim().isEmpty ||
-        _email.trim().isEmpty ||
-        _password.trim().isEmpty) {
-      setState(() {
-        _nameError = 'Ime ne smije biti prazano';
-        _lastNameError = 'Prezime ne smije biti prazano';
-        _usernameError = 'Korisnicko ime ne smije biti prazano';
-        _emailError = 'Email ne smije biti prazan';
-        _passwordError = 'Lozinka ne smije biti prazana';
-      });
+    final hasError =
+        _nameError != null ||
+        _lastNameError != null ||
+        _usernameError != null ||
+        _emailError != null ||
+        _passwordError != null;
+
+    if (hasError) {
       return;
     }
 
@@ -167,19 +168,15 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
     });
 
     try {
-      //TODO
-      // npr:
-      // await repository.updateTitle(_title.trim());
-
+      // TODO: ovdje pravi poziv prema serveru / backendu
       await Future.delayed(const Duration(seconds: 1)); // demo delay
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Novi zaposleni je uspijesno dodat')),
+        const SnackBar(content: Text('Novi zaposleni je uspješno dodat')),
       );
-      Navigator.of(context).pop(_name.trim()); // ako želiš da vratiš novi naziv
+      Navigator.of(context).pop(_name.trim());
     } catch (e) {
-      // Ako backend vrati grešku, možeš ovdje staviti generičku poruku
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
