@@ -6,6 +6,10 @@ import '../../features/authentication/data/datasources/authentication_remote_dat
 import '../../features/authentication/data/repositories/authentication_repository.dart';
 import '../../features/authentication/data/repositories/authentication_repository_impl.dart';
 import '../../features/authentication/domain/bloc/authentication_bloc.dart';
+import '../../features/calendar/data/datasources/calendar_remote_datasource.dart';
+import '../../features/calendar/data/repositories/calendar_repository.dart';
+import '../../features/calendar/data/repositories/calendar_repository_impl.dart';
+import '../../features/calendar/domain/bloc/slot_bloc.dart';
 import '../../features/login/data/datasources/login_remote_datasource.dart';
 import '../../features/login/data/repositories/login_repository.dart';
 import '../../features/login/data/repositories/login_repository_impl.dart';
@@ -33,6 +37,9 @@ void setupDependencies() {
         firebaseFirestore: firebaseFirestore,
       ),
     )
+    ..registerSingleton<CalendarRemoteDatasource>(
+      CalendarRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
     //repositories
     ..registerSingleton<LoginRepository>(
       LoginRepositoryImpl(
@@ -42,6 +49,11 @@ void setupDependencies() {
     ..registerSingleton<AuthenticationRepository>(
       AuthenticationRepositoryImpl(
         authenticationRemoteDatasource: getIt<AuthenticationRemoteDatasource>(),
+      ),
+    )
+    ..registerSingleton<CalendarRepository>(
+      CalendarRepositoryImpl(
+        calendarRemoteDatasource: getIt<CalendarRemoteDatasource>(),
       ),
     )
     //cubits
@@ -54,5 +66,8 @@ void setupDependencies() {
       () => AuthenticationBloc(
         authenticationRepository: getIt<AuthenticationRepository>(),
       ),
+    )
+    ..registerLazySingleton<SlotBloc>(
+      () => SlotBloc(getIt<CalendarRepository>()),
     );
 }

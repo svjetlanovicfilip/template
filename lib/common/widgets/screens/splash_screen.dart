@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import '../../../features/authentication/domain/bloc/authentication_bloc.dart';
+import '../../../features/calendar/domain/bloc/slot_bloc.dart';
 import '../../constants/routes.dart';
 import '../../di/di_container.dart';
 import '../../extensions/context_extension.dart';
@@ -23,9 +24,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     FlutterNativeSplash.remove();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      _authenticationBloc.add(AuthenticationCheckRequested());
-    });
+    _authenticationBloc.add(AuthenticationCheckRequested());
+
+    Future.delayed(const Duration(seconds: 2), () {});
   }
 
   @override
@@ -34,6 +35,9 @@ class _SplashScreenState extends State<SplashScreen> {
       bloc: _authenticationBloc,
       listener: (context, state) {
         if (state.status == AuthenticationStatus.authenticated) {
+          getIt<SlotBloc>().add(
+            LoadInitialRange(DateTime.now(), DateTime.now()),
+          );
           context.pushReplacementNamed(Routes.home);
         } else {
           context.pushNamed(Routes.login);

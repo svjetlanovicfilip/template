@@ -4,15 +4,15 @@ import '../../config/style/colors.dart';
 
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
-    required this.title,
     required this.onTap,
+    this.title,
     this.icon,
     this.borderRadius,
     this.isLoading = false,
     super.key,
   });
 
-  final String title;
+  final String? title;
   final VoidCallback onTap;
   final IconData? icon;
   final BorderRadius? borderRadius;
@@ -40,9 +40,9 @@ class PrimaryButton extends StatelessWidget {
                 width: 25,
                 child: CircularProgressIndicator(color: Colors.white),
               )
-            else
+            else if (title != null)
               Text(
-                title,
+                title!,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
