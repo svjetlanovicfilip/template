@@ -62,7 +62,8 @@ class _MyAppState extends State<MyApp> {
           Routes.employeesScreen: (context) => const EmployeesScreen(),
           Routes.addEditmployeesScreen:
               (context) => const AddEditEmployeeScreen(),
-          Routes.bookAppointment: (context) => const BookAppointmentScreen(),
+          Routes.bookAppointment:
+              (context) => const ExtractBookAppointmentArgumentsScreen(),
         },
       ),
     );
