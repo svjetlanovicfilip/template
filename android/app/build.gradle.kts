@@ -15,12 +15,12 @@ android {
     productFlavors {
         create("dev") {
             dimension = "flavor-type"
-            applicationId = "com.example.template.dev"
+            applicationId = "com.tefter.tefterapp.dev"
             resValue("string", "app_name", "Tefter Dev")
         }
         create("prod") {
             dimension = "flavor-type"
-            applicationId = "com.example.template"
+            applicationId = "com.tefter.tefterapp"
             resValue("string", "app_name", "Tefter")
         }
     }
@@ -40,7 +40,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.template"
+        applicationId = "com.tefter.tefterapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
