@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -8,35 +10,51 @@ part 'slot_event.dart';
 part 'slot_state.dart';
 
 class SlotBloc extends Bloc<SlotEvent, SlotState> {
-  SlotBloc(this.calendarRepository) : super(SlotState.initial()) {
+  SlotBloc(this.calendarRepository) : super(const SlotStateInitial()) {
     on<LoadInitialRange>(_onInitialLoad);
     on<LoadMoreBackward>(_onLoadMoreBackward);
     on<LoadMoreForward>(_onLoadMoreForward);
     on<AddNewSlot>(_onAddNewSlot);
+    on<UpdateSlot>(_onUpdateSlot);
   }
 
   final CalendarRepository calendarRepository;
+
+  final _slots = <Slot>[];
+  DateTime _loadedFrom = DateTime.now();
+  DateTime _loadedTo = DateTime.now();
 
   Future<void> _onInitialLoad(
     LoadInitialRange e,
     Emitter<SlotState> emit,
   ) async {
-    final from = e.weekStart.subtract(const Duration(days: 7)); // 1 week before
-    final to = e.weekEnd.add(const Duration(days: 14)); // 2 week after
+    emit(const SlotStateLoading());
 
-    final slots = await calendarRepository.fetchRangeSlots(
-      organizationId: state.organizationId,
-      userId: state.userId,
-      from: from,
-      to: to,
+    _loadedFrom = e.weekStart.subtract(
+      const Duration(days: 14),
+    ); // 2 week before
+    _loadedTo = e.weekEnd.add(const Duration(days: 14)); // 2 week after
+
+    //TODO: Add organizationId and userId
+    final result = await calendarRepository.fetchRangeSlots(
+      organizationId: '',
+      userId: '',
+      from: _loadedFrom,
+      to: _loadedTo,
     );
 
-    slots.when(
-      onSuccess:
-          (slots) => emit(
-            state.copyWith(slots: slots, loadedFrom: from, loadedTo: to),
-          ),
-      onFailure: (error) => emit(state),
+    if (result.isFailure) {
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
+      return;
+    }
+
+    _slots.addAll(result.success ?? []);
+    emit(
+      LoadedRangeSlots(
+        slots: List.from(_slots),
+        loadedFrom: _loadedFrom,
+        loadedTo: _loadedTo,
+      ),
     );
   }
 
@@ -44,62 +62,86 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     LoadMoreForward e,
     Emitter<SlotState> emit,
   ) async {
-    final end = state.loadedTo;
+    final end = _loadedTo;
 
-    if (end.subtract(const Duration(days: 7)).isAfter(e.currentDisplayedDate)) {
+    if (end.subtract(const Duration(days: 8)).isAfter(e.currentDisplayedDate)) {
       return;
     }
 
-    final newTo = state.loadedTo.add(Duration(days: e.days));
+    _loadedTo = _loadedTo.add(Duration(days: e.days));
+    //TODO: Add organizationId and userId
     final result = await calendarRepository.fetchRangeSlots(
-      organizationId: state.organizationId,
-      userId: state.userId,
-      from: state.loadedTo.add(const Duration(days: 1)),
-      to: newTo,
+      organizationId: '',
+      userId: '',
+      from: _loadedTo.add(const Duration(days: 1)),
+      to: _loadedTo,
     );
 
     if (result.isFailure) {
-      emit(state);
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;
     }
 
-    final updated = List<Slot>.from(state.slots)..addAll(result.success ?? []);
+    _slots.addAll(result.success ?? []);
 
-    emit(state.copyWith(slots: updated, loadedTo: newTo));
+    emit(
+      LoadedRangeSlots(
+        slots: List.from(_slots),
+        loadedFrom: _loadedFrom,
+        loadedTo: _loadedTo,
+      ),
+    );
   }
 
   Future<void> _onLoadMoreBackward(
     LoadMoreBackward e,
     Emitter<SlotState> emit,
   ) async {
-    final newFrom = state.loadedFrom.subtract(Duration(days: e.days));
+    _loadedFrom = _loadedFrom.subtract(Duration(days: e.days));
+    //TODO: Add organizationId and userId
     final result = await calendarRepository.fetchRangeSlots(
-      organizationId: state.organizationId,
-      userId: state.userId,
-      from: newFrom,
-      to: state.loadedFrom.subtract(const Duration(days: 1)),
+      organizationId: '',
+      userId: '',
+      from: _loadedFrom,
+      to: _loadedTo.subtract(const Duration(days: 1)),
     );
 
     if (result.isFailure) {
-      emit(state);
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;
     }
 
-    final updated = List<Slot>.from(state.slots)
-      ..insertAll(0, result.success ?? []);
+    _slots.insertAll(0, result.success ?? []);
 
-    emit(state.copyWith(slots: updated, loadedFrom: newFrom));
+    emit(
+      LoadedRangeSlots(
+        slots: List.from(_slots),
+        loadedFrom: _loadedFrom,
+        loadedTo: _loadedTo,
+      ),
+    );
   }
 
   Future<void> _onAddNewSlot(AddNewSlot e, Emitter<SlotState> emit) async {
+    emit(const SlotStateInitial());
+
+    if (e.slot.endDateTime == null) {
+      emit(
+        const ErrorLoadingSlots(
+          errorMessage: 'Molimo Vas izaberite početak i kraj termina.',
+        ),
+      );
+      return;
+    }
+
     final isOverlapping = await calendarRepository.isSlotOverlapping(
       e.slot.startDateTime,
-      e.slot.endDateTime,
+      e.slot.endDateTime!,
     );
 
     if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
       emit(
-        state.copyWith(
+        const ErrorLoadingSlots(
           errorMessage:
               'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
         ),
@@ -107,12 +149,57 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    // optimistic update → prvo dodamo u state da UI bude instant
-    final updated = List<Slot>.from(state.slots)..add(e.slot);
+    // onda silently save u Firestore
+    final result = await calendarRepository.createSlot(e.slot);
 
-    emit(state.copyWith(slots: updated));
+    if (result.isFailure) {
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
+      return;
+    }
+
+    final slot = e.slot.copyWith(id: result.success);
+
+    _slots.add(slot);
+    emit(NewSlotAdded(slot: slot));
+  }
+
+  Future<void> _onUpdateSlot(UpdateSlot e, Emitter<SlotState> emit) async {
+    emit(const SlotStateInitial());
+
+    final slot = e.slot;
+
+    if (slot.endDateTime == null) {
+      emit(
+        const ErrorLoadingSlots(
+          errorMessage: 'Molimo Vas izaberite početak i kraj termina.',
+        ),
+      );
+      return;
+    }
+
+    final isOverlapping = await calendarRepository.isSlotOverlapping(
+      slot.startDateTime,
+      slot.endDateTime!,
+      excludeSlotId: slot.id,
+    );
+
+    if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
+      emit(
+        const ErrorLoadingSlots(
+          errorMessage:
+              'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
+        ),
+      );
+      return;
+    }
+
+    _slots
+      ..removeWhere((s) => s.id == slot.id)
+      ..add(slot);
+
+    emit(SlotUpdated(slot: slot));
 
     // onda silently save u Firestore
-    await calendarRepository.createSlot(e.slot);
+    await calendarRepository.updateSlot(slot);
   }
 }
