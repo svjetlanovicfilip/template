@@ -113,10 +113,28 @@ class CalendarRemoteDatasource {
     }
   }
 
+  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
+    try {
+      await firebaseFirestore
+          .collection(organizationsCollection)
+          .doc('HQXD4zXjkrzrNK1SCYJq')
+          .collection(usersCollection)
+          .doc('mdxSNtPbH5tRFtbfU37o')
+          .collection(slotsCollection)
+          .doc(slot.id)
+          .update(slot.toJson());
+
+      return Result.success(true);
+    } on Exception catch (e) {
+      return Result.failure(Exception(e));
+    }
+  }
+
   Future<Result<bool, Exception>> isSlotOverlapping(
     DateTime newStart,
-    DateTime newEnd,
-  ) async {
+    DateTime newEnd, {
+    String? excludeSlotId,
+  }) async {
     final snap =
         await FirebaseFirestore.instance
             .collection(organizationsCollection)
@@ -129,6 +147,7 @@ class CalendarRemoteDatasource {
             .orderBy('startDateTime')
             .get();
 
-    return Result.success(snap.docs.isNotEmpty);
+    final overlappingOthers = snap.docs.where((d) => d.id != excludeSlotId);
+    return Result.success(overlappingOthers.isNotEmpty);
   }
 }

@@ -27,7 +27,9 @@ class CalendarRepositoryImpl implements CalendarRepository {
     }
 
     return Result.success(
-      result.success?.docs.map((doc) => Slot.fromJson(doc.data())).toList() ??
+      result.success?.docs
+              .map((doc) => Slot.fromJson(doc.data(), doc.id))
+              .toList() ??
           [],
     );
   }
@@ -43,13 +45,25 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
+  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
+    final result = await calendarRemoteDatasource.updateSlot(slot);
+    if (result.isFailure) {
+      return Result.failure(result.failure as Exception);
+    }
+
+    return Result.success(result.success ?? false);
+  }
+
+  @override
   Future<Result<bool, Exception>> isSlotOverlapping(
     DateTime newStart,
-    DateTime newEnd,
-  ) async {
+    DateTime newEnd, {
+    String? excludeSlotId,
+  }) async {
     final result = await calendarRemoteDatasource.isSlotOverlapping(
       newStart,
       newEnd,
+      excludeSlotId: excludeSlotId,
     );
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);

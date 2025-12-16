@@ -1,11 +1,19 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../common/constants/routes.dart';
+import '../../../../common/di/di_container.dart';
+import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
+import '../../data/models/slot.dart';
+import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
+import '../screens/book_appointment_screen.dart';
 
 class CalendarWeekView extends StatelessWidget {
   const CalendarWeekView({super.key});
+
+  SlotBloc get _slotBloc => getIt<SlotBloc>();
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +88,17 @@ class CalendarWeekView extends StatelessWidget {
         height: 3,
       ),
       onPageChange: (date, page) {
-        print('onPageChange: $date, $page');
+        if (date.isAfter(DateTime.now())) {
+          _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
+        }
+      },
+      onDateTap: (date) {
+        context.pushNamed(
+          Routes.bookAppointment,
+          arguments: BookAppointmentScreenArguments(
+            slot: Slot(title: '', startDateTime: date),
+          ),
+        );
       },
       liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 3),
 

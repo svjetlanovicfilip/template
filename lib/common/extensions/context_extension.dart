@@ -7,8 +7,8 @@ extension ContextExtension on BuildContext {
     _router.pushReplacementNamed(name);
   }
 
-  void pushNamed(String name) {
-    _router.pushNamed(name);
+  void pushNamed(String name, {Object? arguments}) {
+    _router.pushNamed(name, arguments: arguments);
   }
 
   void pop() {

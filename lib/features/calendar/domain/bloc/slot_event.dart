@@ -25,3 +25,8 @@ class AddNewSlot extends SlotEvent {
   const AddNewSlot(this.slot);
   final Slot slot;
 }
+
+class UpdateSlot extends SlotEvent {
+  const UpdateSlot(this.slot);
+  final Slot slot;
+}

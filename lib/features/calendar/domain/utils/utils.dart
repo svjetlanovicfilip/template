@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+
 const weekdays = [
   'Ponedeljak',
   'Utorak',
@@ -29,4 +33,13 @@ String formatWeekday(int weekDay) {
 
 String formatDateLong(DateTime d) {
   return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
+}
+
+Size textSize(String text, TextStyle style) {
+  final textPainter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    maxLines: 2,
+    textDirection: TextDirection.ltr,
+  )..layout();
+  return textPainter.size;
 }

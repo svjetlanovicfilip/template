@@ -7,21 +7,43 @@ import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
 
+class BookAppointmentScreenArguments {
+  const BookAppointmentScreenArguments({this.slot});
+
+  final Slot? slot;
+}
+
+class ExtractBookAppointmentArgumentsScreen extends StatelessWidget {
+  const ExtractBookAppointmentArgumentsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments
+            as BookAppointmentScreenArguments;
+
+    return BookAppointmentScreen(args: args);
+  }
+}
+
 class BookAppointmentScreen extends StatefulWidget {
-  const BookAppointmentScreen({super.key});
+  const BookAppointmentScreen({required this.args, super.key});
+
+  final BookAppointmentScreenArguments args;
 
   @override
   State<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
 }
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
-  final TextEditingController descriptionController = TextEditingController();
+  late TextEditingController titleController;
 
-  TimeOfDay? selectedStart;
-  TimeOfDay? selectedEnd;
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
+  DateTime? selectedStart;
+  DateTime? selectedEnd;
   DateTime initialDate = DateTime.now();
   String? selectedUserId;
+  bool isEditing = false;
 
   bool isStartTimeValid = true;
   bool isEndTimeValid = true;
@@ -40,18 +62,23 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   @override
   void initState() {
     super.initState();
-    final random = Random(42);
+    isEditing = widget.args.slot?.title.isNotEmpty ?? false;
+    final random = Random();
     final colors = List<Color>.from(AppColors.possibleEventColors)
       ..shuffle(random);
     final length = colors.length;
     final eventIndex = random.nextInt(length);
     selectedColor = colors[eventIndex % colors.length].toARGB32().toString();
+    selectedStart = widget.args.slot?.startDateTime;
+    selectedEnd = widget.args.slot?.endDateTime;
+    selectedDate = widget.args.slot?.startDateTime ?? DateTime.now();
+    titleController = TextEditingController(text: widget.args.slot?.title);
   }
 
-  String formatTimeOfDay(TimeOfDay t) {
-    final hour = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+  String formatTimeOfDay(DateTime t) {
+    final hour = t.hour;
     final minute = t.minute.toString().padLeft(2, '0');
-    final suffix = t.period == DayPeriod.am ? 'AM' : 'PM';
+    final suffix = hour > 12 ? 'PM' : 'AM';
     return '$hour:$minute $suffix';
   }
 
@@ -64,7 +91,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<void> handleSubmit() async {
-    if (selectedStart == null || selectedEnd == null) {
+    if (selectedEnd == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Molimo izaberite početak i kraj termina'),
@@ -96,16 +123,21 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       return;
     }
 
-    final title = descriptionController.text.trim();
+    final title = titleController.text.trim();
 
     final slot = Slot(
       title: title,
       startDateTime: convertedStartTime,
       endDateTime: convertedEndTime,
-      color: selectedColor,
+      color: widget.args.slot?.color ?? selectedColor,
+      id: widget.args.slot?.id,
     );
 
-    getIt<SlotBloc>().add(AddNewSlot(slot));
+    if (isEditing) {
+      getIt<SlotBloc>().add(UpdateSlot(slot));
+    } else {
+      getIt<SlotBloc>().add(AddNewSlot(slot));
+    }
 
     Navigator.of(context).pop();
   }
@@ -113,7 +145,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final initialForPicker = TimeOfDay.now();
 
     return Scaffold(
       appBar: const CustomAppBar(title: Text('Dodaj termin')),
@@ -132,7 +163,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                initialValue: employees.first,
+                // initialValue: employees.first,
                 isExpanded: true,
                 borderRadius: BorderRadius.circular(12),
                 decoration: InputDecoration(
@@ -219,18 +250,28 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () async {
-                            final picked = await pickTime(
-                              selectedStart ?? initialForPicker,
+                            final timeOfDay = TimeOfDay.fromDateTime(
+                              selectedStart ?? DateTime.now(),
                             );
-                            if (picked != null &&
-                                picked.isBefore(TimeOfDay.now())) {
+                            final picked = await pickTime(timeOfDay);
+
+                            if (picked == null) return;
+
+                            final selectedStartDateTime = DateTime(
+                              selectedDate.year,
+                              selectedDate.month,
+                              selectedDate.day,
+                              picked.hour,
+                              picked.minute,
+                            );
+
+                            if (selectedStartDateTime.isBefore(selectedDate)) {
                               setState(() {
                                 isStartTimeValid = false;
                               });
-                            } else if (picked != null &&
-                                selectedEnd != null &&
-                                picked.isAfter(
-                                  selectedEnd ?? TimeOfDay.now(),
+                            } else if (selectedEnd != null &&
+                                selectedStartDateTime.isAfter(
+                                  selectedEnd ?? selectedDate,
                                 )) {
                               setState(() {
                                 isStartTimeValid = false;
@@ -241,7 +282,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                               });
                             }
                             setState(() {
-                              selectedStart = picked;
+                              selectedStart = selectedStartDateTime;
                             });
                           },
                           child: Container(
@@ -257,9 +298,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                             child: Row(
                               children: [
                                 Text(
-                                  selectedStart == null
-                                      ? ''
-                                      : formatTimeOfDay(selectedStart!),
+                                  selectedStart != null
+                                      ? formatTimeOfDay(selectedStart!)
+                                      : '',
                                   style: Theme.of(context).textTheme.labelMedium
                                       ?.copyWith(fontWeight: FontWeight.w400),
                                 ),
@@ -289,17 +330,26 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () async {
-                            final base = selectedEnd ?? initialForPicker;
-                            final picked = await pickTime(base);
-                            if (picked != null &&
-                                picked.isBefore(
-                                  selectedStart ?? TimeOfDay.now(),
-                                )) {
+                            final picked = await pickTime(TimeOfDay.now());
+
+                            if (picked == null) return;
+
+                            final selectedStartDateTime = DateTime(
+                              selectedDate.year,
+                              selectedDate.month,
+                              selectedDate.day,
+                              picked.hour,
+                              picked.minute,
+                            );
+                            if (selectedStartDateTime.isBefore(
+                              selectedStart ?? DateTime.now(),
+                            )) {
                               setState(() {
                                 isEndTimeValid = false;
                               });
-                            } else if (picked != null &&
-                                picked.isBefore(TimeOfDay.now())) {
+                            } else if (selectedStartDateTime.isBefore(
+                              selectedDate,
+                            )) {
                               setState(() {
                                 isEndTimeValid = false;
                               });
@@ -309,7 +359,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                               });
                             }
                             setState(() {
-                              selectedEnd = picked;
+                              selectedEnd = selectedStartDateTime;
                             });
                           },
 
@@ -360,7 +410,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               Text('Detalji usluge', style: theme.textTheme.labelMedium),
               const SizedBox(height: 8),
               TextField(
-                controller: descriptionController,
+                controller: titleController,
                 maxLines: 3,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
