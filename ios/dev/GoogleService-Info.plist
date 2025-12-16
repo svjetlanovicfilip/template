@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.template.dev</string>
+	<string>com.tefter.tefterapp.dev</string>
 	<key>PROJECT_ID</key>
 	<string>template-dev-e550f</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:628004937987:ios:afdd9547b5c1cb7bce0936</string>
+	<string>1:628004937987:ios:beb956f8ad715415ce0936</string>
 </dict>
 </plist>
