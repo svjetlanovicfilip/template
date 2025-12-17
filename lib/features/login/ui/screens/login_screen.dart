@@ -6,6 +6,7 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
+import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../domain/bloc/login_bloc.dart';
 import '../widgets/login_form.dart';
 
@@ -20,6 +21,9 @@ class LoginScreen extends StatelessWidget {
       bloc: _loginBloc,
       listener: (context, state) {
         if (state.status == FormzSubmissionStatus.success) {
+          getIt<SlotBloc>().add(
+            LoadInitialRange(DateTime.now(), DateTime.now()),
+          );
           context.pushReplacementNamed(Routes.home);
         } else if (state.status == FormzSubmissionStatus.failure &&
             state.errorMessage != null) {

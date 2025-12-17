@@ -30,7 +30,9 @@ class ExtractHomeScreenArguments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args =
-        ModalRoute.of(context)!.settings.arguments as HomeScreenArguments;
+        ModalRoute.of(context)!.settings.arguments is HomeScreenArguments
+            ? ModalRoute.of(context)!.settings.arguments as HomeScreenArguments
+            : const HomeScreenArguments(slots: []);
 
     return HomeScreen(args: args);
   }
@@ -57,9 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final newSlots =
         widget.args.slots.map((slot) => slot.toCalendarEventData()).toList();
     CalendarControllerProvider.of(context).controller.addAll(newSlots);
-    print(
-      'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
-    );
   }
 
   @override
@@ -73,24 +72,19 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(state.errorMessage)));
           return;
+        } else if (state is LoadedRangeSlots) {
+          final newSlots =
+              state.slots.map((slot) => slot.toCalendarEventData()).toList();
+          CalendarControllerProvider.of(context).controller.addAll(newSlots);
         } else if (state is NewSlotAdded) {
           final newSlot = state.slot.toCalendarEventData();
           CalendarControllerProvider.of(context).controller.add(newSlot);
-          print(
-            'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
-          );
         } else if (state is SlotUpdated) {
-          print(
-            'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
-          );
           final updatedSlot = state.slot.toCalendarEventData();
           CalendarControllerProvider.of(context).controller.removeWhere(
             (event) => (event.event as Slot).id == state.slot.id,
           );
           CalendarControllerProvider.of(context).controller.add(updatedSlot);
-          print(
-            'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
-          );
         }
       },
       builder: (context, state) {

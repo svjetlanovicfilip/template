@@ -39,6 +39,10 @@ class _SplashScreenState extends State<SplashScreen> {
               getIt<SlotBloc>().add(
                 LoadInitialRange(DateTime.now(), DateTime.now()),
               );
+            } else {
+              Future.delayed(const Duration(seconds: 1), () {
+                context.pushReplacementNamed(Routes.login);
+              });
             }
           },
         ),
