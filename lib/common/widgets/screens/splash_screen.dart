@@ -5,6 +5,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import '../../../features/authentication/domain/bloc/authentication_bloc.dart';
 import '../../../features/calendar/domain/bloc/slot_bloc.dart';
+import '../../../features/calendar/ui/screens/home_screen.dart';
 import '../../constants/routes.dart';
 import '../../di/di_container.dart';
 import '../../extensions/context_extension.dart';
@@ -25,24 +26,34 @@ class _SplashScreenState extends State<SplashScreen> {
     FlutterNativeSplash.remove();
 
     _authenticationBloc.add(AuthenticationCheckRequested());
-
-    Future.delayed(const Duration(seconds: 2), () {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthenticationBloc, AuthenticationState>(
-      bloc: _authenticationBloc,
-      listener: (context, state) {
-        if (state.status == AuthenticationStatus.authenticated) {
-          getIt<SlotBloc>().add(
-            LoadInitialRange(DateTime.now(), DateTime.now()),
-          );
-          context.pushReplacementNamed(Routes.home);
-        } else {
-          context.pushNamed(Routes.login);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthenticationBloc, AuthenticationState>(
+          bloc: _authenticationBloc,
+          listener: (context, state) {
+            if (state.status == AuthenticationStatus.authenticated) {
+              getIt<SlotBloc>().add(
+                LoadInitialRange(DateTime.now(), DateTime.now()),
+              );
+            }
+          },
+        ),
+        BlocListener<SlotBloc, SlotState>(
+          bloc: getIt<SlotBloc>(),
+          listener: (context, state) {
+            if (state is LoadedRangeSlots) {
+              context.pushReplacementNamed(
+                Routes.home,
+                arguments: HomeScreenArguments(slots: state.slots),
+              );
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         body: Container(
           width: double.infinity,

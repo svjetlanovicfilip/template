@@ -18,13 +18,49 @@ import '../widgets/calendar_day_view.dart';
 import '../widgets/calendar_week_view.dart';
 import 'book_appointment_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreenArguments {
+  const HomeScreenArguments({required this.slots});
 
+  final List<Slot> slots;
+}
+
+class ExtractHomeScreenArguments extends StatelessWidget {
+  const ExtractHomeScreenArguments({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments as HomeScreenArguments;
+
+    return HomeScreen(args: args);
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({required this.args, super.key});
+
+  final HomeScreenArguments args;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   CalendarTypeViewCubit get _calendarTypeViewCubit =>
       getIt<CalendarTypeViewCubit>();
 
   SlotBloc get _slotBloc => getIt<SlotBloc>();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newSlots =
+        widget.args.slots.map((slot) => slot.toCalendarEventData()).toList();
+    CalendarControllerProvider.of(context).controller.addAll(newSlots);
+    print(
+      'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +73,6 @@ class HomeScreen extends StatelessWidget {
             context,
           ).showSnackBar(SnackBar(content: Text(state.errorMessage)));
           return;
-        } else if (state is LoadedRangeSlots) {
-          final newSlots =
-              state.slots.map((slot) => slot.toCalendarEventData()).toList();
-          CalendarControllerProvider.of(context).controller.addAll(newSlots);
-          print(
-            'Length of events: ${CalendarControllerProvider.of(context).controller.allEvents.length}',
-          );
         } else if (state is NewSlotAdded) {
           final newSlot = state.slot.toCalendarEventData();
           CalendarControllerProvider.of(context).controller.add(newSlot);

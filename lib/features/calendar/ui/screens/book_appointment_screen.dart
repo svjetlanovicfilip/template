@@ -45,8 +45,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   String? selectedUserId;
   bool isEditing = false;
 
-  bool isStartTimeValid = true;
-  bool isEndTimeValid = true;
+  bool isTimeRangeValid = true;
+  bool isTitleValid = true;
 
   late final String selectedColor;
 
@@ -88,58 +88,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       initialTime: initialTime,
       helpText: 'Select time',
     );
-  }
-
-  Future<void> handleSubmit() async {
-    if (selectedEnd == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Molimo izaberite početak i kraj termina'),
-        ),
-      );
-      setState(() {
-        isStartTimeValid = false;
-        isEndTimeValid = false;
-      });
-      return;
-    }
-    final convertedStartTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedStart!.hour,
-      selectedStart!.minute,
-    );
-    final convertedEndTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedEnd!.hour,
-      selectedEnd!.minute,
-    );
-
-    if (!convertedEndTime.isAfter(convertedStartTime)) {
-      Navigator.of(context).pop();
-      return;
-    }
-
-    final title = titleController.text.trim();
-
-    final slot = Slot(
-      title: title,
-      startDateTime: convertedStartTime,
-      endDateTime: convertedEndTime,
-      color: widget.args.slot?.color ?? selectedColor,
-      id: widget.args.slot?.id,
-    );
-
-    if (isEditing) {
-      getIt<SlotBloc>().add(UpdateSlot(slot));
-    } else {
-      getIt<SlotBloc>().add(AddNewSlot(slot));
-    }
-
-    Navigator.of(context).pop();
   }
 
   @override
@@ -209,7 +157,28 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   );
 
                   if (picked != null) {
-                    setState(() => selectedDate = picked);
+                    setState(() {
+                      selectedDate = picked;
+                      if (selectedStart != null) {
+                        selectedStart = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedStart!.hour,
+                          selectedStart!.minute,
+                        );
+                      }
+                      if (selectedEnd != null) {
+                        selectedEnd = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedEnd!.hour,
+                          selectedEnd!.minute,
+                        );
+                      }
+                    });
+                    _validateTimeRange();
                   }
                 },
                 child: Container(
@@ -257,7 +226,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
                             if (picked == null) return;
 
-                            final selectedStartDateTime = DateTime(
+                            selectedStart = DateTime(
                               selectedDate.year,
                               selectedDate.month,
                               selectedDate.day,
@@ -265,25 +234,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                               picked.minute,
                             );
 
-                            if (selectedStartDateTime.isBefore(selectedDate)) {
-                              setState(() {
-                                isStartTimeValid = false;
-                              });
-                            } else if (selectedEnd != null &&
-                                selectedStartDateTime.isAfter(
-                                  selectedEnd ?? selectedDate,
-                                )) {
-                              setState(() {
-                                isStartTimeValid = false;
-                              });
-                            } else {
-                              setState(() {
-                                isStartTimeValid = true;
-                              });
-                            }
-                            setState(() {
-                              selectedStart = selectedStartDateTime;
-                            });
+                            _validateTimeRange();
                           },
                           child: Container(
                             padding: const EdgeInsets.all(8),
@@ -291,7 +242,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                               borderRadius: BorderRadius.circular(12),
                               color: AppColors.slate200,
                               border:
-                                  isStartTimeValid
+                                  isTimeRangeValid
                                       ? null
                                       : Border.all(color: AppColors.red600),
                             ),
@@ -334,33 +285,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
                             if (picked == null) return;
 
-                            final selectedStartDateTime = DateTime(
-                              selectedDate.year,
-                              selectedDate.month,
-                              selectedDate.day,
-                              picked.hour,
-                              picked.minute,
-                            );
-                            if (selectedStartDateTime.isBefore(
-                              selectedStart ?? DateTime.now(),
-                            )) {
-                              setState(() {
-                                isEndTimeValid = false;
-                              });
-                            } else if (selectedStartDateTime.isBefore(
-                              selectedDate,
-                            )) {
-                              setState(() {
-                                isEndTimeValid = false;
-                              });
-                            } else {
-                              setState(() {
-                                isEndTimeValid = true;
-                              });
-                            }
                             setState(() {
-                              selectedEnd = selectedStartDateTime;
+                              selectedEnd = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                picked.hour,
+                                picked.minute,
+                              );
                             });
+
+                            _validateTimeRange();
                           },
 
                           child: Container(
@@ -369,7 +304,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                               borderRadius: BorderRadius.circular(12),
                               color: AppColors.slate200,
                               border:
-                                  isEndTimeValid
+                                  isTimeRangeValid
                                       ? null
                                       : Border.all(color: AppColors.red600),
                             ),
@@ -397,7 +332,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
 
               const SizedBox(height: 12),
-              if (!isStartTimeValid || !isEndTimeValid)
+              if (!isTimeRangeValid)
                 Text(
                   'Vrijeme nije pravilno uneseno. Molimo vas da provjerite početak i kraj termina.',
                   style: theme.textTheme.labelMedium?.copyWith(
@@ -413,6 +348,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 controller: titleController,
                 maxLines: 3,
                 textInputAction: TextInputAction.done,
+                onChanged:
+                    (value) => setState(() => isTitleValid = value.isNotEmpty),
                 decoration: InputDecoration(
                   hintText: 'Unesite detalje usluge...',
                   border: OutlineInputBorder(
@@ -424,6 +361,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     color: AppColors.slate500,
                     fontWeight: FontWeight.w400,
                   ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.red600),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.red600),
+                  ),
+                  errorText:
+                      isTitleValid ? null : 'Molimo unesite detalje usluge',
                 ),
               ),
               const SizedBox(height: 20),
@@ -442,5 +389,66 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> handleSubmit() async {
+    _validateTimeRange();
+
+    final title = titleController.text.trim();
+
+    if (title.isEmpty) {
+      setState(() {
+        isTitleValid = false;
+      });
+    }
+
+    if (!isTimeRangeValid || !isTitleValid) {
+      return;
+    }
+
+    final slot = Slot(
+      title: title,
+      startDateTime: selectedStart!,
+      endDateTime: selectedEnd!,
+      color: widget.args.slot?.color ?? selectedColor,
+      id: widget.args.slot?.id,
+    );
+
+    if (isEditing) {
+      getIt<SlotBloc>().add(UpdateSlot(slot));
+    } else {
+      getIt<SlotBloc>().add(AddNewSlot(slot));
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  void _validateTimeRange() {
+    if (selectedStart == null || selectedEnd == null) {
+      setState(() {
+        isTimeRangeValid = false;
+      });
+      return;
+    } else if (selectedStart != null && selectedStart!.isBefore(selectedDate)) {
+      setState(() {
+        isTimeRangeValid = false;
+      });
+    } else if (selectedEnd != null &&
+        selectedStart != null &&
+        selectedStart!.isAfter(selectedEnd!)) {
+      setState(() {
+        isTimeRangeValid = false;
+      });
+    } else if (selectedEnd != null &&
+        selectedStart != null &&
+        selectedEnd!.isBefore(selectedStart!)) {
+      setState(() {
+        isTimeRangeValid = false;
+      });
+    } else {
+      setState(() {
+        isTimeRangeValid = true;
+      });
+    }
   }
 }

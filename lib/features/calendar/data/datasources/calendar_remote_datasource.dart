@@ -1,9 +1,6 @@
-import 'dart:math';
-import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../common/models/result.dart';
-import '../../../../config/style/colors.dart';
 import '../models/slot.dart';
 
 const String organizationsCollection = 'organizations';
@@ -48,7 +45,7 @@ class CalendarRemoteDatasource {
   }
 
   Future<Result<DocumentReference, Exception>> createSlot(Slot slot) async {
-    List<Slot> slots = [];
+    // List<Slot> slots = [];
 
     //GENERATING TEST DATA
     // final random = Random(42);

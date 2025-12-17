@@ -52,24 +52,40 @@ class CalendarWeekView extends StatelessWidget {
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
         final title = events.first.title;
         final color = events.first.color;
+
+        const titleStyle = TextStyle(color: AppColors.white, fontSize: 12);
+
+        const double padding = 2;
+
+        final contentHeight = boundary.height - (padding * 2);
+        final titleHeight = textSize(title, titleStyle, maxLines: 3).height;
+
+        var lines = 1;
+
+        if (contentHeight >= titleHeight * 3) {
+          lines = 3;
+        } else if (contentHeight >= titleHeight * 2) {
+          lines = 2;
+        } else {
+          lines = 1;
+        }
+
         return Container(
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(4),
           ),
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 2,
-          ).copyWith(top: 2, bottom: 2),
+          margin: const EdgeInsets.symmetric(vertical: padding),
+          padding: const EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-                maxLines: 3,
+                style: titleStyle,
+                maxLines: lines,
                 overflow: TextOverflow.ellipsis,
-                softWrap: false,
+                softWrap: true,
               ),
             ],
           ),
@@ -91,6 +107,15 @@ class CalendarWeekView extends StatelessWidget {
         if (date.isAfter(DateTime.now())) {
           _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
         }
+      },
+      onEventTap: (events, date) {
+        final event = events.first;
+        final eventSlot = event.event as Slot;
+
+        context.pushNamed(
+          Routes.bookAppointment,
+          arguments: BookAppointmentScreenArguments(slot: eventSlot),
+        );
       },
       onDateTap: (date) {
         context.pushNamed(

@@ -35,10 +35,10 @@ String formatDateLong(DateTime d) {
   return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
 }
 
-Size textSize(String text, TextStyle style) {
+Size textSize(String text, TextStyle style, {int maxLines = 2}) {
   final textPainter = TextPainter(
     text: TextSpan(text: text, style: style),
-    maxLines: 2,
+    maxLines: maxLines,
     textDirection: TextDirection.ltr,
   )..layout();
   return textPainter.size;

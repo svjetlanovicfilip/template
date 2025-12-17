@@ -54,7 +54,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           Routes.splash: (context) => const SplashScreen(),
           Routes.login: (context) => const LoginScreen(),
-          Routes.home: (context) => const HomeScreen(),
+          Routes.home: (context) => const ExtractHomeScreenArguments(),
           Routes.settings: (context) => const SettingsScreen(),
           Routes.changePasswordScreen:
               (context) => const ChangePasswordScreen(),
