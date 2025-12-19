@@ -43,7 +43,10 @@ class Slot extends Equatable {
       endDate: endDateTime,
       title: title,
       event: this,
-      color: color != null ? Color(int.parse(color!)) : AppColors.amber500,
+      color:
+          color != null && color!.isNotEmpty
+              ? Color(int.parse(color!))
+              : AppColors.amber500,
     );
   }
 

@@ -118,6 +118,10 @@ class CalendarWeekView extends StatelessWidget {
         );
       },
       onDateTap: (date) {
+        if (date.isBefore(DateTime.now())) {
+          return;
+        }
+
         context.pushNamed(
           Routes.bookAppointment,
           arguments: BookAppointmentScreenArguments(
@@ -126,7 +130,6 @@ class CalendarWeekView extends StatelessWidget {
         );
       },
       liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 3),
-
       timeLineBuilder: (date) {
         return Transform.translate(
           offset: const Offset(0, -7.5),

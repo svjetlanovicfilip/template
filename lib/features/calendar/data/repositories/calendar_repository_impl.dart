@@ -10,13 +10,11 @@ class CalendarRepositoryImpl implements CalendarRepository {
 
   @override
   Future<Result<List<Slot>, Exception>> fetchRangeSlots({
-    required String organizationId,
     required String userId,
     required DateTime from,
     required DateTime to,
   }) async {
     final result = await calendarRemoteDatasource.fetchRangeSlots(
-      organizationId: organizationId,
       userId: userId,
       from: from,
       to: to,
@@ -35,8 +33,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<String, Exception>> createSlot(Slot slot) async {
-    final result = await calendarRemoteDatasource.createSlot(slot);
+  Future<Result<String, Exception>> createSlot(Slot slot, String userId) async {
+    final result = await calendarRemoteDatasource.createSlot(slot, userId);
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);
     }
@@ -45,8 +43,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
-    final result = await calendarRemoteDatasource.updateSlot(slot);
+  Future<Result<bool, Exception>> updateSlot(Slot slot, String userId) async {
+    final result = await calendarRemoteDatasource.updateSlot(slot, userId);
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);
     }
@@ -55,14 +53,16 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<bool, Exception>> isSlotOverlapping(
-    DateTime newStart,
-    DateTime newEnd, {
+  Future<Result<bool, Exception>> isSlotOverlapping({
+    required DateTime newStart,
+    required DateTime newEnd,
+    required String userId,
     String? excludeSlotId,
   }) async {
     final result = await calendarRemoteDatasource.isSlotOverlapping(
-      newStart,
-      newEnd,
+      newStart: newStart,
+      newEnd: newEnd,
+      userId: userId,
       excludeSlotId: excludeSlotId,
     );
     if (result.isFailure) {

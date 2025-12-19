@@ -22,11 +22,13 @@ class LoadMoreBackward extends SlotEvent {
 }
 
 class AddNewSlot extends SlotEvent {
-  const AddNewSlot(this.slot);
+  const AddNewSlot(this.slot, this.userId);
   final Slot slot;
+  final String userId;
 }
 
 class UpdateSlot extends SlotEvent {
-  const UpdateSlot(this.slot);
+  const UpdateSlot(this.slot, this.userId);
   final Slot slot;
+  final String userId;
 }

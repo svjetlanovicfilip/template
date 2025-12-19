@@ -144,6 +144,10 @@ class CalendarDayView extends StatelessWidget {
       onEventLongTap: (events, date) {},
 
       onDateTap: (date) {
+        if (date.isBefore(DateTime.now())) {
+          return;
+        }
+
         context.pushNamed(
           Routes.bookAppointment,
           arguments: BookAppointmentScreenArguments(

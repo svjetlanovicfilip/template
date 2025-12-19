@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -50,14 +51,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   late final String selectedColor;
 
-  final List<String> employees = [
-    'Milan',
-    'Filip',
-    'Ana',
-    'Sara',
-    'Ivan',
-    'Marko',
-  ];
+  late List<UserModel> _employees;
 
   @override
   void initState() {
@@ -73,6 +67,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     selectedEnd = widget.args.slot?.endDateTime;
     selectedDate = widget.args.slot?.startDateTime ?? DateTime.now();
     titleController = TextEditingController(text: widget.args.slot?.title);
+    _employees = appState.organizationUsers;
+    selectedUserId = appState.currentUser?.id;
   }
 
   String formatTimeOfDay(DateTime t) {
@@ -110,34 +106,43 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                // initialValue: employees.first,
-                isExpanded: true,
-                borderRadius: BorderRadius.circular(12),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.slate200,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              if (appState.currentUser?.role == 'ORG_OWNER')
+                DropdownButtonFormField<UserModel>(
+                  initialValue: _employees.firstWhere(
+                    (employee) => employee.id == appState.currentUser?.id,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+                  isExpanded: true,
+                  borderRadius: BorderRadius.circular(12),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.slate200,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
+                  icon: const Icon(
+                    Icons.expand_more,
+                    color: AppColors.slate800,
+                  ),
+                  items:
+                      _employees
+                          .map(
+                            (employee) => DropdownMenuItem(
+                              value: employee,
+                              child: Text(
+                                '${employee.name} ${employee.surname}',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                  onChanged:
+                      (value) => setState(() => selectedUserId = value?.id),
                 ),
-                icon: const Icon(Icons.expand_more, color: AppColors.slate800),
-                items:
-                    employees
-                        .map(
-                          (employee) => DropdownMenuItem(
-                            value: employee,
-                            child: Text(employee),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (value) => setState(() => selectedUserId = value),
-              ),
               const SizedBox(height: 20),
               Text(
                 'Datum',
@@ -415,9 +420,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     );
 
     if (isEditing) {
-      getIt<SlotBloc>().add(UpdateSlot(slot));
+      getIt<SlotBloc>().add(UpdateSlot(slot, selectedUserId ?? ''));
     } else {
-      getIt<SlotBloc>().add(AddNewSlot(slot));
+      getIt<SlotBloc>().add(AddNewSlot(slot, selectedUserId ?? ''));
     }
 
     Navigator.of(context).pop();

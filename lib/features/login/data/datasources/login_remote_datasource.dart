@@ -46,6 +46,4 @@ class LoginRemoteDatasource {
       return Result.failure(LoginException(message: e.toString()));
     }
   }
-
-  Future<void> logout() async {}
 }

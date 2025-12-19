@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../../common/constants/routes.dart';
 import '../../../../common/models/result.dart';
 import '../models/authentication_exceptions.dart';
 
@@ -27,6 +28,25 @@ class AuthenticationRemoteDatasource {
       return Result.failure(
         AuthenticationException(message: e.message ?? 'Unknown error'),
       );
+    } on Exception catch (e) {
+      return Result.failure(AuthenticationException(message: e.toString()));
+    }
+  }
+
+  Future<Result<DocumentSnapshot, AuthenticationException>> getUserProfile(
+    String userId,
+  ) async {
+    try {
+      final userSnapshot =
+          await firebaseFirestore.collection(usersCollection).doc(userId).get();
+
+      if (!userSnapshot.exists) {
+        return Result.failure(
+          const AuthenticationException(message: 'Korisnik nije pronađen'),
+        );
+      }
+
+      return Result.success(userSnapshot);
     } on Exception catch (e) {
       return Result.failure(AuthenticationException(message: e.toString()));
     }

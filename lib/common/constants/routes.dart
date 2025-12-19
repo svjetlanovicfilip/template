@@ -9,3 +9,7 @@ class Routes {
   static const String addEditmployeesScreen = '/addEditmployeesScreen';
   static const String bookAppointment = '/book-appointment';
 }
+
+const String organizationsCollection = 'organizations';
+const String usersCollection = 'users';
+const String slotsCollection = 'slots';

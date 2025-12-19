@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../common/di/di_container.dart';
 import '../../data/models/slot.dart';
 import '../../data/repositories/calendar_repository.dart';
 
@@ -33,10 +34,8 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     ); // 2 week before
     _loadedTo = e.weekEnd.add(const Duration(days: 14)); // 2 week after
 
-    //TODO: Add organizationId and userId
     final result = await calendarRepository.fetchRangeSlots(
-      organizationId: '',
-      userId: '',
+      userId: appState.currentUser?.id ?? '',
       from: _loadedFrom,
       to: _loadedTo,
     );
@@ -67,10 +66,8 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     }
 
     _loadedTo = _loadedTo.add(Duration(days: e.days));
-    //TODO: Add organizationId and userId
     final result = await calendarRepository.fetchRangeSlots(
-      organizationId: '',
-      userId: '',
+      userId: appState.currentUser?.id ?? '',
       from: _loadedTo.add(const Duration(days: 1)),
       to: _loadedTo,
     );
@@ -96,10 +93,8 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     Emitter<SlotState> emit,
   ) async {
     _loadedFrom = _loadedFrom.subtract(Duration(days: e.days));
-    //TODO: Add organizationId and userId
     final result = await calendarRepository.fetchRangeSlots(
-      organizationId: '',
-      userId: '',
+      userId: appState.currentUser?.id ?? '',
       from: _loadedFrom,
       to: _loadedTo.subtract(const Duration(days: 1)),
     );
@@ -133,8 +128,9 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     }
 
     final isOverlapping = await calendarRepository.isSlotOverlapping(
-      e.slot.startDateTime,
-      e.slot.endDateTime!,
+      newStart: e.slot.startDateTime,
+      newEnd: e.slot.endDateTime!,
+      userId: e.userId,
     );
 
     if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
@@ -147,8 +143,7 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    // onda silently save u Firestore
-    final result = await calendarRepository.createSlot(e.slot);
+    final result = await calendarRepository.createSlot(e.slot, e.userId);
 
     if (result.isFailure) {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
@@ -176,8 +171,9 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     }
 
     final isOverlapping = await calendarRepository.isSlotOverlapping(
-      slot.startDateTime,
-      slot.endDateTime!,
+      newStart: slot.startDateTime,
+      newEnd: slot.endDateTime!,
+      userId: e.userId,
       excludeSlotId: slot.id,
     );
 
@@ -198,6 +194,6 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     emit(SlotUpdated(slot: slot));
 
     // onda silently save u Firestore
-    await calendarRepository.updateSlot(slot);
+    await calendarRepository.updateSlot(slot, e.userId);
   }
 }

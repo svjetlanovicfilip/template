@@ -1,11 +1,12 @@
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../common/constants/routes.dart';
 import '../../../../common/models/result.dart';
+import '../../../../config/style/colors.dart';
 import '../models/slot.dart';
-
-const String organizationsCollection = 'organizations';
-const String usersCollection = 'users';
-const String slotsCollection = 'slots';
 
 class CalendarRemoteDatasource {
   CalendarRemoteDatasource({required this.firebaseFirestore});
@@ -14,7 +15,6 @@ class CalendarRemoteDatasource {
 
   Future<Result<QuerySnapshot<Map<String, dynamic>>, Exception>>
   fetchRangeSlots({
-    required String organizationId,
     required String userId,
     required DateTime from,
     required DateTime to,
@@ -22,10 +22,8 @@ class CalendarRemoteDatasource {
     try {
       final slotQuerySnapshots =
           await firebaseFirestore
-              .collection(organizationsCollection)
-              .doc('HQXD4zXjkrzrNK1SCYJq')
               .collection(usersCollection)
-              .doc('mdxSNtPbH5tRFtbfU37o')
+              .doc(userId)
               .collection(slotsCollection)
               .where(
                 'startDateTime',
@@ -37,19 +35,36 @@ class CalendarRemoteDatasource {
               )
               .orderBy('startDateTime')
               .get();
-
       return Result.success(slotQuerySnapshots);
     } on Exception catch (e) {
       return Result.failure(Exception(e));
     }
   }
 
-  Future<Result<DocumentReference, Exception>> createSlot(Slot slot) async {
+  Future<Result<DocumentReference, Exception>> createSlot(
+    Slot slot,
+    String userId,
+  ) async {
     // List<Slot> slots = [];
 
-    //GENERATING TEST DATA
-    // final random = Random(42);
-    // final now = DateTime.now().add(Duration(days: 1));
+    // final titles = [
+    //   'Sisanje',
+    //   'Fade',
+    //   'Pramenovi',
+    //   'Farbanje',
+    //   'Feniranje',
+    //   'Mini val',
+    //   'Feniranje i sisanje',
+    //   'Brijanje',
+    //   'Farbanje i brijanje',
+    //   'Brijanje i sisanje',
+    // ]..shuffle();
+
+    // final startHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]..shuffle();
+
+    // // GENERATING TEST DATA
+    // final random = Random();
+    // final now = DateTime.now().add(Duration(days: 2));
     // final currentDay = DateTime(now.year, now.month, now.day);
 
     // // Generate 10 events on a single day
@@ -58,18 +73,14 @@ class CalendarRemoteDatasource {
     //   ..shuffle(random);
 
     // for (var eventIndex = 0; eventIndex < 10; eventIndex++) {
-    //   final startHour = 8 + eventIndex; // 08:00 .. 17:00
-    //   final startMinute = random.nextBool() ? 0 : 30; // :00 or :30
     //   final startDateTime = DateTime(
     //     currentDay.year,
     //     currentDay.month,
     //     currentDay.day,
-    //     startHour,
-    //     startMinute,
+    //     startHours[eventIndex],
     //   );
     //   // Duration between 30 and 120 minutes (increments of 15), never > 2h
-    //   final durationMinutes = (2 + random.nextInt(7)) * 15; // 30..120
-    //   final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
+    //   final endDateTime = startDateTime.add(Duration(minutes: 30));
 
     //   // final selectedColor = colors[eventIndex % colors.length];
     //   // final colorHex =
@@ -77,19 +88,17 @@ class CalendarRemoteDatasource {
 
     //   slots.add(
     //     Slot(
-    //       title: 'Slot ${eventIndex + 1}',
+    //       title: titles[eventIndex],
     //       startDateTime: startDateTime,
     //       endDateTime: endDateTime,
     //       color: colors[eventIndex % colors.length].toARGB32().toString(),
     //     ),
     //   );
     // }
-    // for (var s in slots) {
+    // for (final s in slots) {
     //   await firebaseFirestore
-    //       .collection(organizationsCollection)
-    //       .doc('HQXD4zXjkrzrNK1SCYJq')
     //       .collection(usersCollection)
-    //       .doc('mdxSNtPbH5tRFtbfU37o')
+    //       .doc(userId)
     //       .collection(slotsCollection)
     //       .add(s.toJson());
     // }
@@ -97,10 +106,8 @@ class CalendarRemoteDatasource {
     // throw Exception('test');
     try {
       final result = await firebaseFirestore
-          .collection(organizationsCollection)
-          .doc('HQXD4zXjkrzrNK1SCYJq')
           .collection(usersCollection)
-          .doc('mdxSNtPbH5tRFtbfU37o')
+          .doc(userId)
           .collection(slotsCollection)
           .add(slot.toJson());
 
@@ -110,13 +117,11 @@ class CalendarRemoteDatasource {
     }
   }
 
-  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
+  Future<Result<bool, Exception>> updateSlot(Slot slot, String userId) async {
     try {
       await firebaseFirestore
-          .collection(organizationsCollection)
-          .doc('HQXD4zXjkrzrNK1SCYJq')
           .collection(usersCollection)
-          .doc('mdxSNtPbH5tRFtbfU37o')
+          .doc(userId)
           .collection(slotsCollection)
           .doc(slot.id)
           .update(slot.toJson());
@@ -127,17 +132,16 @@ class CalendarRemoteDatasource {
     }
   }
 
-  Future<Result<bool, Exception>> isSlotOverlapping(
-    DateTime newStart,
-    DateTime newEnd, {
+  Future<Result<bool, Exception>> isSlotOverlapping({
+    required DateTime newStart,
+    required DateTime newEnd,
+    required String userId,
     String? excludeSlotId,
   }) async {
     final snap =
         await FirebaseFirestore.instance
-            .collection(organizationsCollection)
-            .doc('HQXD4zXjkrzrNK1SCYJq')
             .collection(usersCollection)
-            .doc('mdxSNtPbH5tRFtbfU37o')
+            .doc(userId)
             .collection(slotsCollection)
             .where('startDateTime', isLessThan: Timestamp.fromDate(newEnd))
             .where('endDateTime', isGreaterThan: Timestamp.fromDate(newStart))
