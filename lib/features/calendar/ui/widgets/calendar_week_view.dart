@@ -11,13 +11,17 @@ import '../../domain/utils/utils.dart';
 import '../screens/book_appointment_screen.dart';
 
 class CalendarWeekView extends StatelessWidget {
-  const CalendarWeekView({super.key});
+  const CalendarWeekView({required this.weekViewKey, super.key});
+
+  final GlobalKey<WeekViewState> weekViewKey;
 
   SlotBloc get _slotBloc => getIt<SlotBloc>();
 
   @override
   Widget build(BuildContext context) {
     return WeekView(
+      initialDay: weekViewKey.currentState?.currentDate ?? DateTime.now(),
+      key: weekViewKey,
       startHour: 6,
       timeLineWidth: 80,
       backgroundColor: AppColors.slate50,
@@ -106,6 +110,8 @@ class CalendarWeekView extends StatelessWidget {
       onPageChange: (date, page) {
         if (date.isAfter(DateTime.now())) {
           _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
+        } else {
+          _slotBloc.add(LoadMoreBackward(currentDisplayedDate: date));
         }
       },
       onEventTap: (events, date) {
@@ -140,6 +146,21 @@ class CalendarWeekView extends StatelessWidget {
               style: const TextStyle(color: AppColors.slate500),
             ),
           ),
+        );
+      },
+      onHeaderTitleTap: (date) async {
+        final picked = await showDatePicker(
+          context: context,
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 365)),
+          currentDate: date,
+        );
+        if (picked == null) return;
+        _slotBloc.add(JumpToDate(date: picked));
+        await weekViewKey.currentState?.animateToWeek(
+          picked,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
         );
       },
     );

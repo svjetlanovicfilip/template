@@ -11,13 +11,17 @@ import '../../domain/utils/utils.dart';
 import '../screens/book_appointment_screen.dart';
 
 class CalendarDayView extends StatelessWidget {
-  const CalendarDayView({super.key});
+  const CalendarDayView({required this.dayViewKey, super.key});
+
+  final GlobalKey<DayViewState> dayViewKey;
 
   SlotBloc get _slotBloc => getIt<SlotBloc>();
 
   @override
   Widget build(BuildContext context) {
     return DayView(
+      key: dayViewKey,
+      initialDay: dayViewKey.currentState?.currentDate ?? DateTime.now(),
       controller: CalendarControllerProvider.of(context).controller,
       startHour: 6,
       showHalfHours: true,
@@ -25,7 +29,8 @@ class CalendarDayView extends StatelessWidget {
       timeLineWidth: 80,
       verticalLineOffset: 0,
       dateStringBuilder:
-          (date, {secondaryDate}) => '${date.day}.${date.month}.${date.year}',
+          (date, {secondaryDate}) =>
+              '${formatWeekday(date.weekday - 1)} ${date.day}.${date.month}.${date.year}',
       halfHourIndicatorSettings: const HourIndicatorSettings(
         color: AppColors.slate200,
         height: 3,
@@ -123,7 +128,6 @@ class CalendarDayView extends StatelessWidget {
           ),
         );
       },
-      onEventDoubleTap: (events, date) {},
 
       onEventTap: (events, date) {
         final event = events.first;
@@ -138,6 +142,8 @@ class CalendarDayView extends StatelessWidget {
       onPageChange: (date, page) {
         if (date.isAfter(DateTime.now())) {
           _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
+        } else {
+          _slotBloc.add(LoadMoreBackward(currentDisplayedDate: date));
         }
       },
 
@@ -156,10 +162,20 @@ class CalendarDayView extends StatelessWidget {
         );
       },
 
-      onHeaderTitleTap: (date) async {},
-
-      onTimestampTap: (date) {
-        print('ontimestamptap');
+      onHeaderTitleTap: (date) async {
+        final picked = await showDatePicker(
+          context: context,
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 365)),
+          currentDate: date,
+        );
+        if (picked == null) return;
+        _slotBloc.add(JumpToDate(date: picked));
+        await dayViewKey.currentState?.animateToDate(
+          picked,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
       },
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -13,8 +15,10 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     on<LoadInitialRange>(_onInitialLoad);
     on<LoadMoreBackward>(_onLoadMoreBackward);
     on<LoadMoreForward>(_onLoadMoreForward);
+    on<JumpToDate>(_onJumpToDate);
     on<AddNewSlot>(_onAddNewSlot);
     on<UpdateSlot>(_onUpdateSlot);
+    on<DeleteSlot>(_onDeleteSlot);
   }
 
   final CalendarRepository calendarRepository;
@@ -55,6 +59,53 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     );
   }
 
+  Future<void> _onJumpToDate(JumpToDate e, Emitter<SlotState> emit) async {
+    emit(const SlotStateInitial());
+
+    late DateTime start;
+    late DateTime end;
+
+    var isForward = true;
+
+    if (e.date.isAfter(DateTime.now())) {
+      start = _loadedTo;
+      end = e.date.add(const Duration(days: 14));
+
+      //when we jump to a future date, we need to update the loadedTo date
+      _loadedTo = end;
+    } else {
+      start = e.date.subtract(const Duration(days: 14));
+      end = _loadedFrom;
+      isForward = false;
+
+      //when we jump to a past date, we need to update the loadedFrom date
+      _loadedFrom = start;
+    }
+
+    final result = await calendarRepository.fetchRangeSlots(
+      userId: appState.currentUser?.id ?? '',
+      from: start,
+      to: end,
+    );
+
+    if (result.isFailure) {
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
+      return;
+    }
+
+    isForward
+        ? _slots.addAll(result.success ?? [])
+        : _slots.insertAll(0, result.success ?? []);
+
+    emit(
+      LoadedRangeSlots(
+        slots: List.from(_slots),
+        loadedFrom: start,
+        loadedTo: end,
+      ),
+    );
+  }
+
   Future<void> _onLoadMoreForward(
     LoadMoreForward e,
     Emitter<SlotState> emit,
@@ -65,10 +116,12 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    _loadedTo = _loadedTo.add(Duration(days: e.days));
+    _loadedFrom = end.add(const Duration(days: 1));
+    _loadedTo = end.add(Duration(days: e.days));
+
     final result = await calendarRepository.fetchRangeSlots(
       userId: appState.currentUser?.id ?? '',
-      from: _loadedTo.add(const Duration(days: 1)),
+      from: _loadedFrom,
       to: _loadedTo,
     );
 
@@ -92,11 +145,21 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     LoadMoreBackward e,
     Emitter<SlotState> emit,
   ) async {
-    _loadedFrom = _loadedFrom.subtract(Duration(days: e.days));
+    final start = _loadedFrom;
+
+    if (e.currentDisplayedDate.isAfter(start.add(const Duration(days: 8)))) {
+      return;
+    }
+
+    _loadedFrom = start.subtract(Duration(days: e.days));
+
+    //situacija je obrnuta nego u forwardu, samo treba da se promeni redosljed parametara
+    //jer ucitavamo unazad, ucitavamo od pocetnog datuma do 14 dana unazad
+    //ako je ucitano do 14.01og u mjesecu, mi ucitavamo do 31.12og
     final result = await calendarRepository.fetchRangeSlots(
       userId: appState.currentUser?.id ?? '',
       from: _loadedFrom,
-      to: _loadedTo.subtract(const Duration(days: 1)),
+      to: start,
     );
 
     if (result.isFailure) {
@@ -195,5 +258,19 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
 
     // onda silently save u Firestore
     await calendarRepository.updateSlot(slot, e.userId);
+  }
+
+  Future<void> _onDeleteSlot(DeleteSlot e, Emitter<SlotState> emit) async {
+    emit(const SlotStateInitial());
+
+    _slots.removeWhere((s) => s.id == e.slotId);
+
+    emit(SlotDeleted(slotId: e.slotId));
+
+    final result = await calendarRepository.deleteSlot(e.slotId, e.userId);
+    if (result.isFailure) {
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
+      return;
+    }
   }
 }
