@@ -51,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
   CalendarTypeViewCubit get _calendarTypeViewCubit =>
       getIt<CalendarTypeViewCubit>();
 
-  SlotBloc get _slotBloc => getIt<SlotBloc>();
+  final SlotBloc _slotBloc = getIt<SlotBloc>();
+  final _dayViewKey = GlobalKey<DayViewState>();
+  final _weekViewKey = GlobalKey<WeekViewState>();
 
   @override
   void didChangeDependencies() {
@@ -65,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<SlotBloc, SlotState>(
       bloc: _slotBloc,
-
       listener: (context, state) {
         if (state is ErrorLoadingSlots) {
           ScaffoldMessenger.of(
@@ -85,6 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
             (event) => (event.event as Slot).id == state.slot.id,
           );
           CalendarControllerProvider.of(context).controller.add(updatedSlot);
+        } else if (state is SlotDeleted) {
+          CalendarControllerProvider.of(context).controller.removeWhere(
+            (event) => (event.event as Slot).id == state.slotId,
+          );
         }
       },
       builder: (context, state) {
@@ -99,9 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           appBar: CustomAppBar(
-            title: const Row(
+            title: Row(
               spacing: 8,
-              children: [LogoWidget(), Text('Tefter')],
+              children: [
+                const LogoWidget(),
+                Text(appState.userOrganization?.title ?? 'Tefter'),
+              ],
             ),
             actions: [
               GestureDetector(
@@ -162,8 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     return SliverFillRemaining(
                       child:
                           state == CalendarType.day
-                              ? const CalendarDayView()
-                              : const CalendarWeekView(),
+                              ? CalendarDayView(dayViewKey: _dayViewKey)
+                              : CalendarWeekView(weekViewKey: _weekViewKey),
                     );
                   },
                 ),

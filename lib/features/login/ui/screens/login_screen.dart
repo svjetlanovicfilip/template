@@ -36,6 +36,7 @@ class LoginScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -48,6 +49,7 @@ class LoginScreen extends StatelessWidget {
             child: CustomScrollView(
               slivers: [
                 SliverFillRemaining(
+                  hasScrollBody: false,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(

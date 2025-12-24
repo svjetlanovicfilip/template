@@ -9,6 +9,8 @@ class PrimaryButton extends StatelessWidget {
     this.icon,
     this.borderRadius,
     this.isLoading = false,
+    this.backgroundColor,
+    this.padding,
     super.key,
   });
 
@@ -17,6 +19,8 @@ class PrimaryButton extends StatelessWidget {
   final IconData? icon;
   final BorderRadius? borderRadius;
   final bool isLoading;
+  final Color? backgroundColor;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +28,10 @@ class PrimaryButton extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.amber500,
+          color: backgroundColor ?? AppColors.amber500,
           borderRadius: borderRadius,
         ),
-        padding: const EdgeInsets.all(16),
+        padding: padding ?? const EdgeInsets.all(16),
         child: Row(
           spacing: 8,
           mainAxisSize: MainAxisSize.min,
