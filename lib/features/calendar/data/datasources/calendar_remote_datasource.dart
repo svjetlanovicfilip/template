@@ -132,6 +132,24 @@ class CalendarRemoteDatasource {
     }
   }
 
+  Future<Result<bool, Exception>> deleteSlot(
+    String slotId,
+    String userId,
+  ) async {
+    try {
+      await firebaseFirestore
+          .collection(usersCollection)
+          .doc(userId)
+          .collection(slotsCollection)
+          .doc(slotId)
+          .delete();
+
+      return Result.success(true);
+    } on Exception catch (e) {
+      return Result.failure(Exception(e));
+    }
+  }
+
   Future<Result<bool, Exception>> isSlotOverlapping({
     required DateTime newStart,
     required DateTime newEnd,

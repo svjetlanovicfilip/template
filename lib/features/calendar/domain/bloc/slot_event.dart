@@ -17,8 +17,14 @@ class LoadMoreForward extends SlotEvent {
 }
 
 class LoadMoreBackward extends SlotEvent {
-  const LoadMoreBackward({this.days = 14});
+  const LoadMoreBackward({required this.currentDisplayedDate, this.days = 14});
+  final DateTime currentDisplayedDate;
   final int days;
+}
+
+class JumpToDate extends SlotEvent {
+  const JumpToDate({required this.date});
+  final DateTime date;
 }
 
 class AddNewSlot extends SlotEvent {
@@ -30,5 +36,11 @@ class AddNewSlot extends SlotEvent {
 class UpdateSlot extends SlotEvent {
   const UpdateSlot(this.slot, this.userId);
   final Slot slot;
+  final String userId;
+}
+
+class DeleteSlot extends SlotEvent {
+  const DeleteSlot(this.slotId, this.userId);
+  final String slotId;
   final String userId;
 }

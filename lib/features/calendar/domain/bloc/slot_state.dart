@@ -63,6 +63,14 @@ class SlotUpdated extends SlotState {
   List<Object?> get props => [slot];
 }
 
+class SlotDeleted extends SlotState {
+  const SlotDeleted({required this.slotId});
+
+  final String slotId;
+
+  @override
+  List<Object?> get props => [slotId];
+}
 // class SlotState extends Equatable {
 //   const SlotState({
 //     required this.slots,

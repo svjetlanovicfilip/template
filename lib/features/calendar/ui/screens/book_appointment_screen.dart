@@ -2,11 +2,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
+import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
 import '../../../login/data/models/user_model.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
+import '../widgets/time_input_field.dart';
 
 class BookAppointmentScreenArguments {
   const BookAppointmentScreenArguments({this.slot});
@@ -71,18 +73,22 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     selectedUserId = appState.currentUser?.id;
   }
 
-  String formatTimeOfDay(DateTime t) {
-    final hour = t.hour;
-    final minute = t.minute.toString().padLeft(2, '0');
-    final suffix = hour > 12 ? 'PM' : 'AM';
-    return '$hour:$minute $suffix';
-  }
-
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
     return showTimePicker(
       context: context,
       initialTime: initialTime,
-      helpText: 'Select time',
+      helpText: 'Odaberite vrijeme',
+      initialEntryMode: TimePickerEntryMode.inputOnly,
+      hourLabelText: 'Sat',
+      minuteLabelText: 'Minute',
+      confirmText: 'Potvrdi',
+      cancelText: 'Odustani',
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
     );
   }
 
@@ -211,126 +217,20 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Početak',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () async {
-                            final timeOfDay = TimeOfDay.fromDateTime(
-                              selectedStart ?? DateTime.now(),
-                            );
-                            final picked = await pickTime(timeOfDay);
-
-                            if (picked == null) return;
-
-                            selectedStart = DateTime(
-                              selectedDate.year,
-                              selectedDate.month,
-                              selectedDate.day,
-                              picked.hour,
-                              picked.minute,
-                            );
-
-                            _validateTimeRange();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: AppColors.slate200,
-                              border:
-                                  isTimeRangeValid
-                                      ? null
-                                      : Border.all(color: AppColors.red600),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  selectedStart != null
-                                      ? formatTimeOfDay(selectedStart!)
-                                      : '',
-                                  style: Theme.of(context).textTheme.labelMedium
-                                      ?.copyWith(fontWeight: FontWeight.w400),
-                                ),
-                                const Icon(
-                                  Icons.expand_more,
-                                  color: AppColors.slate800,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: TimeInputField(
+                      isTimeRangeValid: isTimeRangeValid,
+                      label: 'Početak',
+                      selectedDateTime: selectedStart,
+                      onTimeSelected: _onStartTimeSelected,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kraj',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () async {
-                            final picked = await pickTime(TimeOfDay.now());
-
-                            if (picked == null) return;
-
-                            setState(() {
-                              selectedEnd = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                picked.hour,
-                                picked.minute,
-                              );
-                            });
-
-                            _validateTimeRange();
-                          },
-
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: AppColors.slate200,
-                              border:
-                                  isTimeRangeValid
-                                      ? null
-                                      : Border.all(color: AppColors.red600),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  selectedEnd == null
-                                      ? ''
-                                      : formatTimeOfDay(selectedEnd!),
-                                  style: Theme.of(context).textTheme.labelMedium
-                                      ?.copyWith(fontWeight: FontWeight.w400),
-                                ),
-                                const Icon(
-                                  Icons.expand_more,
-                                  color: AppColors.slate800,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: TimeInputField(
+                      isTimeRangeValid: isTimeRangeValid,
+                      label: 'Kraj',
+                      selectedDateTime: selectedEnd,
+                      onTimeSelected: _onEndTimeSelected,
                     ),
                   ),
                 ],
@@ -379,21 +279,63 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: handleSubmit,
-                  child: const Text(
-                    'Potvrdi',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
+              PrimaryButton(
+                onTap: handleSubmit,
+                title: 'Potvrdi',
+                borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.all(10),
               ),
+              const SizedBox(height: 12),
+              if (isEditing)
+                PrimaryButton(
+                  onTap: handleDelete,
+                  title: 'Izbriši termin',
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: AppColors.red600,
+                  padding: const EdgeInsets.all(10),
+                ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _onStartTimeSelected() async {
+    final timeOfDay = TimeOfDay.fromDateTime(selectedStart ?? DateTime.now());
+    final picked = await pickTime(timeOfDay);
+
+    if (picked == null) return;
+
+    selectedStart = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      picked.hour,
+      picked.minute,
+    );
+
+    _validateTimeRange();
+  }
+
+  Future<void> _onEndTimeSelected() async {
+    final timeOfDay = TimeOfDay.fromDateTime(selectedEnd ?? DateTime.now());
+
+    final picked = await pickTime(timeOfDay);
+
+    if (picked == null) return;
+
+    setState(() {
+      selectedEnd = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        picked.hour,
+        picked.minute,
+      );
+    });
+
+    _validateTimeRange();
   }
 
   Future<void> handleSubmit() async {
@@ -425,6 +367,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       getIt<SlotBloc>().add(AddNewSlot(slot, selectedUserId ?? ''));
     }
 
+    Navigator.of(context).pop();
+  }
+
+  void handleDelete() {
+    getIt<SlotBloc>().add(
+      DeleteSlot(widget.args.slot?.id ?? '', selectedUserId ?? ''),
+    );
     Navigator.of(context).pop();
   }
 

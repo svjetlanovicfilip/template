@@ -53,6 +53,19 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
+  Future<Result<bool, Exception>> deleteSlot(
+    String slotId,
+    String userId,
+  ) async {
+    final result = await calendarRemoteDatasource.deleteSlot(slotId, userId);
+    if (result.isFailure) {
+      return Result.failure(result.failure as Exception);
+    }
+
+    return Result.success(result.success ?? false);
+  }
+
+  @override
   Future<Result<bool, Exception>> isSlotOverlapping({
     required DateTime newStart,
     required DateTime newEnd,
