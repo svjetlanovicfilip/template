@@ -109,9 +109,17 @@ class CalendarWeekView extends StatelessWidget {
       ),
       onPageChange: (date, page) {
         if (date.isAfter(DateTime.now())) {
-          _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
+          _slotBloc.add(
+            LoadMoreForward(
+              currentDisplayedDate: date.add(const Duration(days: 6)),
+            ),
+          );
         } else {
-          _slotBloc.add(LoadMoreBackward(currentDisplayedDate: date));
+          _slotBloc.add(
+            LoadMoreBackward(
+              currentDisplayedDate: date.subtract(const Duration(days: 6)),
+            ),
+          );
         }
       },
       onEventTap: (events, date) {
@@ -156,7 +164,6 @@ class CalendarWeekView extends StatelessWidget {
           currentDate: date,
         );
         if (picked == null) return;
-        _slotBloc.add(JumpToDate(date: picked));
         await weekViewKey.currentState?.animateToWeek(
           picked,
           duration: const Duration(milliseconds: 300),

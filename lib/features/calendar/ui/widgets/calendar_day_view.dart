@@ -170,7 +170,6 @@ class CalendarDayView extends StatelessWidget {
           currentDate: date,
         );
         if (picked == null) return;
-        _slotBloc.add(JumpToDate(date: picked));
         await dayViewKey.currentState?.animateToDate(
           picked,
           duration: const Duration(milliseconds: 300),

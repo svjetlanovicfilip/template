@@ -14,6 +14,7 @@ import '../../../../config/style/colors.dart';
 import '../../data/models/calendar_type_enum.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
+import '../modals/employee_dropdown_menu.dart';
 import '../widgets/calendar_day_view.dart';
 import '../widgets/calendar_week_view.dart';
 import 'book_appointment_screen.dart';
@@ -54,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final SlotBloc _slotBloc = getIt<SlotBloc>();
   final _dayViewKey = GlobalKey<DayViewState>();
   final _weekViewKey = GlobalKey<WeekViewState>();
+  final _filterIconKey = GlobalKey();
 
   @override
   void didChangeDependencies() {
@@ -74,22 +76,42 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(SnackBar(content: Text(state.errorMessage)));
           return;
         } else if (state is LoadedRangeSlots) {
+          final controller = CalendarControllerProvider.of(context).controller;
+
+          if (state.removedSlotIds.isNotEmpty) {
+            controller.removeWhere(
+              (event) =>
+                  state.removedSlotIds.contains((event.event as Slot).id),
+            );
+          }
+
+          if (state.changedSlotIds.isNotEmpty) {
+            for (final id in state.changedSlotIds) {
+              controller
+                ..removeWhere((event) => (event.event as Slot).id == id)
+                ..add(
+                  state.slots
+                      .firstWhere((slot) => slot.id == id)
+                      .toCalendarEventData(),
+                );
+            }
+          } else {
+            final newSlots =
+                state.slots.map((slot) => slot.toCalendarEventData()).toList();
+            controller.addAll(newSlots);
+          }
+        } else if (state is LoadedSlotsAfterUserChanged) {
           final newSlots =
               state.slots.map((slot) => slot.toCalendarEventData()).toList();
-          CalendarControllerProvider.of(context).controller.addAll(newSlots);
-        } else if (state is NewSlotAdded) {
-          final newSlot = state.slot.toCalendarEventData();
-          CalendarControllerProvider.of(context).controller.add(newSlot);
-        } else if (state is SlotUpdated) {
-          final updatedSlot = state.slot.toCalendarEventData();
-          CalendarControllerProvider.of(context).controller.removeWhere(
-            (event) => (event.event as Slot).id == state.slot.id,
-          );
-          CalendarControllerProvider.of(context).controller.add(updatedSlot);
-        } else if (state is SlotDeleted) {
-          CalendarControllerProvider.of(context).controller.removeWhere(
-            (event) => (event.event as Slot).id == state.slotId,
-          );
+
+          final controller = CalendarControllerProvider.of(context).controller;
+
+          // snapshot prevents ConcurrentModificationError
+          final oldSlots = List.of(controller.allEvents);
+
+          controller
+            ..removeAll(oldSlots)
+            ..addAll(newSlots);
         }
       },
       builder: (context, state) {
@@ -112,6 +134,30 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             actions: [
+              GestureDetector(
+                onTap:
+                    () => showEmployeeFilterMenu(
+                      context,
+                      _filterIconKey,
+                      _dayViewKey.currentState?.currentDate ??
+                          _weekViewKey.currentState?.currentDate ??
+                          DateTime.now(),
+                    ),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: const BoxDecoration(
+                    color: AppColors.slate700,
+                    shape: BoxShape.circle,
+                  ),
+                  key: _filterIconKey,
+                  child: const Icon(
+                    Icons.filter_list,
+                    size: 24,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
               GestureDetector(
                 onTap: () => context.pushNamed(Routes.settings),
                 child: Container(

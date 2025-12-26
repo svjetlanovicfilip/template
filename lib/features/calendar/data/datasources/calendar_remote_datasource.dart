@@ -13,6 +13,23 @@ class CalendarRemoteDatasource {
 
   final FirebaseFirestore firebaseFirestore;
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChanges({
+    required String userId,
+    required DateTime from,
+    required DateTime to,
+  }) =>
+      firebaseFirestore
+          .collection(usersCollection)
+          .doc(userId)
+          .collection(slotsCollection)
+          .where('startDateTime', isLessThanOrEqualTo: Timestamp.fromDate(to))
+          .where(
+            'endDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(from),
+          )
+          .orderBy('startDateTime')
+          .snapshots();
+
   Future<Result<QuerySnapshot<Map<String, dynamic>>, Exception>>
   fetchRangeSlots({
     required String userId,

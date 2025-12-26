@@ -4,10 +4,17 @@ sealed class SlotEvent {
   const SlotEvent();
 }
 
-class LoadInitialRange extends SlotEvent {
-  const LoadInitialRange(this.weekStart, this.weekEnd);
-  final DateTime weekStart;
-  final DateTime weekEnd;
+class InitListener extends SlotEvent {}
+
+class LoadSlots extends SlotEvent {
+  const LoadSlots({
+    required this.userId,
+    required this.changedSlotIds,
+    required this.removedSlotIds,
+  });
+  final String userId;
+  final List<String> changedSlotIds;
+  final List<String> removedSlotIds;
 }
 
 class LoadMoreForward extends SlotEvent {
@@ -25,6 +32,12 @@ class LoadMoreBackward extends SlotEvent {
 class JumpToDate extends SlotEvent {
   const JumpToDate({required this.date});
   final DateTime date;
+}
+
+class UserChanged extends SlotEvent {
+  const UserChanged({required this.userId, required this.currentDisplayedDate});
+  final String userId;
+  final DateTime currentDisplayedDate;
 }
 
 class AddNewSlot extends SlotEvent {

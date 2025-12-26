@@ -26,14 +26,20 @@ class LoadedRangeSlots extends SlotState {
     required this.slots,
     required this.loadedFrom,
     required this.loadedTo,
+    required this.userId,
+    required this.changedSlotIds,
+    required this.removedSlotIds,
   });
 
   final List<Slot> slots;
   final DateTime loadedFrom;
   final DateTime loadedTo;
+  final String userId;
+  final List<String> changedSlotIds;
+  final List<String> removedSlotIds;
 
   @override
-  List<Object?> get props => [slots, loadedFrom, loadedTo];
+  List<Object?> get props => [slots, loadedFrom, loadedTo, userId];
 }
 
 class ErrorLoadingSlots extends SlotState {
@@ -45,87 +51,19 @@ class ErrorLoadingSlots extends SlotState {
   List<Object?> get props => [errorMessage];
 }
 
-class NewSlotAdded extends SlotState {
-  const NewSlotAdded({required this.slot});
+class LoadedSlotsAfterUserChanged extends SlotState {
+  const LoadedSlotsAfterUserChanged({
+    required this.slots,
+    required this.userId,
+    required this.loadedFrom,
+    required this.loadedTo,
+  });
 
-  final Slot slot;
-
-  @override
-  List<Object?> get props => [slot];
-}
-
-class SlotUpdated extends SlotState {
-  const SlotUpdated({required this.slot});
-
-  final Slot slot;
-
-  @override
-  List<Object?> get props => [slot];
-}
-
-class SlotDeleted extends SlotState {
-  const SlotDeleted({required this.slotId});
-
-  final String slotId;
+  final List<Slot> slots;
+  final String userId;
+  final DateTime loadedFrom;
+  final DateTime loadedTo;
 
   @override
-  List<Object?> get props => [slotId];
+  List<Object?> get props => [slots, userId, loadedFrom, loadedTo];
 }
-// class SlotState extends Equatable {
-//   const SlotState({
-//     required this.slots,
-//     required this.loadedFrom,
-//     required this.loadedTo,
-//     required this.organizationId,
-//     required this.userId,
-//     this.errorMessage,
-//     this.isEdited = false,
-//   });
-
-//   SlotState.initial()
-//     : slots = [],
-//       loadedFrom = DateTime.now(),
-//       loadedTo = DateTime.now(),
-//       organizationId = '',
-//       userId = '',
-//       errorMessage = null,
-//       isEdited = false;
-
-//   final List<Slot> slots;
-//   final DateTime loadedFrom;
-//   final DateTime loadedTo;
-//   final String organizationId;
-//   final String userId;
-//   final String? errorMessage;
-//   final bool isEdited;
-
-//   SlotState copyWith({
-//     List<Slot>? slots,
-//     DateTime? loadedFrom,
-//     DateTime? loadedTo,
-//     String? organizationId,
-//     String? userId,
-//     String? errorMessage,
-//     bool isEdited = false,
-//   }) {
-//     return SlotState(
-//       slots: slots ?? this.slots,
-//       loadedFrom: loadedFrom ?? this.loadedFrom,
-//       loadedTo: loadedTo ?? this.loadedTo,
-//       organizationId: organizationId ?? this.organizationId,
-//       userId: userId ?? this.userId,
-//       errorMessage: errorMessage,
-//       isEdited: isEdited,
-//     );
-//   }
-
-//   @override
-//   List<Object?> get props => [
-//     slots,
-//     loadedFrom,
-//     loadedTo,
-//     organizationId,
-//     userId,
-//     errorMessage,
-//   ];
-// }
