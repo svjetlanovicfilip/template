@@ -21,9 +21,7 @@ class LoginScreen extends StatelessWidget {
       bloc: _loginBloc,
       listener: (context, state) {
         if (state.status == FormzSubmissionStatus.success) {
-          getIt<SlotBloc>().add(
-            LoadInitialRange(DateTime.now(), DateTime.now()),
-          );
+          getIt<SlotBloc>().add(InitListener());
           context.pushReplacementNamed(Routes.home);
         } else if (state.status == FormzSubmissionStatus.failure &&
             state.errorMessage != null) {

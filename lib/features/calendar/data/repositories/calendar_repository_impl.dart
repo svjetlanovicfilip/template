@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../../common/models/result.dart';
 import '../datasources/calendar_remote_datasource.dart';
 import '../models/slot.dart';
@@ -7,6 +9,19 @@ class CalendarRepositoryImpl implements CalendarRepository {
   CalendarRepositoryImpl({required this.calendarRemoteDatasource});
 
   final CalendarRemoteDatasource calendarRemoteDatasource;
+
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChanges({
+    required String userId,
+    required DateTime from,
+    required DateTime to,
+  }) {
+    return calendarRemoteDatasource.listenForNewChanges(
+      userId: userId,
+      from: from,
+      to: to,
+    );
+  }
 
   @override
   Future<Result<List<Slot>, Exception>> fetchRangeSlots({

@@ -1,8 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../../common/models/result.dart';
 import '../models/slot.dart';
 
 abstract class CalendarRepository {
   Future<Result<List<Slot>, Exception>> fetchRangeSlots({
+    required String userId,
+    required DateTime from,
+    required DateTime to,
+  });
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChanges({
     required String userId,
     required DateTime from,
     required DateTime to,

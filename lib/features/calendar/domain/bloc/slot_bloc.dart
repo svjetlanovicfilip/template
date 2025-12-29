@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../common/di/di_container.dart';
@@ -12,10 +13,11 @@ part 'slot_state.dart';
 
 class SlotBloc extends Bloc<SlotEvent, SlotState> {
   SlotBloc(this.calendarRepository) : super(const SlotStateInitial()) {
-    on<LoadInitialRange>(_onInitialLoad);
+    on<InitListener>(_onInit);
+    on<LoadSlots>(_onLoadSlots);
     on<LoadMoreBackward>(_onLoadMoreBackward);
     on<LoadMoreForward>(_onLoadMoreForward);
-    on<JumpToDate>(_onJumpToDate);
+    on<UserChanged>(_onUserChanged);
     on<AddNewSlot>(_onAddNewSlot);
     on<UpdateSlot>(_onUpdateSlot);
     on<DeleteSlot>(_onDeleteSlot);
@@ -23,158 +25,150 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
 
   final CalendarRepository calendarRepository;
 
-  final _slots = <Slot>[];
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _slotsListener;
+
+  final _usersSlots = <String, List<Slot>>{};
   DateTime _loadedFrom = DateTime.now();
   DateTime _loadedTo = DateTime.now();
 
-  Future<void> _onInitialLoad(
-    LoadInitialRange e,
-    Emitter<SlotState> emit,
-  ) async {
-    emit(const SlotStateLoading());
-
-    _loadedFrom = e.weekStart.subtract(
-      const Duration(days: 14),
-    ); // 2 week before
-    _loadedTo = e.weekEnd.add(const Duration(days: 14)); // 2 week after
-
-    final result = await calendarRepository.fetchRangeSlots(
-      userId: appState.currentUser?.id ?? '',
-      from: _loadedFrom,
-      to: _loadedTo,
-    );
-
-    if (result.isFailure) {
-      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
-      return;
-    }
-
-    _slots.addAll(result.success ?? []);
+  void _onLoadSlots(LoadSlots e, Emitter<SlotState> emit) {
+    emit(const SlotStateInitial());
     emit(
       LoadedRangeSlots(
-        slots: List.from(_slots),
+        slots: List.from(_usersSlots[e.userId] ?? []),
         loadedFrom: _loadedFrom,
         loadedTo: _loadedTo,
+        userId: e.userId,
+        changedSlotIds: e.changedSlotIds,
+        removedSlotIds: e.removedSlotIds,
       ),
     );
   }
 
-  Future<void> _onJumpToDate(JumpToDate e, Emitter<SlotState> emit) async {
-    emit(const SlotStateInitial());
+  Future<void> _onInit(InitListener e, Emitter<SlotState> emit) async {
+    emit(const SlotStateLoading());
 
-    late DateTime start;
-    late DateTime end;
+    final userId = appState.currentSelectedUserId ?? '';
 
-    var isForward = true;
+    _loadedFrom = DateTime.now().subtract(const Duration(days: 14));
+    _loadedTo = DateTime.now().add(const Duration(days: 14));
 
-    if (e.date.isAfter(DateTime.now())) {
-      start = _loadedTo;
-      end = e.date.add(const Duration(days: 14));
+    _attachSlotsListener(userId);
+  }
 
-      //when we jump to a future date, we need to update the loadedTo date
-      _loadedTo = end;
-    } else {
-      start = e.date.subtract(const Duration(days: 14));
-      end = _loadedFrom;
-      isForward = false;
+  void _attachSlotsListener(String userId) {
+    _slotsListener?.cancel();
+    _slotsListener = calendarRepository
+        .listenForNewChanges(userId: userId, from: _loadedFrom, to: _loadedTo)
+        .listen((snapshot) {
+          final changedSlotIds = <String>[];
+          final removedSlotIds = <String>[];
 
-      //when we jump to a past date, we need to update the loadedFrom date
-      _loadedFrom = start;
+          for (final change in snapshot.docChanges) {
+            final id = change.doc.id;
+            final slot = Slot.fromJson(change.doc.data() ?? {}, id);
+
+            switch (change.type) {
+              case DocumentChangeType.added:
+              case DocumentChangeType.modified:
+                _usersSlots[userId] ??= [];
+                final index = _usersSlots[userId]!.indexWhere(
+                  (s) => s.id == slot.id,
+                );
+                if (index >= 0) {
+                  _usersSlots[userId]![index] = slot;
+                  changedSlotIds.add(id);
+                } else {
+                  _usersSlots[userId]!.add(slot);
+                }
+
+                break;
+              case DocumentChangeType.removed:
+                _usersSlots[userId]?.removeWhere((s) => s.id == id);
+                removedSlotIds.add(id);
+                break;
+            }
+          }
+
+          add(
+            LoadSlots(
+              userId: userId,
+              changedSlotIds: changedSlotIds,
+              removedSlotIds: removedSlotIds,
+            ),
+          );
+        });
+  }
+
+  void _extendListenerRange(
+    String userId, {
+    DateTime? newFrom,
+    DateTime? newTo,
+  }) {
+    var shouldExtend = false;
+
+    if (newFrom != null && newFrom.isBefore(_loadedFrom)) {
+      _loadedFrom = newFrom;
+      shouldExtend = true;
     }
 
-    final result = await calendarRepository.fetchRangeSlots(
-      userId: appState.currentUser?.id ?? '',
-      from: start,
-      to: end,
-    );
-
-    if (result.isFailure) {
-      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
-      return;
+    if (newTo != null && newTo.isAfter(_loadedTo)) {
+      _loadedTo = newTo;
+      shouldExtend = true;
     }
 
-    isForward
-        ? _slots.addAll(result.success ?? [])
-        : _slots.insertAll(0, result.success ?? []);
+    if (shouldExtend) {
+      _attachSlotsListener(userId);
+    }
+  }
 
+  Future<void> _onUserChanged(UserChanged e, Emitter<SlotState> emit) async {
     emit(
-      LoadedRangeSlots(
-        slots: List.from(_slots),
-        loadedFrom: start,
-        loadedTo: end,
+      LoadedSlotsAfterUserChanged(
+        slots: List.from(_usersSlots[e.userId] ?? []),
+        loadedFrom: e.currentDisplayedDate.subtract(const Duration(days: 14)),
+        loadedTo: e.currentDisplayedDate.add(const Duration(days: 14)),
+        userId: e.userId,
       ),
     );
+
+    appState.currentSelectedUserId = e.userId;
+
+    _loadedFrom = e.currentDisplayedDate.subtract(const Duration(days: 14));
+    _loadedTo = e.currentDisplayedDate.add(const Duration(days: 14));
+
+    _attachSlotsListener(e.userId);
   }
 
   Future<void> _onLoadMoreForward(
     LoadMoreForward e,
     Emitter<SlotState> emit,
   ) async {
+    final userId = appState.currentSelectedUserId ?? '';
+
     final end = _loadedTo;
 
     if (end.subtract(const Duration(days: 8)).isAfter(e.currentDisplayedDate)) {
       return;
     }
 
-    _loadedFrom = end.add(const Duration(days: 1));
-    _loadedTo = end.add(Duration(days: e.days));
-
-    final result = await calendarRepository.fetchRangeSlots(
-      userId: appState.currentUser?.id ?? '',
-      from: _loadedFrom,
-      to: _loadedTo,
-    );
-
-    if (result.isFailure) {
-      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
-      return;
-    }
-
-    _slots.addAll(result.success ?? []);
-
-    emit(
-      LoadedRangeSlots(
-        slots: List.from(_slots),
-        loadedFrom: _loadedFrom,
-        loadedTo: _loadedTo,
-      ),
-    );
+    _extendListenerRange(userId, newTo: end.add(Duration(days: e.days)));
   }
 
   Future<void> _onLoadMoreBackward(
     LoadMoreBackward e,
     Emitter<SlotState> emit,
   ) async {
+    final userId = appState.currentSelectedUserId ?? '';
     final start = _loadedFrom;
 
     if (e.currentDisplayedDate.isAfter(start.add(const Duration(days: 8)))) {
       return;
     }
 
-    _loadedFrom = start.subtract(Duration(days: e.days));
-
-    //situacija je obrnuta nego u forwardu, samo treba da se promeni redosljed parametara
-    //jer ucitavamo unazad, ucitavamo od pocetnog datuma do 14 dana unazad
-    //ako je ucitano do 14.01og u mjesecu, mi ucitavamo do 31.12og
-    final result = await calendarRepository.fetchRangeSlots(
-      userId: appState.currentUser?.id ?? '',
-      from: _loadedFrom,
-      to: start,
-    );
-
-    if (result.isFailure) {
-      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
-      return;
-    }
-
-    _slots.insertAll(0, result.success ?? []);
-
-    emit(
-      LoadedRangeSlots(
-        slots: List.from(_slots),
-        loadedFrom: _loadedFrom,
-        loadedTo: _loadedTo,
-      ),
+    _extendListenerRange(
+      userId,
+      newFrom: start.subtract(Duration(days: e.days)),
     );
   }
 
@@ -212,11 +206,6 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;
     }
-
-    final slot = e.slot.copyWith(id: result.success);
-
-    _slots.add(slot);
-    emit(NewSlotAdded(slot: slot));
   }
 
   Future<void> _onUpdateSlot(UpdateSlot e, Emitter<SlotState> emit) async {
@@ -250,23 +239,10 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    _slots
-      ..removeWhere((s) => s.id == slot.id)
-      ..add(slot);
-
-    emit(SlotUpdated(slot: slot));
-
-    // onda silently save u Firestore
     await calendarRepository.updateSlot(slot, e.userId);
   }
 
   Future<void> _onDeleteSlot(DeleteSlot e, Emitter<SlotState> emit) async {
-    emit(const SlotStateInitial());
-
-    _slots.removeWhere((s) => s.id == e.slotId);
-
-    emit(SlotDeleted(slotId: e.slotId));
-
     final result = await calendarRepository.deleteSlot(e.slotId, e.userId);
     if (result.isFailure) {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));

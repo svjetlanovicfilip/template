@@ -124,6 +124,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     appState
       ..currentUser = userProfile.success!
+      ..currentSelectedUserId = userProfile.success!.id
       ..organizationId = userProfile.success!.organizationId
       ..userOrganization = organization.success;
 

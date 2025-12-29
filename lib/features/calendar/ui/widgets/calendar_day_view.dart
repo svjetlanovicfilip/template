@@ -65,6 +65,9 @@ class CalendarDayView extends StatelessWidget {
       },
 
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
+        var isEventLessThan20Minutes = false;
+        var canFitHeightForTime = false;
+
         String fmt(int v) => v.toString().padLeft(2, '0');
         final startStr =
             '${fmt(startDuration.hour)}:${fmt(startDuration.minute)}';
@@ -89,16 +92,20 @@ class CalendarDayView extends StatelessWidget {
         const double verticalPadding = 4;
         const double verticalSpacing = 4;
 
-        // Available sizes inside the tile (content box)
-        final contentHeight = boundary.height - verticalPadding;
+        if (endDuration.difference(startDuration).inMinutes <= 20) {
+          isEventLessThan20Minutes = true;
+        } else {
+          // Available sizes inside the tile (content box)
+          final eventHeight = boundary.shortestSide - verticalPadding;
 
-        // Title: always render, single line
-        final titleHeight = textSize(title, titleStyle).height;
-        final timeHeight = textSize(timeRange, timeStyle).height;
+          // Title: always render, single line
+          final titleHeight = textSize(title, titleStyle).height;
+          final timeHeight = textSize(timeRange, timeStyle).height;
 
-        // Check vertical fit for time: it must fit under title (with spacing)
-        final canFitHeightForTime =
-            contentHeight >= titleHeight + verticalSpacing + timeHeight;
+          // Check vertical fit for time: it must fit under title (with spacing)
+          canFitHeightForTime =
+              eventHeight > (titleHeight + verticalSpacing + timeHeight + 10);
+        }
 
         return Container(
           decoration: BoxDecoration(
@@ -113,16 +120,18 @@ class CalendarDayView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: titleStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-              ),
-              if (canFitHeightForTime) ...[
-                const SizedBox(height: verticalSpacing),
-                Text(timeRange, maxLines: 1, style: timeStyle),
+              if (!isEventLessThan20Minutes) ...[
+                Text(
+                  title,
+                  style: titleStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                ),
+                if (canFitHeightForTime) ...[
+                  const SizedBox(height: verticalSpacing),
+                  Text(timeRange, maxLines: 1, style: timeStyle),
+                ],
               ],
             ],
           ),
@@ -165,12 +174,15 @@ class CalendarDayView extends StatelessWidget {
       onHeaderTitleTap: (date) async {
         final picked = await showDatePicker(
           context: context,
-          firstDate: DateTime.now(),
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
           lastDate: DateTime.now().add(const Duration(days: 365)),
           currentDate: date,
+          confirmText: 'Potvrdi',
+          cancelText: 'Odustani',
+          initialDate: date,
+          helpText: 'Odaberi datum',
         );
         if (picked == null) return;
-        _slotBloc.add(JumpToDate(date: picked));
         await dayViewKey.currentState?.animateToDate(
           picked,
           duration: const Duration(milliseconds: 300),

@@ -47,6 +47,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime initialDate = DateTime.now();
   String? selectedUserId;
   bool isEditing = false;
+  bool isFormSubmitted = false;
 
   bool isTimeRangeValid = true;
   bool isTitleValid = true;
@@ -70,7 +71,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     selectedDate = widget.args.slot?.startDateTime ?? DateTime.now();
     titleController = TextEditingController(text: widget.args.slot?.title);
     _employees = appState.organizationUsers;
-    selectedUserId = appState.currentUser?.id;
+    selectedUserId = appState.currentSelectedUserId;
   }
 
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
@@ -105,17 +106,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Zaposleni',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+              if (appState.currentUser?.role == 'ORG_OWNER' && !isEditing) ...[
+                Text(
+                  'Zaposleni',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              if (appState.currentUser?.role == 'ORG_OWNER')
+                const SizedBox(height: 8),
                 DropdownButtonFormField<UserModel>(
                   initialValue: _employees.firstWhere(
-                    (employee) => employee.id == appState.currentUser?.id,
+                    (employee) => employee.id == appState.currentSelectedUserId,
                   ),
                   isExpanded: true,
                   borderRadius: BorderRadius.circular(12),
@@ -149,6 +150,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   onChanged:
                       (value) => setState(() => selectedUserId = value?.id),
                 ),
+              ],
               const SizedBox(height: 20),
               Text(
                 'Datum',
@@ -165,6 +167,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     firstDate: initialDate,
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                     currentDate: selectedDate,
+                    confirmText: 'Potvrdi',
+                    cancelText: 'Odustani',
+                    initialDate: initialDate,
+                    helpText: 'Odaberi datum',
                   );
 
                   if (picked != null) {
@@ -339,6 +345,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<void> handleSubmit() async {
+    setState(() {
+      isFormSubmitted = true;
+    });
+
     _validateTimeRange();
 
     final title = titleController.text.trim();
@@ -378,6 +388,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   void _validateTimeRange() {
+    if (!isFormSubmitted) return;
+
     if (selectedStart == null || selectedEnd == null) {
       setState(() {
         isTimeRangeValid = false;

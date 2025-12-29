@@ -4,6 +4,7 @@ import '../../features/organization/data/models/organization.dart';
 class AppState {
   String? organizationId;
   UserModel? currentUser;
+  String? currentSelectedUserId;
   List<UserModel> _organizationUsers = [];
   Organization? userOrganization;
 
