@@ -47,6 +47,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime initialDate = DateTime.now();
   String? selectedUserId;
   bool isEditing = false;
+  bool isFormSubmitted = false;
 
   bool isTimeRangeValid = true;
   bool isTitleValid = true;
@@ -166,6 +167,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     firstDate: initialDate,
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                     currentDate: selectedDate,
+                    confirmText: 'Potvrdi',
+                    cancelText: 'Odustani',
+                    initialDate: initialDate,
+                    helpText: 'Odaberi datum',
                   );
 
                   if (picked != null) {
@@ -340,6 +345,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<void> handleSubmit() async {
+    setState(() {
+      isFormSubmitted = true;
+    });
+
     _validateTimeRange();
 
     final title = titleController.text.trim();
@@ -379,6 +388,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   void _validateTimeRange() {
+    if (!isFormSubmitted) return;
+
     if (selectedStart == null || selectedEnd == null) {
       setState(() {
         isTimeRangeValid = false;

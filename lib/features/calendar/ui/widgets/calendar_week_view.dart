@@ -54,24 +54,28 @@ class CalendarWeekView extends StatelessWidget {
         );
       },
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
+        var isEventLessThan30Minutes = false;
+        var lines = 1;
+        const double padding = 2;
         final title = events.first.title;
         final color = events.first.color;
-
         const titleStyle = TextStyle(color: AppColors.white, fontSize: 12);
 
-        const double padding = 2;
+        final duration = endDuration.difference(startDuration);
 
-        final contentHeight = boundary.height - (padding * 2);
-        final titleHeight = textSize(title, titleStyle, maxLines: 3).height;
+        if (duration.inMinutes >= 30) {
+          final contentHeight = boundary.height - (padding * 2);
+          final titleHeight = textSize(title, titleStyle, maxLines: 3).height;
 
-        var lines = 1;
-
-        if (contentHeight >= titleHeight * 3) {
-          lines = 3;
-        } else if (contentHeight >= titleHeight * 2) {
-          lines = 2;
+          if (contentHeight >= titleHeight * 3) {
+            lines = 3;
+          } else if (contentHeight >= titleHeight * 2) {
+            lines = 2;
+          } else {
+            lines = 1;
+          }
         } else {
-          lines = 1;
+          isEventLessThan30Minutes = true;
         }
 
         return Container(
@@ -81,18 +85,16 @@ class CalendarWeekView extends StatelessWidget {
           ),
           margin: const EdgeInsets.symmetric(vertical: padding),
           padding: const EdgeInsets.all(padding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: titleStyle,
-                maxLines: lines,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-              ),
-            ],
-          ),
+          child:
+              isEventLessThan30Minutes
+                  ? const SizedBox.shrink()
+                  : Text(
+                    title,
+                    style: titleStyle,
+                    maxLines: lines,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
         );
       },
       headerStyle: HeaderStyle(
@@ -159,9 +161,13 @@ class CalendarWeekView extends StatelessWidget {
       onHeaderTitleTap: (date) async {
         final picked = await showDatePicker(
           context: context,
-          firstDate: DateTime.now(),
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
           lastDate: DateTime.now().add(const Duration(days: 365)),
           currentDate: date,
+          confirmText: 'Potvrdi',
+          cancelText: 'Odustani',
+          initialDate: date,
+          helpText: 'Odaberi datum',
         );
         if (picked == null) return;
         await weekViewKey.currentState?.animateToWeek(
