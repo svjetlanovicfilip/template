@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common/constants/routes.dart';
+import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
+import '../../../login/data/models/user_model.dart';
 
 class EmployeesScreen extends StatefulWidget {
   const EmployeesScreen({super.key});
@@ -13,32 +16,14 @@ class EmployeesScreen extends StatefulWidget {
 
 class _EmployeesScreenState extends State<EmployeesScreen> {
   // Dummy podaci
-  final List<String> _employees = [
-    'Milan Tukić',
-    'Ana Jovanović',
-    'Petar Petrović',
-    'Jovana Marković',
-    'Nikola Nikolić',
-    'Marija Maric',
-    'Milan Tukić',
-    'Ana Jovanović',
-    'Petar Petrović',
-    'Jovana Marković',
-    'Nikola Nikolić',
-    'Marija Maric',
-    'Milan Tukić',
-    'Ana Jovanović',
-    'Petar Petrović',
-    'Jovana Marković',
-    'Nikola Nikolić',
-    'Marija Maric',
-    'Milan Tukić',
-    'Ana Jovanović',
-    'Petar Petrović',
-    'Jovana Marković',
-    'Nikola Nikolić',
-    'Marija Maric',
-  ];
+
+  late List<UserModel> _employees;
+
+  @override
+  void initState() {
+    super.initState();
+     _employees = appState.organizationUsers;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,28 +38,17 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
         borderRadius: BorderRadius.circular(30),
       ),
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          color: Colors.white,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text('Zaposleni', style: TextStyle(color: Colors.white)),
-        centerTitle: false,
-      ),
+      appBar: const CustomAppBar(title: Text('Zaposleni')),
       body: SafeArea(
         child: ListView.separated(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // <-- bottom veći
           itemCount: _employees.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
-            final name = _employees[index];
+            final user = _employees[index];
+            final fullName = '${user.name ?? ''} ${user.surname ?? ''}'.trim();
             return _EmployeeItem(
-              name: name,
+              name: fullName.isEmpty ? '' : fullName,
               onDelete: () {
                 showDeleteDialog(context);
                 // setState(() {
