@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common/constants/routes.dart';
+import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../authentication/domain/bloc/authentication_bloc.dart';
+import '../../../calendar/domain/bloc/slot_bloc.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -60,6 +64,14 @@ class SettingsScreen extends StatelessWidget {
               _SettingsDivider(),
 
               _SettingsMenuItem(
+                label: 'Cjenovnik',
+                onTap: () {
+                  context.pushNamed(Routes.serviceListScreen);
+                },
+              ),
+              _SettingsDivider(),
+
+              _SettingsMenuItem(
                 label: 'Promjena lozinke',
                 onTap: () {
                   context.pushNamed(Routes.changePasswordScreen);
@@ -84,6 +96,14 @@ class SettingsScreen extends StatelessWidget {
 }
 
 Future<bool> showLogoutDialog(BuildContext context) async {
+  void logout() {
+    getIt<AuthenticationBloc>().add(AuthenticationLogoutRequested());
+    appState.clearState();
+    getIt<SlotBloc>().clearState();
+    getIt<ServiceBloc>().clearState();
+    context.pushReplacementNamed(Routes.login);
+  }
+
   final result = await showDialog<bool>(
     context: context,
     builder: (context) {
@@ -112,12 +132,7 @@ Future<bool> showLogoutDialog(BuildContext context) async {
                 child: const Text('Odustani'),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text('Odjavi se'),
-              ),
+              ElevatedButton(onPressed: logout, child: const Text('Odjavi se')),
             ],
           ),
         ],

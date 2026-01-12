@@ -8,3 +8,5 @@ sealed class AuthenticationEvent extends Equatable {
 }
 
 final class AuthenticationCheckRequested extends AuthenticationEvent {}
+
+final class AuthenticationLogoutRequested extends AuthenticationEvent {}

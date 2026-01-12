@@ -26,9 +26,4 @@ class LoginRepositoryImpl extends LoginRepository {
       return Result.failure(result.failure as LoginException);
     }
   }
-
-  @override
-  Future<void> logout() async {
-    // TODO: implement logout
-  }
 }

@@ -33,4 +33,7 @@ class AuthenticationRepositoryImpl extends AuthenticationRepository {
       ),
     );
   }
+
+  @override
+  Future<void> logout() async => authenticationRemoteDatasource.logout();
 }
