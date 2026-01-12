@@ -13,4 +13,12 @@ class AppState {
   void setOrganizationUsers(List<UserModel> users) {
     _organizationUsers = users;
   }
+
+  void clearState() {
+    organizationId = null;
+    currentUser = null;
+    currentSelectedUserId = null;
+    _organizationUsers = [];
+    userOrganization = null;
+  }
 }

@@ -22,6 +22,10 @@ import '../../features/settings/data/datasources/add_user_remote_datasource.dart
 import '../../features/settings/data/repositories/user_repository.dart';
 import '../../features/settings/data/repositories/user_repository_impl.dart';
 import '../../features/settings/domain/bloc/user_bloc.dart';
+import '../../features/service/data/datasources/service_remote_datasource.dart';
+import '../../features/service/data/repositories/service_repository.dart';
+import '../../features/service/data/repositories/service_repository_impl.dart';
+import '../../features/service/domain/bloc/service_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
 
@@ -52,11 +56,17 @@ void setupDependencies() {
     ..registerSingleton<CalendarRemoteDatasource>(
       CalendarRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
-      ..registerSingleton<AddUserRemoteDatasource>(
-      AddUserRemoteDatasource(functions: firebaseFunc, firebaseAuth: firebaseAuth),
+    ..registerSingleton<AddUserRemoteDatasource>(
+      AddUserRemoteDatasource(
+        functions: firebaseFunc,
+        firebaseAuth: firebaseAuth,
+      ),
     )
     ..registerSingleton<OrganizationRemoteDatasource>(
       OrganizationRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
+    ..registerSingleton<ServiceRemoteDatasource>(
+      ServiceRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
     //repositories
     ..registerSingleton<LoginRepository>(
@@ -75,19 +85,22 @@ void setupDependencies() {
       ),
     )
     ..registerSingleton<UserRepository>(
-      UserRepositoryImpl(
-        remote: getIt<AddUserRemoteDatasource>(),
-      ),
+      UserRepositoryImpl(remote: getIt<AddUserRemoteDatasource>()),
     )
     ..registerSingleton<OrganizationRepository>(
       OrganizationRepositoryImpl(
         organizationRemoteDatasource: getIt<OrganizationRemoteDatasource>(),
       ),
     )
+    ..registerSingleton<ServiceRepository>(
+      ServiceRepositoryImpl(
+        serviceRemoteDatasource: getIt<ServiceRemoteDatasource>(),
+      ),
+    )
     //cubits
     ..registerLazySingleton<CalendarTypeViewCubit>(CalendarTypeViewCubit.new)
     //blocs
-    ..registerLazySingleton<LoginBloc>(
+    ..registerFactory<LoginBloc>(
       () => LoginBloc(
         loginRepository: getIt<LoginRepository>(),
         authenticationRepository: getIt<AuthenticationRepository>(),
@@ -100,13 +113,11 @@ void setupDependencies() {
         organizationRepository: getIt<OrganizationRepository>(),
       ),
     )
-
-     ..registerLazySingleton<UserBloc>(
-      () => UserBloc(getIt<UserRepository>()),
-    )
-
+    ..registerLazySingleton<UserBloc>(() => UserBloc(getIt<UserRepository>()))
     ..registerLazySingleton<SlotBloc>(
       () => SlotBloc(getIt<CalendarRepository>()),
+    )
+    ..registerLazySingleton<ServiceBloc>(
+      () => ServiceBloc(getIt<ServiceRepository>()),
     );
-    
 }

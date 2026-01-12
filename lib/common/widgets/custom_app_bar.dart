@@ -7,12 +7,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.leading,
     this.actions,
+    this.automaticallyImplyLeading = true,
     super.key,
   });
 
   final Widget title;
   final Widget? leading;
   final List<Widget>? actions;
+  final bool automaticallyImplyLeading;
 
   @override
   Size get preferredSize => Size.fromHeight(AppBar().preferredSize.height);
@@ -20,6 +22,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: automaticallyImplyLeading,
       backgroundColor: AppColors.slate900,
       foregroundColor: AppColors.white,
       elevation: 0,

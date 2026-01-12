@@ -7,13 +7,19 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../../domain/bloc/login_bloc.dart';
 import '../widgets/login_form.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  LoginBloc get _loginBloc => getIt<LoginBloc>();
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  late final LoginBloc _loginBloc = getIt<LoginBloc>();
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +28,7 @@ class LoginScreen extends StatelessWidget {
       listener: (context, state) {
         if (state.status == FormzSubmissionStatus.success) {
           getIt<SlotBloc>().add(InitListener());
+          getIt<ServiceBloc>().add(InitServiceListener());
           context.pushReplacementNamed(Routes.home);
         } else if (state.status == FormzSubmissionStatus.failure &&
             state.errorMessage != null) {
@@ -83,7 +90,7 @@ class LoginScreen extends StatelessWidget {
 
                         const SizedBox(height: 32),
 
-                        const LoginForm(),
+                        LoginForm(loginBloc: _loginBloc),
                       ],
                     ),
                   ),

@@ -13,6 +13,8 @@ class AppColors {
 
   // Brand - Amber
   static const Color amber50 = Color(0xFFFFFBEB);
+  static const Color amber200 = Color(0xFFFFE5B4);
+  static const Color amber300 = Color(0xFFFFE8A6);
   static const Color amber400 = Color(0xFFFBBF24);
   static const Color amber500 = Color(0xFFF59E0B);
   static const Color amber600 = Color(0xFFD97706);

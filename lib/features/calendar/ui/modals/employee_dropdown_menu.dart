@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../common/di/di_container.dart';
 import '../../../../config/style/colors.dart';
-import '../../domain/bloc/slot_bloc.dart';
 
 Future<void> showEmployeeFilterMenu(
   BuildContext context,
   GlobalKey filterIconKey,
-  DateTime currentDisplayedDate,
+  Function(String) onSelected,
 ) async {
   final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final box = filterIconKey.currentContext?.findRenderObject() as RenderBox?;
@@ -75,8 +74,6 @@ Future<void> showEmployeeFilterMenu(
   );
 
   if (result != null) {
-    getIt<SlotBloc>().add(
-      UserChanged(userId: result, currentDisplayedDate: currentDisplayedDate),
-    );
+    onSelected(result);
   }
 }

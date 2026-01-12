@@ -51,4 +51,12 @@ class AuthenticationRemoteDatasource {
       return Result.failure(AuthenticationException(message: e.toString()));
     }
   }
+
+  Future<void> logout() async {
+    try {
+      await firebaseAuth.signOut();
+    } on Exception catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 }

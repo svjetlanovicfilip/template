@@ -34,6 +34,11 @@ class JumpToDate extends SlotEvent {
   final DateTime date;
 }
 
+class LoadMore extends SlotEvent {
+  const LoadMore({required this.date});
+  final DateTime date;
+}
+
 class UserChanged extends SlotEvent {
   const UserChanged({required this.userId, required this.currentDisplayedDate});
   final String userId;

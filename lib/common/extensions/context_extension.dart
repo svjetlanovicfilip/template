@@ -11,7 +11,7 @@ extension ContextExtension on BuildContext {
     _router.pushNamed(name, arguments: arguments);
   }
 
-  void pop() {
-    _router.pop();
+  void pop({Object? result}) {
+    _router.pop(result);
   }
 }

@@ -15,6 +15,7 @@ class AuthenticationBloc
     required this.organizationRepository,
   }) : super(const AuthenticationState()) {
     on<AuthenticationCheckRequested>(_onAuthenticationCheckRequested);
+    on<AuthenticationLogoutRequested>(_onAuthenticationLogoutRequested);
   }
 
   final AuthenticationRepository authenticationRepository;
@@ -71,5 +72,13 @@ class AuthenticationBloc
     }
 
     emit(state.copyWith(status: AuthenticationStatus.authenticated));
+  }
+
+  Future<void> _onAuthenticationLogoutRequested(
+    AuthenticationLogoutRequested event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    await authenticationRepository.logout();
+    emit(state.copyWith(status: AuthenticationStatus.unauthenticated));
   }
 }

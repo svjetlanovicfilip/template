@@ -10,4 +10,6 @@ abstract class AuthenticationRepository {
   Future<Result<UserModel, AuthenticationException>> getUserProfile(
     String userId,
   );
+
+  Future<void> logout();
 }

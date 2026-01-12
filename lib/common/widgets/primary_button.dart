@@ -11,6 +11,7 @@ class PrimaryButton extends StatelessWidget {
     this.isLoading = false,
     this.backgroundColor,
     this.padding,
+    this.width,
     super.key,
   });
 
@@ -21,12 +22,14 @@ class PrimaryButton extends StatelessWidget {
   final bool isLoading;
   final Color? backgroundColor;
   final EdgeInsetsGeometry? padding;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Container(
+        width: width,
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.amber500,
           borderRadius: borderRadius,

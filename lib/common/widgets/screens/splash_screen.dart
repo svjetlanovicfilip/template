@@ -6,6 +6,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import '../../../features/authentication/domain/bloc/authentication_bloc.dart';
 import '../../../features/calendar/domain/bloc/slot_bloc.dart';
 import '../../../features/calendar/ui/screens/home_screen.dart';
+import '../../../features/service/domain/bloc/service_bloc.dart';
 import '../../constants/routes.dart';
 import '../../di/di_container.dart';
 import '../../extensions/context_extension.dart';
@@ -37,6 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
           listener: (context, state) {
             if (state.status == AuthenticationStatus.authenticated) {
               getIt<SlotBloc>().add(InitListener());
+              getIt<ServiceBloc>().add(InitServiceListener());
             } else {
               Future.delayed(const Duration(seconds: 1), () {
                 context.pushReplacementNamed(Routes.login);
