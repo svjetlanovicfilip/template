@@ -18,7 +18,7 @@ dependencies:
   equatable: ^2.0.5
   dio: ^5.8.0+1
   calendar_view: ^1.4.0
-  firebase_core: ^4.2.1
+  firebase_core: ^4.3.0
   cloud_firestore: ^6.1.0
   firebase_auth: ^6.1.2
   formz: ^0.8.0
@@ -27,6 +27,8 @@ dependencies:
   flutter_native_splash: ^2.4.6
   flutter_svg: ^2.0.9
   animated_text_kit: ^4.3.0
+  cloud_functions: ^6.0.5
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

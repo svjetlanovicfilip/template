@@ -1,7 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../../../../common/constants/routes.dart';
 import '../../../../common/extensions/context_extension.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../../common/widgets/custom_app_bar.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -10,35 +16,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          color: Colors.white,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text(
-          'Vaša podešavanja',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: false,
-        // actions: [
-        //   TextButton(
-        //     onPressed: () {
-        //       // TODO: ovdje dodaj logout logiku
-        //     },
-        //     child: const Text(
-        //       'Odjavite se',
-        //       style: TextStyle(
-        //         color: Colors.white,
-        //       ),
-        //     ),
-        //   ),
-        // ],
-      ),
+      appBar: const CustomAppBar(title: Text('Vaša podešavanja')),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -50,26 +28,13 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               _SettingsDivider(),
-
-              _SettingsMenuItem(
-                label: 'Postavite vaš naziv',
-                onTap: () {
-                  context.pushNamed(Routes.changeTitleScreen);
-                },
-              ),
-              _SettingsDivider(),
-
-              _SettingsMenuItem(
-                label: 'Promjena lozinke',
-                onTap: () {
-                  context.pushNamed(Routes.changePasswordScreen);
-                },
-              ),
-              _SettingsDivider(),
-
               _SettingsMenuItem(
                 label: 'Odjavite se',
-                onTap: () {
+                onTap: () async {
+                  // final confirm = await showLogoutDialog(context);
+                  // if (confirm) {
+                  //   // logout logika
+                  // }
                   showLogoutDialog(context);
                   // TODO: Test
                 },
