@@ -17,6 +17,10 @@ import '../../features/login/domain/bloc/login_bloc.dart';
 import '../../features/organization/data/datasources/organization_remote_datasource.dart';
 import '../../features/organization/data/repositories/organization_repository.dart';
 import '../../features/organization/data/repositories/organization_repository_impl.dart';
+import '../../features/service/data/datasources/service_remote_datasource.dart';
+import '../../features/service/data/repositories/service_repository.dart';
+import '../../features/service/data/repositories/service_repository_impl.dart';
+import '../../features/service/domain/bloc/service_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
 
@@ -49,6 +53,9 @@ void setupDependencies() {
     ..registerSingleton<OrganizationRemoteDatasource>(
       OrganizationRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
+    ..registerSingleton<ServiceRemoteDatasource>(
+      ServiceRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
     //repositories
     ..registerSingleton<LoginRepository>(
       LoginRepositoryImpl(
@@ -70,10 +77,15 @@ void setupDependencies() {
         organizationRemoteDatasource: getIt<OrganizationRemoteDatasource>(),
       ),
     )
+    ..registerSingleton<ServiceRepository>(
+      ServiceRepositoryImpl(
+        serviceRemoteDatasource: getIt<ServiceRemoteDatasource>(),
+      ),
+    )
     //cubits
     ..registerLazySingleton<CalendarTypeViewCubit>(CalendarTypeViewCubit.new)
     //blocs
-    ..registerLazySingleton<LoginBloc>(
+    ..registerFactory<LoginBloc>(
       () => LoginBloc(
         loginRepository: getIt<LoginRepository>(),
         authenticationRepository: getIt<AuthenticationRepository>(),
@@ -88,5 +100,8 @@ void setupDependencies() {
     )
     ..registerLazySingleton<SlotBloc>(
       () => SlotBloc(getIt<CalendarRepository>()),
+    )
+    ..registerLazySingleton<ServiceBloc>(
+      () => ServiceBloc(getIt<ServiceRepository>()),
     );
 }

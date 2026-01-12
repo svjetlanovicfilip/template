@@ -10,6 +10,8 @@ import 'config/style/theme.dart';
 import 'features/calendar/ui/screens/book_appointment_screen.dart';
 import 'features/calendar/ui/screens/home_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
+import 'features/service/ui/screens/add_edit_service_screen.dart';
+import 'features/service/ui/screens/service_list_screen.dart';
 import 'features/settings/ui/screens/add_edit_employee_screen.dart';
 import 'features/settings/ui/screens/change_password_screen.dart';
 import 'features/settings/ui/screens/change_title_screen.dart';
@@ -64,6 +66,9 @@ class _MyAppState extends State<MyApp> {
               (context) => const AddEditEmployeeScreen(),
           Routes.bookAppointment:
               (context) => const ExtractBookAppointmentArgumentsScreen(),
+          Routes.serviceListScreen: (context) => const ServiceListScreen(),
+          Routes.addEditServicesScreen:
+              (context) => const AddEditServiceScreen(),
         },
       ),
     );

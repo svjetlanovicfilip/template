@@ -8,8 +8,11 @@ class Routes {
   static const String employeesScreen = '/employeesScreen';
   static const String addEditmployeesScreen = '/addEditmployeesScreen';
   static const String bookAppointment = '/book-appointment';
+  static const String serviceListScreen = '/serviceListScreen';
+  static const String addEditServicesScreen = '/addEditServicesScreen';
 }
 
 const String organizationsCollection = 'organizations';
 const String usersCollection = 'users';
 const String slotsCollection = 'slots';
+const String servicesCollection = 'services';
