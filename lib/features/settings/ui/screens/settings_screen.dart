@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../authentication/domain/bloc/authentication_bloc.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
@@ -14,35 +15,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          color: Colors.white,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text(
-          'Vaša podešavanja',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: false,
-        // actions: [
-        //   TextButton(
-        //     onPressed: () {
-        //       // TODO: ovdje dodaj logout logiku
-        //     },
-        //     child: const Text(
-        //       'Odjavite se',
-        //       style: TextStyle(
-        //         color: Colors.white,
-        //       ),
-        //     ),
-        //   ),
-        // ],
-      ),
+      appBar: const CustomAppBar(title: Text('Vaša podešavanja')),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -81,7 +54,11 @@ class SettingsScreen extends StatelessWidget {
 
               _SettingsMenuItem(
                 label: 'Odjavite se',
-                onTap: () {
+                onTap: () async {
+                  // final confirm = await showLogoutDialog(context);
+                  // if (confirm) {
+                  //   // logout logika
+                  // }
                   showLogoutDialog(context);
                   // TODO: Test
                 },

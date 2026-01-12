@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 
@@ -17,6 +18,10 @@ import '../../features/login/domain/bloc/login_bloc.dart';
 import '../../features/organization/data/datasources/organization_remote_datasource.dart';
 import '../../features/organization/data/repositories/organization_repository.dart';
 import '../../features/organization/data/repositories/organization_repository_impl.dart';
+import '../../features/settings/data/datasources/add_user_remote_datasource.dart';
+import '../../features/settings/data/repositories/user_repository.dart';
+import '../../features/settings/data/repositories/user_repository_impl.dart';
+import '../../features/settings/domain/bloc/user_bloc.dart';
 import '../../features/service/data/datasources/service_remote_datasource.dart';
 import '../../features/service/data/repositories/service_repository.dart';
 import '../../features/service/data/repositories/service_repository_impl.dart';
@@ -32,6 +37,7 @@ void setupDependencies() {
   //firebase instances
   final firebaseAuth = FirebaseAuth.instance;
   final firebaseFirestore = FirebaseFirestore.instance;
+  final firebaseFunc = FirebaseFunctions.instance;
 
   //datasources
   getIt
@@ -49,6 +55,12 @@ void setupDependencies() {
     )
     ..registerSingleton<CalendarRemoteDatasource>(
       CalendarRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
+    ..registerSingleton<AddUserRemoteDatasource>(
+      AddUserRemoteDatasource(
+        functions: firebaseFunc,
+        firebaseAuth: firebaseAuth,
+      ),
     )
     ..registerSingleton<OrganizationRemoteDatasource>(
       OrganizationRemoteDatasource(firebaseFirestore: firebaseFirestore),
@@ -71,6 +83,9 @@ void setupDependencies() {
       CalendarRepositoryImpl(
         calendarRemoteDatasource: getIt<CalendarRemoteDatasource>(),
       ),
+    )
+    ..registerSingleton<UserRepository>(
+      UserRepositoryImpl(remote: getIt<AddUserRemoteDatasource>()),
     )
     ..registerSingleton<OrganizationRepository>(
       OrganizationRepositoryImpl(
@@ -98,6 +113,7 @@ void setupDependencies() {
         organizationRepository: getIt<OrganizationRepository>(),
       ),
     )
+    ..registerLazySingleton<UserBloc>(() => UserBloc(getIt<UserRepository>()))
     ..registerLazySingleton<SlotBloc>(
       () => SlotBloc(getIt<CalendarRepository>()),
     )
