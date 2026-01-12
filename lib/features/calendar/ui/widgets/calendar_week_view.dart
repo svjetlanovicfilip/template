@@ -110,19 +110,22 @@ class CalendarWeekView extends StatelessWidget {
         height: 3,
       ),
       onPageChange: (date, page) {
-        if (date.isAfter(DateTime.now())) {
-          _slotBloc.add(
-            LoadMoreForward(
-              currentDisplayedDate: date.add(const Duration(days: 6)),
-            ),
-          );
-        } else {
-          _slotBloc.add(
-            LoadMoreBackward(
-              currentDisplayedDate: date.subtract(const Duration(days: 6)),
-            ),
-          );
-        }
+        _slotBloc.add(LoadMore(date: date));
+        // if (date.isAfter(
+        //   weekViewKey.currentState?.currentDate ?? DateTime.now(),
+        // )) {
+        //   _slotBloc.add(
+        //     LoadMoreForward(
+        //       currentDisplayedDate: date.add(const Duration(days: 6)),
+        //     ),
+        //   );
+        // } else {
+        //   _slotBloc.add(
+        //     LoadMoreBackward(
+        //       currentDisplayedDate: date.subtract(const Duration(days: 6)),
+        //     ),
+        //   );
+        // }
       },
       onEventTap: (events, date) {
         final event = events.first;

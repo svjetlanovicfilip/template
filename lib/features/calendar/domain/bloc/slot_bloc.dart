@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../common/di/di_container.dart';
@@ -11,10 +12,20 @@ import '../../data/repositories/calendar_repository.dart';
 part 'slot_event.dart';
 part 'slot_state.dart';
 
+class UserSlotsRange {
+  UserSlotsRange({required this.userId, required this.from, required this.to});
+
+  String userId;
+  DateTime from;
+  DateTime to;
+}
+
 class SlotBloc extends Bloc<SlotEvent, SlotState> {
   SlotBloc(this.calendarRepository) : super(const SlotStateInitial()) {
     on<InitListener>(_onInit);
     on<LoadSlots>(_onLoadSlots);
+    on<LoadMore>(_onLoadMore);
+
     on<LoadMoreBackward>(_onLoadMoreBackward);
     on<LoadMoreForward>(_onLoadMoreForward);
     on<UserChanged>(_onUserChanged);
@@ -25,19 +36,50 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
 
   final CalendarRepository calendarRepository;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _slotsListener;
+  final List<StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
+  _slotsListeners = [];
 
   final _usersSlots = <String, List<Slot>>{};
-  DateTime _loadedFrom = DateTime.now();
-  DateTime _loadedTo = DateTime.now();
+  final _usersSlotsRanges = <UserSlotsRange>[];
+
+  void _onLoadMore(LoadMore event, Emitter<SlotState> emit) {
+    final userId = appState.currentSelectedUserId ?? '';
+    final currentRange = _usersSlotsRanges.firstWhere(
+      (e) => e.userId == userId,
+    );
+
+    final to = currentRange.to;
+    final from = currentRange.from;
+
+    //scroll to right
+    if (!to.subtract(const Duration(days: 15)).isAfter(event.date)) {
+      final newTo = to.add(const Duration(days: 14));
+
+      currentRange.to = newTo;
+
+      _attachNewSlotListener(userId: userId, from: to, to: newTo);
+    }
+
+    //scroll to left
+    if (!event.date.isAfter(from.add(const Duration(days: 8)))) {
+      final newFrom = from.subtract(const Duration(days: 14));
+      currentRange.from = newFrom;
+
+      _attachNewSlotListener(userId: userId, from: newFrom, to: from);
+    }
+  }
 
   void _onLoadSlots(LoadSlots e, Emitter<SlotState> emit) {
     emit(const SlotStateInitial());
+    final currentRange = _usersSlotsRanges.firstWhere(
+      (e) => e.userId == e.userId,
+    );
+
     emit(
       LoadedRangeSlots(
         slots: List.from(_usersSlots[e.userId] ?? []),
-        loadedFrom: _loadedFrom,
-        loadedTo: _loadedTo,
+        loadedFrom: currentRange.from,
+        loadedTo: currentRange.to,
         userId: e.userId,
         changedSlotIds: e.changedSlotIds,
         removedSlotIds: e.removedSlotIds,
@@ -50,94 +92,133 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
 
     final userId = appState.currentSelectedUserId ?? '';
 
-    _loadedFrom = DateTime.now().subtract(const Duration(days: 14));
-    _loadedTo = DateTime.now().add(const Duration(days: 14));
+    final from = DateTime.now().subtract(const Duration(days: 14));
+    final to = DateTime.now().add(const Duration(days: 30));
 
-    _attachSlotsListener(userId);
+    if (!_usersSlotsRanges.any((e) => e.userId == userId)) {
+      _usersSlotsRanges.add(UserSlotsRange(userId: userId, from: from, to: to));
+    }
+
+    _attachNewSlotListener(userId: userId, from: from, to: to);
   }
 
-  void _attachSlotsListener(String userId) {
-    _slotsListener?.cancel();
-    _slotsListener = calendarRepository
-        .listenForNewChanges(userId: userId, from: _loadedFrom, to: _loadedTo)
-        .listen((snapshot) {
-          final changedSlotIds = <String>[];
-          final removedSlotIds = <String>[];
-
-          for (final change in snapshot.docChanges) {
-            final id = change.doc.id;
-            final slot = Slot.fromJson(change.doc.data() ?? {}, id);
-
-            switch (change.type) {
-              case DocumentChangeType.added:
-              case DocumentChangeType.modified:
-                _usersSlots[userId] ??= [];
-                final index = _usersSlots[userId]!.indexWhere(
-                  (s) => s.id == slot.id,
-                );
-                if (index >= 0) {
-                  _usersSlots[userId]![index] = slot;
-                  changedSlotIds.add(id);
-                } else {
-                  _usersSlots[userId]!.add(slot);
-                }
-
-                break;
-              case DocumentChangeType.removed:
-                _usersSlots[userId]?.removeWhere((s) => s.id == id);
-                removedSlotIds.add(id);
-                break;
-            }
-          }
-
-          add(
-            LoadSlots(
-              userId: userId,
-              changedSlotIds: changedSlotIds,
-              removedSlotIds: removedSlotIds,
-            ),
-          );
-        });
-  }
-
-  void _extendListenerRange(
-    String userId, {
-    DateTime? newFrom,
-    DateTime? newTo,
+  void _attachNewSlotListener({
+    required String userId,
+    required DateTime from,
+    required DateTime to,
   }) {
-    var shouldExtend = false;
+    //for every range we need to attach a new listener
+    _slotsListeners.add(
+      calendarRepository
+          .listenForNewChanges(userId: userId, from: from, to: to)
+          .listen((snapshot) {
+            final changedSlotIds = <String>[];
+            final removedSlotIds = <String>[];
 
-    if (newFrom != null && newFrom.isBefore(_loadedFrom)) {
-      _loadedFrom = newFrom;
-      shouldExtend = true;
-    }
+            print(_usersSlots[userId]?.length);
 
-    if (newTo != null && newTo.isAfter(_loadedTo)) {
-      _loadedTo = newTo;
-      shouldExtend = true;
-    }
+            for (final change in snapshot.docChanges) {
+              final id = change.doc.id;
+              final slot = Slot.fromJson(change.doc.data() ?? {}, id);
 
-    if (shouldExtend) {
-      _attachSlotsListener(userId);
-    }
+              switch (change.type) {
+                case DocumentChangeType.added:
+                case DocumentChangeType.modified:
+                  _usersSlots[userId] ??= [];
+                  final index = _usersSlots[userId]!.indexWhere(
+                    (s) => s.id == slot.id,
+                  );
+                  if (index >= 0) {
+                    _usersSlots[userId]![index] = slot;
+                    changedSlotIds.add(id);
+                  } else {
+                    _usersSlots[userId]!.add(slot);
+                  }
+
+                  break;
+                case DocumentChangeType.removed:
+                  _usersSlots[userId]?.removeWhere((s) => s.id == id);
+                  removedSlotIds.add(id);
+                  break;
+              }
+            }
+
+            print(_usersSlots[userId]?.length);
+
+            add(
+              LoadSlots(
+                userId: userId,
+                changedSlotIds: changedSlotIds,
+                removedSlotIds: removedSlotIds,
+              ),
+            );
+          }),
+    );
   }
 
   Future<void> _onUserChanged(UserChanged e, Emitter<SlotState> emit) async {
-    emit(
-      LoadedSlotsAfterUserChanged(
-        slots: List.from(_usersSlots[e.userId] ?? []),
-        loadedFrom: e.currentDisplayedDate.subtract(const Duration(days: 14)),
-        loadedTo: e.currentDisplayedDate.add(const Duration(days: 14)),
-        userId: e.userId,
-      ),
+    if (e.userId == appState.currentSelectedUserId) {
+      return;
+    }
+
+    final currentRange = _usersSlotsRanges.firstWhereOrNull(
+      (element) => element.userId == e.userId,
     );
 
     appState.currentSelectedUserId = e.userId;
 
-    _loadedFrom = e.currentDisplayedDate.subtract(const Duration(days: 14));
-    _loadedTo = e.currentDisplayedDate.add(const Duration(days: 14));
+    if (currentRange != null) {
+      emit(
+        LoadedSlotsAfterUserChanged(
+          slots: List.from(_usersSlots[e.userId] ?? []),
+          loadedFrom: currentRange.from,
+          loadedTo: currentRange.to,
+          userId: e.userId,
+        ),
+      );
 
-    _attachSlotsListener(e.userId);
+      if (_usersSlotsRanges.any((element) => element.userId == e.userId)) {
+        if (e.currentDisplayedDate.isBefore(currentRange.from)) {
+          final desiredFrom = e.currentDisplayedDate.subtract(
+            const Duration(days: 14),
+          );
+          _attachNewSlotListener(
+            userId: e.userId,
+            from: desiredFrom,
+            to: currentRange.from,
+          );
+
+          currentRange.from = desiredFrom;
+        } else if (e.currentDisplayedDate.isAfter(currentRange.to)) {
+          final desiredTo = e.currentDisplayedDate.add(
+            const Duration(days: 14),
+          );
+
+          _attachNewSlotListener(
+            userId: e.userId,
+            from: currentRange.to,
+            to: desiredTo,
+          );
+
+          currentRange.to = desiredTo;
+        }
+      }
+    } else {
+      final desiredFrom = e.currentDisplayedDate.subtract(
+        const Duration(days: 14),
+      );
+      final desiredTo = e.currentDisplayedDate.add(const Duration(days: 30));
+
+      _usersSlotsRanges.add(
+        UserSlotsRange(userId: e.userId, from: desiredFrom, to: desiredTo),
+      );
+
+      _attachNewSlotListener(
+        userId: e.userId,
+        from: desiredFrom,
+        to: desiredTo,
+      );
+    }
   }
 
   Future<void> _onLoadMoreForward(
@@ -145,14 +226,21 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     Emitter<SlotState> emit,
   ) async {
     final userId = appState.currentSelectedUserId ?? '';
+    final currentRange = _usersSlotsRanges.firstWhere(
+      (e) => e.userId == userId,
+    );
 
-    final end = _loadedTo;
+    final to = currentRange.to;
 
-    if (end.subtract(const Duration(days: 8)).isAfter(e.currentDisplayedDate)) {
+    if (to.subtract(const Duration(days: 15)).isAfter(e.currentDisplayedDate)) {
       return;
     }
 
-    _extendListenerRange(userId, newTo: end.add(Duration(days: e.days)));
+    final newTo = to.add(Duration(days: e.days));
+
+    currentRange.to = newTo;
+
+    _attachNewSlotListener(userId: userId, from: to, to: newTo);
   }
 
   Future<void> _onLoadMoreBackward(
@@ -160,16 +248,20 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     Emitter<SlotState> emit,
   ) async {
     final userId = appState.currentSelectedUserId ?? '';
-    final start = _loadedFrom;
+    final currentRange = _usersSlotsRanges.firstWhere(
+      (e) => e.userId == userId,
+    );
 
-    if (e.currentDisplayedDate.isAfter(start.add(const Duration(days: 8)))) {
+    final from = currentRange.from;
+
+    if (e.currentDisplayedDate.isAfter(from.add(const Duration(days: 8)))) {
       return;
     }
 
-    _extendListenerRange(
-      userId,
-      newFrom: start.subtract(Duration(days: e.days)),
-    );
+    final newFrom = from.subtract(Duration(days: e.days));
+    currentRange.from = newFrom;
+
+    _attachNewSlotListener(userId: userId, from: newFrom, to: from);
   }
 
   Future<void> _onAddNewSlot(AddNewSlot e, Emitter<SlotState> emit) async {
@@ -248,5 +340,11 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;
     }
+  }
+
+  void clearState() {
+    _usersSlots.clear();
+    _usersSlotsRanges.clear();
+    _slotsListeners.clear();
   }
 }

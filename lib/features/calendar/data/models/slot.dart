@@ -14,6 +14,7 @@ class Slot extends Equatable {
     this.endDateTime,
     this.color,
     this.id,
+    this.serviceIds = const [],
   });
 
   factory Slot.fromJson(Map<String, dynamic> json, String id) {
@@ -23,6 +24,11 @@ class Slot extends Equatable {
       color: json['color'],
       startDateTime: (json['startDateTime'] as Timestamp).toDate(),
       endDateTime: (json['endDateTime'] as Timestamp).toDate(),
+      serviceIds:
+          (json['serviceIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -32,6 +38,7 @@ class Slot extends Equatable {
       'color': color,
       'startDateTime': startDateTime,
       'endDateTime': endDateTime,
+      'serviceIds': serviceIds,
     };
   }
 
@@ -50,22 +57,38 @@ class Slot extends Equatable {
     );
   }
 
-  Slot copyWith({String? id}) {
+  Slot copyWith({
+    String? id,
+    List<String>? serviceIds,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
+    String? color,
+    String? title,
+  }) {
     return Slot(
       id: id ?? this.id,
-      title: title,
-      startDateTime: startDateTime,
-      endDateTime: endDateTime,
-      color: color,
+      title: title ?? this.title,
+      startDateTime: startDateTime ?? this.startDateTime,
+      endDateTime: endDateTime ?? this.endDateTime,
+      color: color ?? this.color,
+      serviceIds: serviceIds ?? this.serviceIds,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, startDateTime, endDateTime, color];
+  List<Object?> get props => [
+    id,
+    title,
+    startDateTime,
+    endDateTime,
+    color,
+    serviceIds,
+  ];
 
   final String? id;
   final String title;
   final DateTime startDateTime;
   final DateTime? endDateTime;
   final String? color;
+  final List<String> serviceIds;
 }

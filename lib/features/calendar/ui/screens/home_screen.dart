@@ -56,13 +56,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final _dayViewKey = GlobalKey<DayViewState>();
   final _weekViewKey = GlobalKey<WeekViewState>();
   final _filterIconKey = GlobalKey();
+  bool _initializedFromArgs = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_initializedFromArgs) return;
+
     final newSlots =
         widget.args.slots.map((slot) => slot.toCalendarEventData()).toList();
-    CalendarControllerProvider.of(context).controller.addAll(newSlots);
+
+    // Defer controller updates until after the first frame to avoid
+    // setState/markNeedsBuild during build of ancestor widgets.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      CalendarControllerProvider.of(context).controller.addAll(newSlots);
+    });
+
+    _initializedFromArgs = true;
   }
 
   @override
@@ -76,30 +87,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(SnackBar(content: Text(state.errorMessage)));
           return;
         } else if (state is LoadedRangeSlots) {
+          final newSlots =
+              state.slots.map((slot) => slot.toCalendarEventData()).toList();
+
           final controller = CalendarControllerProvider.of(context).controller;
 
-          if (state.removedSlotIds.isNotEmpty) {
-            controller.removeWhere(
-              (event) =>
-                  state.removedSlotIds.contains((event.event as Slot).id),
-            );
-          }
+          // snapshot prevents ConcurrentModificationError
+          final oldSlots = List.of(controller.allEvents);
 
-          if (state.changedSlotIds.isNotEmpty) {
-            for (final id in state.changedSlotIds) {
-              controller
-                ..removeWhere((event) => (event.event as Slot).id == id)
-                ..add(
-                  state.slots
-                      .firstWhere((slot) => slot.id == id)
-                      .toCalendarEventData(),
-                );
-            }
-          } else {
-            final newSlots =
-                state.slots.map((slot) => slot.toCalendarEventData()).toList();
-            controller.addAll(newSlots);
-          }
+          controller
+            ..removeAll(oldSlots)
+            ..addAll(newSlots);
         } else if (state is LoadedSlotsAfterUserChanged) {
           final newSlots =
               state.slots.map((slot) => slot.toCalendarEventData()).toList();
@@ -126,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           appBar: CustomAppBar(
+            automaticallyImplyLeading: false,
             title: Row(
               spacing: 8,
               children: [
@@ -139,9 +138,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     () => showEmployeeFilterMenu(
                       context,
                       _filterIconKey,
-                      _dayViewKey.currentState?.currentDate ??
-                          _weekViewKey.currentState?.currentDate ??
-                          DateTime.now(),
+                      (userId) => getIt<SlotBloc>().add(
+                        UserChanged(
+                          userId: userId,
+                          currentDisplayedDate:
+                              _dayViewKey.currentState?.currentDate ??
+                              _weekViewKey.currentState?.currentDate ??
+                              DateTime.now(),
+                        ),
+                      ),
                     ),
                 child: Container(
                   padding: const EdgeInsets.all(8),

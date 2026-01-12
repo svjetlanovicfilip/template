@@ -5,10 +5,14 @@ import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
 import '../../../login/data/models/user_model.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
+import '../widgets/label.dart';
+import '../widgets/service_input_field.dart';
 import '../widgets/time_input_field.dart';
+import '../widgets/user_picker.dart';
 
 class BookAppointmentScreenArguments {
   const BookAppointmentScreenArguments({this.slot});
@@ -72,6 +76,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     titleController = TextEditingController(text: widget.args.slot?.title);
     _employees = appState.organizationUsers;
     selectedUserId = appState.currentSelectedUserId;
+    getIt<ServiceBloc>().add(
+      AttachService(serviceIds: widget.args.slot?.serviceIds ?? []),
+    );
   }
 
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
@@ -107,97 +114,20 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (appState.currentUser?.role == 'ORG_OWNER' && !isEditing) ...[
-                Text(
-                  'Zaposleni',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const Label(title: 'Zaposleni'),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<UserModel>(
-                  initialValue: _employees.firstWhere(
-                    (employee) => employee.id == appState.currentSelectedUserId,
-                  ),
-                  isExpanded: true,
-                  borderRadius: BorderRadius.circular(12),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.slate200,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(
-                    Icons.expand_more,
-                    color: AppColors.slate800,
-                  ),
-                  items:
-                      _employees
-                          .map(
-                            (employee) => DropdownMenuItem(
-                              value: employee,
-                              child: Text(
-                                '${employee.name} ${employee.surname}',
-                              ),
-                            ),
-                          )
-                          .toList(),
+                UserPicker(
+                  employees: _employees,
                   onChanged:
-                      (value) => setState(() => selectedUserId = value?.id),
+                      (userId) => setState(() => selectedUserId = userId),
                 ),
               ],
               const SizedBox(height: 20),
-              Text(
-                'Datum',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              const Label(title: 'Datum'),
               const SizedBox(height: 8),
               InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    firstDate: initialDate,
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                    currentDate: selectedDate,
-                    confirmText: 'Potvrdi',
-                    cancelText: 'Odustani',
-                    initialDate: initialDate,
-                    helpText: 'Odaberi datum',
-                  );
-
-                  if (picked != null) {
-                    setState(() {
-                      selectedDate = picked;
-                      if (selectedStart != null) {
-                        selectedStart = DateTime(
-                          selectedDate.year,
-                          selectedDate.month,
-                          selectedDate.day,
-                          selectedStart!.hour,
-                          selectedStart!.minute,
-                        );
-                      }
-                      if (selectedEnd != null) {
-                        selectedEnd = DateTime(
-                          selectedDate.year,
-                          selectedDate.month,
-                          selectedDate.day,
-                          selectedEnd!.hour,
-                          selectedEnd!.minute,
-                        );
-                      }
-                    });
-                    _validateTimeRange();
-                  }
-                },
+                onTap: _pickDate,
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -221,6 +151,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
               const SizedBox(height: 20),
               Row(
+                spacing: 16,
                 children: [
                   Expanded(
                     child: TimeInputField(
@@ -230,7 +161,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                       onTimeSelected: _onStartTimeSelected,
                     ),
                   ),
-                  const SizedBox(width: 16),
                   Expanded(
                     child: TimeInputField(
                       isTimeRangeValid: isTimeRangeValid,
@@ -242,8 +172,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ],
               ),
 
-              const SizedBox(height: 12),
-              if (!isTimeRangeValid)
+              if (!isTimeRangeValid) ...[
+                const SizedBox(height: 12),
                 Text(
                   'Vrijeme nije pravilno uneseno. Molimo vas da provjerite početak i kraj termina.',
                   style: theme.textTheme.labelMedium?.copyWith(
@@ -252,8 +182,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-              const SizedBox(height: 12),
-              Text('Detalji usluge', style: theme.textTheme.labelMedium),
+              ],
+              const SizedBox(height: 20),
+              const Label(title: 'Usluga'),
+              const SizedBox(height: 8),
+              const ServiceInputField(),
+              const SizedBox(height: 20),
+              const Label(title: 'Detalji usluge'),
               const SizedBox(height: 8),
               TextField(
                 controller: titleController,
@@ -266,6 +201,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.slate400,
+                      width: 2,
+                    ),
                   ),
                   fillColor: AppColors.slate200,
                   hintStyle: theme.textTheme.labelMedium?.copyWith(
@@ -305,6 +247,44 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: initialDate,
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      currentDate: selectedDate,
+      confirmText: 'Potvrdi',
+      cancelText: 'Odustani',
+      initialDate: initialDate,
+      helpText: 'Odaberi datum',
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+        if (selectedStart != null) {
+          selectedStart = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedStart!.hour,
+            selectedStart!.minute,
+          );
+        }
+        if (selectedEnd != null) {
+          selectedEnd = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedEnd!.hour,
+            selectedEnd!.minute,
+          );
+        }
+      });
+      _validateTimeRange();
+    }
   }
 
   Future<void> _onStartTimeSelected() async {
@@ -363,18 +343,22 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       return;
     }
 
-    final slot = Slot(
-      title: title,
-      startDateTime: selectedStart!,
-      endDateTime: selectedEnd!,
-      color: widget.args.slot?.color ?? selectedColor,
+    final newSlot = Slot(
       id: widget.args.slot?.id,
+      startDateTime: selectedStart ?? DateTime.now(),
+      endDateTime: selectedEnd ?? DateTime.now(),
+      title: title,
+      color: widget.args.slot?.color ?? selectedColor,
+      serviceIds:
+          getIt<ServiceBloc>().state.selectedServices
+              .map((e) => e.id ?? '')
+              .toList(),
     );
 
     if (isEditing) {
-      getIt<SlotBloc>().add(UpdateSlot(slot, selectedUserId ?? ''));
+      getIt<SlotBloc>().add(UpdateSlot(newSlot, selectedUserId ?? ''));
     } else {
-      getIt<SlotBloc>().add(AddNewSlot(slot, selectedUserId ?? ''));
+      getIt<SlotBloc>().add(AddNewSlot(newSlot, selectedUserId ?? ''));
     }
 
     Navigator.of(context).pop();

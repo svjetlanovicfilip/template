@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+
+import '../../config/style/colors.dart';
+
+class SearchField extends StatelessWidget {
+  const SearchField({required this.onChanged, this.controller, super.key});
+
+  final TextEditingController? controller;
+  final Function(String) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      textInputAction: TextInputAction.done,
+      controller: controller,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.slate400, width: 2),
+        ),
+        hintText: 'Pretraga usluga...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        fillColor: AppColors.slate200,
+        hintStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: AppColors.slate500,
+          fontWeight: FontWeight.w400,
+        ),
+        prefixIcon: const Icon(Icons.search),
+      ),
+    );
+  }
+}
