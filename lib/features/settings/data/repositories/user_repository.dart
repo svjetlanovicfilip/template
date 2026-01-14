@@ -7,4 +7,8 @@ abstract class UserRepository {
     required String username,
     required String email,
   });
+
+    Future<Result<Map<String, dynamic>, Exception>> deleteEmployee({
+    required String employeeUid,
+  });
 }

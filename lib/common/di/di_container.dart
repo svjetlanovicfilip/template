@@ -18,9 +18,10 @@ import '../../features/login/domain/bloc/login_bloc.dart';
 import '../../features/organization/data/datasources/organization_remote_datasource.dart';
 import '../../features/organization/data/repositories/organization_repository.dart';
 import '../../features/organization/data/repositories/organization_repository_impl.dart';
-import '../../features/settings/data/datasources/add_user_remote_datasource.dart';
+import '../../features/settings/data/datasources/user_remote_datasource.dart';
 import '../../features/settings/data/repositories/user_repository.dart';
 import '../../features/settings/data/repositories/user_repository_impl.dart';
+import '../../features/settings/domain/bloc/delete_user_bloc.dart';
 import '../../features/settings/domain/bloc/user_bloc.dart';
 import '../../features/service/data/datasources/service_remote_datasource.dart';
 import '../../features/service/data/repositories/service_repository.dart';
@@ -56,8 +57,8 @@ void setupDependencies() {
     ..registerSingleton<CalendarRemoteDatasource>(
       CalendarRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
-    ..registerSingleton<AddUserRemoteDatasource>(
-      AddUserRemoteDatasource(
+    ..registerSingleton<UserRemoteDatasource>(
+      UserRemoteDatasource(
         functions: firebaseFunc,
         firebaseAuth: firebaseAuth,
       ),
@@ -85,7 +86,7 @@ void setupDependencies() {
       ),
     )
     ..registerSingleton<UserRepository>(
-      UserRepositoryImpl(remote: getIt<AddUserRemoteDatasource>()),
+      UserRepositoryImpl(remote: getIt<UserRemoteDatasource>()),
     )
     ..registerSingleton<OrganizationRepository>(
       OrganizationRepositoryImpl(
@@ -114,6 +115,9 @@ void setupDependencies() {
       ),
     )
     ..registerLazySingleton<UserBloc>(() => UserBloc(getIt<UserRepository>()))
+
+    ..registerLazySingleton<DeleteUserBloc>(() => DeleteUserBloc(getIt<UserRepository>()))
+
     ..registerLazySingleton<SlotBloc>(
       () => SlotBloc(getIt<CalendarRepository>()),
     )

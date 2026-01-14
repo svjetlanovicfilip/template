@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:template/common/models/result.dart' as app;
 
 
-class AddUserRemoteDatasource {
-  AddUserRemoteDatasource({
+class UserRemoteDatasource {
+  UserRemoteDatasource({
     required this.functions,
     required this.firebaseAuth,
   });
@@ -42,6 +42,30 @@ class AddUserRemoteDatasource {
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
     } on FirebaseAuthException catch (e) {
       // Ako iz nekog razloga reset email faila
+      return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
+    } catch (e) {
+      return app.Result.failure(Exception(e.toString()));
+    }
+  }
+
+    /// Soft delete employee:
+  /// - Cloud Function disable-uje Auth user-a
+  /// - Firestore users/{uid} postavlja isActive=false
+  Future<app.Result<Map<String, dynamic>, Exception>> deleteEmployee({
+    required String employeeUid,
+  }) async {
+    try {
+      functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+      final callable = functions.httpsCallable('deleteEmployee');
+
+      final res = await callable.call(<String, dynamic>{
+        'employeeUid': employeeUid.trim(),
+      });
+
+      final data = Map<String, dynamic>.from(res.data as Map);
+      return app.Result.success(data);
+    } on FirebaseFunctionsException catch (e) {
+      // e.code: unauthenticated, permission-denied, not-found, internal...
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
     } catch (e) {
       return app.Result.failure(Exception(e.toString()));

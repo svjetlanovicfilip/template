@@ -29,14 +29,6 @@ class SettingsScreen extends StatelessWidget {
               _SettingsDivider(),
 
               _SettingsMenuItem(
-                label: 'Postavite vaš naziv',
-                onTap: () {
-                  context.pushNamed(Routes.changeTitleScreen);
-                },
-              ),
-              _SettingsDivider(),
-
-              _SettingsMenuItem(
                 label: 'Cjenovnik',
                 onTap: () {
                   context.pushNamed(Routes.serviceListScreen);
@@ -44,13 +36,13 @@ class SettingsScreen extends StatelessWidget {
               ),
               _SettingsDivider(),
 
-              _SettingsMenuItem(
-                label: 'Promjena lozinke',
-                onTap: () {
-                  context.pushNamed(Routes.changePasswordScreen);
-                },
-              ),
-              _SettingsDivider(),
+              // _SettingsMenuItem(
+              //   label: 'Promjena lozinke',
+              //   onTap: () {
+              //     context.pushNamed(Routes.changePasswordScreen);
+              //   },
+              // ),
+              // _SettingsDivider(),
 
               _SettingsMenuItem(
                 label: 'Odjavite se',

@@ -1,11 +1,11 @@
 import '../../../../common/models/result.dart';
-import '../datasources/add_user_remote_datasource.dart';
+import '../datasources/user_remote_datasource.dart';
 import 'user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({required this.remote});
 
-  final AddUserRemoteDatasource remote;
+  final UserRemoteDatasource remote;
 
   @override
   Future<Result<Map<String, dynamic>, Exception>> createEmployee({
@@ -20,5 +20,12 @@ class UserRepositoryImpl implements UserRepository {
       username: username,
       email: email,
     );
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>, Exception>> deleteEmployee({
+    required String employeeUid,
+  }) {
+    return remote.deleteEmployee(employeeUid: employeeUid);
   }
 }

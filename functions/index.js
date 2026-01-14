@@ -131,3 +131,116 @@ exports.createEmployee = onCall(async (request) => {
     orgId: orgId,
   };
 });
+
+
+//Soft Delte Emplyee func
+
+exports.deleteEmployee = onCall(async (request) => {
+  // 1) auth check
+  if (!request.auth?.uid) {
+    throw new HttpsError("unauthenticated", "Moraš biti ulogovan.");
+  }
+
+  const callerUid = request.auth.uid;
+
+  // 2) input validation
+  const { employeeUid } = request.data || {};
+  if (!employeeUid || typeof employeeUid !== "string") {
+    throw new HttpsError("invalid-argument", "employeeUid je obavezan.");
+  }
+
+  if (employeeUid === callerUid) {
+    throw new HttpsError("failed-precondition", "Ne možeš deaktivirati sam sebe.");
+  }
+
+  // 3) load caller user (to determine org + role)
+  const callerSnap = await db.collection("users").doc(callerUid).get();
+  if (!callerSnap.exists) {
+    throw new HttpsError(
+      "permission-denied",
+      "Caller user ne postoji u Firestore (users/{uid})."
+    );
+  }
+
+  const callerUser = callerSnap.data();
+
+  if (!callerUser?.isActive) {
+    throw new HttpsError("permission-denied", "Nalog nije aktivan.");
+  }
+
+  if (callerUser?.role !== "ORG_OWNER") {
+    throw new HttpsError(
+      "permission-denied",
+      "Samo ORG_OWNER može brisati (deaktivirati) zaposlene."
+    );
+  }
+
+  const orgId = callerUser?.orgId;
+  if (!orgId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Admin nema orgId u svom users dokumentu."
+    );
+  }
+
+  // 4) load target employee doc and validate org
+  const employeeRef = db.collection("users").doc(employeeUid);
+  const employeeSnap = await employeeRef.get();
+
+  if (!employeeSnap.exists) {
+    throw new HttpsError("not-found", "Korisnik ne postoji.");
+  }
+
+  const employee = employeeSnap.data();
+
+  // Multi-tenant zaštita
+  if (employee?.orgId !== orgId) {
+    throw new HttpsError(
+      "permission-denied",
+      "Ne možeš deaktivirati korisnika iz druge organizacije."
+    );
+  }
+
+  // (opciono) samo zaposlene
+  // if (employee?.role !== "ORG_EMPLOYEE") {
+  //   throw new HttpsError(
+  //     "failed-precondition",
+  //     "Možeš deaktivirati samo ORG_EMPLOYEE korisnike."
+  //   );
+  // }
+
+  // 5) disable in Firebase Auth
+  try {
+    await admin.auth().updateUser(employeeUid, { disabled: true });
+  } catch (e) {
+    throw new HttpsError(
+      "internal",
+      `Ne mogu disable-ovati Auth korisnika: ${e.message}`
+    );
+  }
+
+  // 6) update Firestore isActive=false
+  try {
+    await employeeRef.set(
+      {
+        isActive: false,
+        deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+        deletedBy: callerUid,
+      },
+      { merge: true }
+    );
+  } catch (e) {
+    // Auth je već disabled; možeš odlučiti da li želiš rollback (nije preporučeno)
+    throw new HttpsError(
+      "internal",
+      `Auth disabled, ali ne mogu upisati u Firestore: ${e.message}`
+    );
+  }
+
+  return {
+    ok: true,
+    employeeUid,
+    orgId,
+  };
+});
+

@@ -3,13 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/custom_input_field.dart';
-import '../../data/repositories/user_repository.dart';
 import '../../domain/bloc/user_bloc.dart';
 
-
-
 class AddEditEmployeeScreen extends StatefulWidget {
-  const AddEditEmployeeScreen();
+  const AddEditEmployeeScreen({super.key});
 
   @override
   State<AddEditEmployeeScreen> createState() => _AddEditEmployeeViewState();
