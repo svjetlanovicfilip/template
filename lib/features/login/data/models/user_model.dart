@@ -1,7 +1,7 @@
 class UserModel {
   UserModel({
-    required this.id,
     required this.email,
+    this.id,
     this.isActive = true,
     this.name,
     this.surname,
@@ -23,7 +23,7 @@ class UserModel {
     );
   }
 
-  final String id;
+  final String? id;
   final String email;
   final bool isActive;
   final String? name;

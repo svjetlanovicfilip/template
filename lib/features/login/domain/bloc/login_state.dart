@@ -8,6 +8,7 @@ final class LoginState extends Equatable {
     this.isValid = false,
     this.errorMessage,
     this.isFormSubmitted = false,
+    this.isEmailSentSuccessfully = false,
   });
 
   final Email email;
@@ -16,6 +17,7 @@ final class LoginState extends Equatable {
   final FormzSubmissionStatus? status;
   final String? errorMessage;
   final bool isFormSubmitted;
+  final bool isEmailSentSuccessfully;
 
   LoginState copyWith({
     FormzSubmissionStatus? status,
@@ -24,6 +26,7 @@ final class LoginState extends Equatable {
     bool? isValid,
     String? errorMessage,
     bool? isFormSubmitted,
+    bool? isEmailSentSuccessfully,
   }) {
     return LoginState(
       status: status ?? this.status,
@@ -32,6 +35,8 @@ final class LoginState extends Equatable {
       isValid: isValid ?? this.isValid,
       errorMessage: errorMessage,
       isFormSubmitted: isFormSubmitted ?? this.isFormSubmitted,
+      isEmailSentSuccessfully:
+          isEmailSentSuccessfully ?? this.isEmailSentSuccessfully,
     );
   }
 
@@ -43,6 +48,7 @@ final class LoginState extends Equatable {
     isValid,
     errorMessage,
     isFormSubmitted,
+    isEmailSentSuccessfully,
   ];
 }
 

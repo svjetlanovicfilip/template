@@ -1,3 +1,5 @@
+import '../../../login/data/models/user_model.dart';
+
 class Organization {
   Organization({
     required this.id,
@@ -6,6 +8,7 @@ class Organization {
     this.primaryColor,
     this.secondaryColor,
     this.textColor,
+    this.users = const [],
   });
 
   factory Organization.fromJson(
@@ -28,4 +31,5 @@ class Organization {
   final String? primaryColor;
   final String? secondaryColor;
   final String? textColor;
+  final List<UserModel> users;
 }

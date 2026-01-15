@@ -19,6 +19,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LoginEmailChanged>(_onEmailChanged);
     on<LoginPasswordChanged>(_onPasswordChanged);
     on<LoginSubmitted>(_onLoginSubmitted);
+    on<ForgotPasswordSubmitted>(_onForgotPasswordSubmitted);
   }
 
   final LoginRepository loginRepository;
@@ -86,7 +87,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(
           state.copyWith(
             status: FormzSubmissionStatus.failure,
-            errorMessage: 'User profile and organization are not valid',
+            errorMessage:
+                'Korisnik nije aktivan ili organizacija nije pronađena',
           ),
         );
         return;
@@ -110,7 +112,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       return false;
     }
 
-    if (userProfile.success?.organizationId == null) {
+    if (userProfile.success?.isActive == false ||
+        userProfile.success?.organizationId == null) {
       return false;
     }
 
@@ -118,7 +121,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       userProfile.success!.organizationId!,
     );
 
-    if (organization.isFailure) {
+    if (organization.isFailure || organization.success?.isActive == false) {
       return false;
     }
 
@@ -128,17 +131,54 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ..organizationId = userProfile.success!.organizationId
       ..userOrganization = organization.success;
 
-    if (appState.currentUser?.role == 'ORG_OWNER') {
-      final organizationUsers = await organizationRepository
-          .getOrganizationUsers(userProfile.success!.organizationId!);
+    // if (appState.currentUser?.role == 'ORG_OWNER') {
+    //   final organizationUsers = await organizationRepository
+    //       .getOrganizationUsers(userProfile.success!.organizationId!);
 
-      if (organizationUsers.isFailure) {
-        return false;
-      }
+    //   if (organizationUsers.isFailure) {
+    //     return false;
+    //   }
 
-      appState.setOrganizationUsers(organizationUsers.success!);
-    }
+    //   appState.userOrganization?.addUsers(organizationUsers.success!);
+    // }
 
     return true;
+  }
+
+  Future<void> _onForgotPasswordSubmitted(
+    ForgotPasswordSubmitted event,
+    Emitter<LoginState> emit,
+  ) async {
+    if (!state.isFormSubmitted) {
+      emit(state.copyWith(isFormSubmitted: true));
+    }
+
+    final email = state.email.value;
+
+    if (!Formz.validate([Email.dirty(email)])) {
+      emit(state.copyWith(status: FormzSubmissionStatus.failure));
+      return;
+    }
+
+    emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
+
+    final result = await loginRepository.forgotPassword(email);
+    if (result.isFailure) {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.failure,
+          errorMessage: result.failure?.message,
+          isEmailSentSuccessfully: false,
+        ),
+      );
+    }
+
+    emit(
+      state.copyWith(
+        status: FormzSubmissionStatus.success,
+        isEmailSentSuccessfully: true,
+        isFormSubmitted: false,
+      ),
+    );
   }
 }

@@ -8,4 +8,5 @@ abstract class LoginRepository {
     String email,
     String password,
   );
+  Future<Result<void, LoginException>> forgotPassword(String email);
 }

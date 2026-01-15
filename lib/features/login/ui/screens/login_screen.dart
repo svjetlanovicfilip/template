@@ -5,9 +5,11 @@ import 'package:formz/formz.dart';
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/widgets/logo_widget.dart';
 import '../../../../config/style/colors.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../../users/domain/bloc/users_bloc.dart';
 import '../../domain/bloc/login_bloc.dart';
 import '../widgets/login_form.dart';
 
@@ -29,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state.status == FormzSubmissionStatus.success) {
           getIt<SlotBloc>().add(InitListener());
           getIt<ServiceBloc>().add(InitServiceListener());
+          getIt<UsersBloc>().add(UsersFetchRequested());
           context.pushReplacementNamed(Routes.home);
         } else if (state.status == FormzSubmissionStatus.failure &&
             state.errorMessage != null) {
@@ -60,21 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: AppColors.amber500,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.calendar_month,
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-
+                        const LogoWidget(size: 32, radius: 40),
                         const SizedBox(height: 24),
-
                         Text(
                           'Dobrodošli nazad',
                           style: Theme.of(

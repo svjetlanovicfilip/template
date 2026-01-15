@@ -37,4 +37,21 @@ class LoginRemoteDatasource {
       return Result.failure(LoginException(message: e.toString()));
     }
   }
+
+  Future<Result<void, LoginException>> forgotPassword(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+      return Result.success(null);
+    } on FirebaseAuthException {
+      return Result.failure(
+        const UserNotFoundException(message: 'Korisnik nije pronađen'),
+      );
+    } on Exception {
+      return Result.failure(
+        const LoginException(
+          message: 'Greška prilikom slanja emaila za resetovanje lozinke',
+        ),
+      );
+    }
+  }
 }

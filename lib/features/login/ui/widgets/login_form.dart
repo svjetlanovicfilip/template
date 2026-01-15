@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
+import '../../../../common/constants/routes.dart';
+import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/custom_input_field.dart';
 import '../../../../common/widgets/primary_button.dart';
+import '../../../../config/style/colors.dart';
 import '../../domain/bloc/login_bloc.dart';
 
 class LoginForm extends StatelessWidget {
@@ -20,7 +23,7 @@ class LoginForm extends StatelessWidget {
           bloc: loginBloc,
           builder: (context, state) {
             final errorText =
-                state.email.error != null ? 'Invalid email' : null;
+                state.email.error != null ? 'Email nije validan' : null;
 
             return CustomInputField(
               label: 'Email',
@@ -29,19 +32,32 @@ class LoginForm extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 16),
         BlocBuilder<LoginBloc, LoginState>(
           bloc: loginBloc,
           builder: (context, state) {
             final errorText =
-                state.password.error != null ? 'Invalid password' : null;
+                state.password.error != null ? 'Lozinka nije validna' : null;
 
             return CustomInputField(
-              label: 'Password',
+              label: 'Lozinka',
               errorText: state.isFormSubmitted ? errorText : null,
               onChanged: (value) => loginBloc.add(LoginPasswordChanged(value)),
               isPassword: true,
             );
           },
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => context.pushNamed(Routes.forgotPassword),
+            child: Text(
+              'Zaboravljena lozinka?',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.amber500),
+            ),
+          ),
         ),
 
         const SizedBox(height: 50),

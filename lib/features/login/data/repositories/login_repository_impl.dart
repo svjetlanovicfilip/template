@@ -26,4 +26,8 @@ class LoginRepositoryImpl extends LoginRepository {
       return Result.failure(result.failure as LoginException);
     }
   }
+
+  @override
+  Future<Result<void, LoginException>> forgotPassword(String email) async =>
+      loginRemoteDatasource.forgotPassword(email);
 }
