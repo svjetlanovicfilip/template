@@ -1,13 +1,17 @@
 const admin = require("firebase-admin");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
-
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { defineSecret } = require("firebase-functions/params");
 // Init
 admin.initializeApp();
 const db = admin.firestore();
 
 // Region (promijeni ako ti je drugi)
 setGlobalOptions({ region: "europe-west1" });
+
+
+const IDENTITY_TOOLKIT_API_KEY = defineSecret("IDENTITY_TOOLKIT_API_KEY");
 
 /**
  * Callable: createEmployee
@@ -244,3 +248,104 @@ exports.deleteEmployee = onCall(async (request) => {
   };
 });
 
+
+// Kad se kreira users/{docId}, a dokument je admin i needsAuthProvisioning=true,
+// kreiraj Auth user i pošalji reset password email.
+exports.provisionAdminAuthOnUserDocCreate = onDocumentCreated(
+  {
+    document: "users/{docId}",
+    secrets: [IDENTITY_TOOLKIT_API_KEY],
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const data = snap.data() || {};
+    const docRef = snap.ref;
+
+    const email = (data.email || "").toString().trim().toLowerCase();
+    const role = (data.role || "").toString();
+    const needs = data.role === "ORG_OWNER"
+
+    // Radi samo za admina kojeg ručno dodaš
+    if (!needs) return;
+    if (!email) {
+      await docRef.set(
+        { provisioningError: "Missing email", needsAuthProvisioning: false },
+        { merge: true }
+      );
+      return;
+    }
+    if (role !== "ORG_OWNER") return;
+
+    // 1) Kreiraj Auth user (ako već ne postoji)
+    let userRecord;
+    try {
+      userRecord = await admin.auth().createUser({
+        email,
+        disabled: false,
+        // displayName: `${data.name ?? ""} ${data.surname ?? ""}`.trim(),
+      });
+    } catch (e) {
+      if (e?.code === "auth/email-already-exists") {
+        // Ako već postoji, samo ga dohvatimo po emailu
+        userRecord = await admin.auth().getUserByEmail(email);
+      } else {
+        await docRef.set(
+          {
+            provisioningError: `Auth create failed: ${e.message}`,
+            needsAuthProvisioning: false,
+          },
+          { merge: true }
+        );
+        return;
+      }
+    }
+
+    const authUid = userRecord.uid;
+
+    // (opciono) custom claims
+    // await admin.auth().setCustomUserClaims(authUid, { role: "ORG_OWNER", orgId: data.orgId });
+
+    // 2) Pošalji PASSWORD_RESET email (Google šalje, bez SMTP)
+    try {
+      const apiKey = IDENTITY_TOOLKIT_API_KEY.value();
+      const url = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`;
+
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestType: "PASSWORD_RESET",
+          email: email,
+        }),
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(`sendOobCode failed: ${resp.status} ${txt}`);
+      }
+    } catch (e) {
+      await docRef.set(
+        {
+          authUid,
+          provisioningError: `Reset email failed: ${e.message}`,
+          // ne gasimo needsAuthProvisioning ako želiš retry; po želji stavi false
+        },
+        { merge: true }
+      );
+      return;
+    }
+
+    // 3) Updejtuj Firestore doc da znaš da je provisioning gotov
+    await docRef.set(
+      {
+        authUid,
+        needsAuthProvisioning: false,
+        provisionedAt: admin.firestore.FieldValue.serverTimestamp(),
+        provisioningError: admin.firestore.FieldValue.delete(),
+      },
+      { merge: true }
+    );
+  }
+);
