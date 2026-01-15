@@ -133,6 +133,7 @@ exports.createEmployee = onCall(async (request) => {
     ok: true,
     uid: employeeUid,
     orgId: orgId,
+    user: userDoc
   };
 });
 
