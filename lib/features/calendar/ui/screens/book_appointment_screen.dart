@@ -1,11 +1,12 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
-import '../../../login/data/models/user_model.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -58,8 +59,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   late final String selectedColor;
 
-  late List<UserModel> _employees;
-
   @override
   void initState() {
     super.initState();
@@ -74,7 +73,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     selectedEnd = widget.args.slot?.endDateTime;
     selectedDate = widget.args.slot?.startDateTime ?? DateTime.now();
     titleController = TextEditingController(text: widget.args.slot?.title);
-    _employees = appState.organizationUsers;
     selectedUserId = appState.currentSelectedUserId;
     getIt<ServiceBloc>().add(
       AttachService(serviceIds: widget.args.slot?.serviceIds ?? []),
@@ -113,15 +111,30 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (appState.currentUser?.role == 'ORG_OWNER' && !isEditing) ...[
-                const Label(title: 'Zaposleni'),
-                const SizedBox(height: 8),
-                UserPicker(
-                  employees: _employees,
-                  onChanged:
-                      (userId) => setState(() => selectedUserId = userId),
+              if (appState.currentUser?.role == 'ORG_OWNER' && !isEditing)
+                BlocBuilder<UsersBloc, UsersState>(
+                  bloc: getIt<UsersBloc>(),
+                  builder: (context, state) {
+                    if (state is UsersFetchingSuccess &&
+                        state.users.isNotEmpty) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Label(title: 'Zaposleni'),
+                          const SizedBox(height: 8),
+                          UserPicker(
+                            employees: state.users,
+                            onChanged:
+                                (userId) =>
+                                    setState(() => selectedUserId = userId),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
                 ),
-              ],
               const SizedBox(height: 20),
               const Label(title: 'Datum'),
               const SizedBox(height: 8),
@@ -379,7 +392,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         isTimeRangeValid = false;
       });
       return;
-    } else if (selectedStart != null && selectedStart!.isBefore(selectedDate)) {
+    } else if (selectedStart != null &&
+        selectedStart!.isBefore(DateTime.now())) {
       setState(() {
         isTimeRangeValid = false;
       });
@@ -391,7 +405,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       });
     } else if (selectedEnd != null &&
         selectedStart != null &&
-        selectedEnd!.isBefore(selectedStart!)) {
+        selectedEnd!.isBefore(DateTime.now())) {
       setState(() {
         isTimeRangeValid = false;
       });

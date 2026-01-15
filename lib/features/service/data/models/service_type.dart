@@ -30,5 +30,5 @@ class ServiceType extends Equatable {
   final double price;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, title, price];
 }

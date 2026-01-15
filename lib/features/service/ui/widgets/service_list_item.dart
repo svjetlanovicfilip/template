@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../common/constants/routes.dart';
+import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../data/models/service_type.dart';
 
@@ -44,7 +46,12 @@ class ServiceListItem extends StatelessWidget {
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              context.pushNamed(
+                Routes.addEditServicesScreen,
+                arguments: service,
+              );
+            },
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(

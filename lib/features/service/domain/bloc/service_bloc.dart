@@ -60,8 +60,12 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
           _services.add(service);
           break;
         case DocumentChangeType.modified:
-          _services.removeWhere((e) => e.id == id);
-          _services.add(service);
+          final index = _services.indexWhere((e) => e.id == id);
+          if (index >= 0) {
+            _services[index] = service;
+          } else {
+            _services.add(service);
+          }
           break;
         case DocumentChangeType.removed:
           _services.removeWhere((e) => e.id == id);

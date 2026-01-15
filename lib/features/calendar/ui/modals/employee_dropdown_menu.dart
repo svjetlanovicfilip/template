@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../../common/di/di_container.dart';
 import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
 
-Future<void> showEmployeeFilterMenu(
-  BuildContext context,
-  GlobalKey filterIconKey,
-  Function(String) onSelected,
-) async {
+Future<void> showEmployeeFilterMenu({
+  required BuildContext context,
+  required GlobalKey filterIconKey,
+  required Function(String) onSelected,
+  required List<UserModel> users,
+}) async {
   final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final box = filterIconKey.currentContext?.findRenderObject() as RenderBox?;
   if (box == null) return;
@@ -44,7 +46,7 @@ Future<void> showEmployeeFilterMenu(
         ),
       ),
       const PopupMenuDivider(height: 8),
-      ...appState.organizationUsers.map((opt) {
+      ...users.map((opt) {
         final selected = appState.currentSelectedUserId == opt.id;
         return PopupMenuItem<String>(
           value: opt.id,

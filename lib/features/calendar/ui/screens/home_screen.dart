@@ -11,6 +11,7 @@ import '../../../../common/widgets/logo_widget.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../common/widgets/toggle_button_group.dart';
 import '../../../../config/style/colors.dart';
+import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/calendar_type_enum.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
@@ -80,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<SlotBloc, SlotState>(
       bloc: _slotBloc,
+      listenWhen: (previous, current) => previous != current,
       listener: (context, state) {
         if (state is ErrorLoadingSlots) {
           ScaffoldMessenger.of(
@@ -133,35 +135,49 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             actions: [
-              GestureDetector(
-                onTap:
-                    () => showEmployeeFilterMenu(
-                      context,
-                      _filterIconKey,
-                      (userId) => getIt<SlotBloc>().add(
-                        UserChanged(
-                          userId: userId,
-                          currentDisplayedDate:
-                              _dayViewKey.currentState?.currentDate ??
-                              _weekViewKey.currentState?.currentDate ??
-                              DateTime.now(),
+              BlocBuilder<UsersBloc, UsersState>(
+                bloc: getIt<UsersBloc>(),
+                builder: (context, state) {
+                  if (state is UsersFetchingSuccess && state.users.isNotEmpty) {
+                    return GestureDetector(
+                      onTap:
+                          () => showEmployeeFilterMenu(
+                            context: context,
+
+                            filterIconKey: _filterIconKey,
+                            onSelected:
+                                (userId) => getIt<SlotBloc>().add(
+                                  UserChanged(
+                                    userId: userId,
+                                    currentDisplayedDate:
+                                        _dayViewKey.currentState?.currentDate ??
+                                        _weekViewKey
+                                            .currentState
+                                            ?.currentDate ??
+                                        DateTime.now(),
+                                  ),
+                                ),
+                            users: state.users,
+                          ),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: const BoxDecoration(
+                          color: AppColors.slate700,
+                          shape: BoxShape.circle,
+                        ),
+                        key: _filterIconKey,
+                        child: const Icon(
+                          Icons.filter_list,
+                          size: 24,
+                          color: AppColors.white,
                         ),
                       ),
-                    ),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.slate700,
-                    shape: BoxShape.circle,
-                  ),
-                  key: _filterIconKey,
-                  child: const Icon(
-                    Icons.filter_list,
-                    size: 24,
-                    color: AppColors.white,
-                  ),
-                ),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
               ),
               GestureDetector(
                 onTap: () => context.pushNamed(Routes.settings),

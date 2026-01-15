@@ -9,6 +9,7 @@ import 'common/widgets/screens/splash_screen.dart';
 import 'config/style/theme.dart';
 import 'features/calendar/ui/screens/book_appointment_screen.dart';
 import 'features/calendar/ui/screens/home_screen.dart';
+import 'features/login/ui/screens/forgot_password_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
 import 'features/service/ui/screens/add_edit_service_screen.dart';
 import 'features/service/ui/screens/service_list_screen.dart';
@@ -68,7 +69,8 @@ class _MyAppState extends State<MyApp> {
               (context) => const ExtractBookAppointmentArgumentsScreen(),
           Routes.serviceListScreen: (context) => const ServiceListScreen(),
           Routes.addEditServicesScreen:
-              (context) => const AddEditServiceScreen(),
+              (context) => const ExtractAddEditServiceScreenArguments(),
+          Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
         },
       ),
     );

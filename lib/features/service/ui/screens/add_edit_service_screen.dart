@@ -5,13 +5,25 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
-import '../../../../config/style/colors.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../data/models/service_type.dart';
 import '../../domain/bloc/service_bloc.dart';
+import '../widgets/service_input_field.dart';
+
+class ExtractAddEditServiceScreenArguments extends StatelessWidget {
+  const ExtractAddEditServiceScreenArguments({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as ServiceType?;
+    return AddEditServiceScreen(service: args);
+  }
+}
 
 class AddEditServiceScreen extends StatefulWidget {
-  const AddEditServiceScreen({super.key});
+  const AddEditServiceScreen({required this.service, super.key});
+
+  final ServiceType? service;
 
   @override
   State<AddEditServiceScreen> createState() => _AddEditServiceScreenState();
@@ -21,11 +33,29 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
 
+  final ServiceBloc _serviceBloc = getIt<ServiceBloc>();
+
+  final _errorTitleMessage = 'Naziv usluge ne smije biti prazan';
+  final _errorPriceMessage = 'Cijena usluge ne smije biti prazna';
+
+  String? _titleError;
+  String? _priceError;
+
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    titleController.text = widget.service?.title ?? '';
+    priceController.text = widget.service?.price.toString() ?? '';
+    _isEditing = widget.service?.id != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: Text('Dodaj uslugu')),
+      appBar: const CustomAppBar(title: Text('Dodaj uslugu')),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -36,75 +66,40 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Naziv usluge'),
                 const SizedBox(height: 8),
-                TextField(
-                  maxLines: 2,
-                  textInputAction: TextInputAction.next,
+                ServiceInputField(
                   controller: titleController,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.slate400,
-                        width: 2,
-                      ),
-                    ),
-                    hintText: 'Unesite naziv usluge...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    fillColor: AppColors.slate200,
-                    hintStyle: Theme.of(
-                      context,
-                    ).textTheme.labelMedium?.copyWith(
-                      color: AppColors.slate500,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
+                  hintText: 'Unesite naziv usluge...',
+                  keyboardType: TextInputType.text,
+                  inputFormatters: const [],
+                  maxLines: 2,
+                  errorText: _titleError,
+                  onChanged: (value) {
+                    setState(() {
+                      _titleError =
+                          value.isNotEmpty ? null : _errorTitleMessage;
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 const Label(title: 'Cijena usluge'),
                 const SizedBox(height: 8),
-                TextField(
-                  textInputAction: TextInputAction.done,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ServiceInputField(
                   controller: priceController,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.slate400,
-                        width: 2,
-                      ),
-                    ),
-                    hintText: 'Pretraga usluga...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    fillColor: AppColors.slate200,
-                    hintStyle: Theme.of(
-                      context,
-                    ).textTheme.labelMedium?.copyWith(
-                      color: AppColors.slate500,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _priceError =
+                          value.isNotEmpty ? null : _errorPriceMessage;
+                    });
+                  },
+                  hintText: 'Cijena usluge',
+                  maxLines: 1,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [PositiveDecimalTextInputFormatter()],
+                  errorText: _priceError,
                 ),
                 const SizedBox(height: 30),
                 PrimaryButton(
-                  onTap: () {
-                    getIt<ServiceBloc>().add(
-                      CreateService(
-                        service: ServiceType(
-                          title: titleController.text,
-                          price: double.parse(priceController.text),
-                        ),
-                      ),
-                    );
-                    context.pop();
-                  },
+                  onTap: _onSubmit,
                   width: MediaQuery.of(context).size.width,
                   title: 'Potvrdi',
                   borderRadius: BorderRadius.circular(12),
@@ -116,5 +111,85 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
         ),
       ),
     );
+  }
+
+  void _onSubmit() {
+    final title = titleController.text.trim();
+    final price = priceController.text.trim();
+
+    if (title.isEmpty && price.isEmpty) {
+      setState(() {
+        _titleError = _errorTitleMessage;
+        _priceError = _errorPriceMessage;
+      });
+      return;
+    }
+
+    if (title.isEmpty) {
+      setState(() {
+        _titleError = _errorTitleMessage;
+      });
+      return;
+    }
+
+    if (price.isEmpty) {
+      setState(() {
+        _priceError = _errorPriceMessage;
+      });
+      return;
+    }
+
+    if (_isEditing) {
+      _serviceBloc.add(
+        UpdateService(
+          service: ServiceType(
+            id: widget.service?.id,
+            title: titleController.text,
+            price: double.parse(priceController.text),
+          ),
+        ),
+      );
+    } else {
+      _serviceBloc.add(
+        CreateService(
+          service: ServiceType(
+            title: titleController.text,
+            price: double.parse(priceController.text),
+          ),
+        ),
+      );
+    }
+
+    context.pop();
+  }
+}
+
+class PositiveDecimalTextInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.isEmpty) return newValue;
+
+    // Allow only digits with at most a single decimal point.
+    final validChars = RegExp(r'^\d*\.?\d*$');
+    if (!validChars.hasMatch(text)) {
+      return oldValue;
+    }
+
+    // Disallow negative values.
+    if (text.startsWith('-')) {
+      return oldValue;
+    }
+
+    // Disallow values that are effectively zero (e.g., "0", "00", "0.0").
+    final nonZeroRemainder = text.replaceAll('0', '').replaceAll('.', '');
+    if (nonZeroRemainder.isEmpty) {
+      return oldValue;
+    }
+
+    return newValue;
   }
 }

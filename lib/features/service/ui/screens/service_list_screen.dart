@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../common/widgets/search_field.dart';
@@ -52,7 +53,23 @@ class ServiceListScreen extends StatelessWidget {
                   return SliverList.separated(
                     itemBuilder: (context, index) {
                       final service = state.services[index];
-                      return ServiceListItem(service: service, onDelete: () {});
+                      return ServiceListItem(
+                        service: service,
+                        onDelete: () {
+                          showDeleteDialog(
+                            context: context,
+                            title: 'Izbrisi uslugu!',
+                            description:
+                                'Da li ste sigurni da želite da izbrisete ${service.title}?',
+                            onDelete: () {
+                              getIt<ServiceBloc>().add(
+                                DeleteService(serviceId: service.id ?? ''),
+                              );
+                              context.pop();
+                            },
+                          );
+                        },
+                      );
                     },
                     separatorBuilder:
                         (context, index) => const SizedBox(height: 12),

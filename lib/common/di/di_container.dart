@@ -18,15 +18,14 @@ import '../../features/login/domain/bloc/login_bloc.dart';
 import '../../features/organization/data/datasources/organization_remote_datasource.dart';
 import '../../features/organization/data/repositories/organization_repository.dart';
 import '../../features/organization/data/repositories/organization_repository_impl.dart';
-import '../../features/settings/data/datasources/user_remote_datasource.dart';
-import '../../features/settings/data/repositories/user_repository.dart';
-import '../../features/settings/data/repositories/user_repository_impl.dart';
-import '../../features/settings/domain/bloc/delete_user_bloc.dart';
-import '../../features/settings/domain/bloc/user_bloc.dart';
 import '../../features/service/data/datasources/service_remote_datasource.dart';
 import '../../features/service/data/repositories/service_repository.dart';
 import '../../features/service/data/repositories/service_repository_impl.dart';
 import '../../features/service/domain/bloc/service_bloc.dart';
+import '../../features/settings/data/datasources/user_remote_datasource.dart';
+import '../../features/settings/data/repositories/user_repository.dart';
+import '../../features/settings/data/repositories/user_repository_impl.dart';
+import '../../features/users/domain/bloc/users_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
 
@@ -58,10 +57,7 @@ void setupDependencies() {
       CalendarRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
     ..registerSingleton<UserRemoteDatasource>(
-      UserRemoteDatasource(
-        functions: firebaseFunc,
-        firebaseAuth: firebaseAuth,
-      ),
+      UserRemoteDatasource(functions: firebaseFunc, firebaseAuth: firebaseAuth),
     )
     ..registerSingleton<OrganizationRemoteDatasource>(
       OrganizationRemoteDatasource(firebaseFirestore: firebaseFirestore),
@@ -114,14 +110,16 @@ void setupDependencies() {
         organizationRepository: getIt<OrganizationRepository>(),
       ),
     )
-    ..registerLazySingleton<UserBloc>(() => UserBloc(getIt<UserRepository>()))
-
-    ..registerLazySingleton<DeleteUserBloc>(() => DeleteUserBloc(getIt<UserRepository>()))
-
     ..registerLazySingleton<SlotBloc>(
       () => SlotBloc(getIt<CalendarRepository>()),
     )
     ..registerLazySingleton<ServiceBloc>(
       () => ServiceBloc(getIt<ServiceRepository>()),
+    )
+    ..registerLazySingleton<UsersBloc>(
+      () => UsersBloc(
+        organizationRepository: getIt<OrganizationRepository>(),
+        userRepository: getIt<UserRepository>(),
+      ),
     );
 }
