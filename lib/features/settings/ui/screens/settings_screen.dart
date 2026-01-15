@@ -7,6 +7,7 @@ import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../authentication/domain/bloc/authentication_bloc.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../../users/domain/bloc/users_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -43,7 +44,6 @@ class SettingsScreen extends StatelessWidget {
               //   },
               // ),
               // _SettingsDivider(),
-
               _SettingsMenuItem(
                 label: 'Odjavite se',
                 onTap: () async {
@@ -67,6 +67,7 @@ class SettingsScreen extends StatelessWidget {
 Future<bool> showLogoutDialog(BuildContext context) async {
   void logout() {
     getIt<AuthenticationBloc>().add(AuthenticationLogoutRequested());
+    getIt<UsersBloc>().clearState();
     appState.clearState();
     getIt<SlotBloc>().clearState();
     getIt<ServiceBloc>().clearState();

@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/custom_input_field.dart';
-import '../../domain/bloc/user_bloc.dart';
+import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
+import '../../../users/domain/bloc/users_bloc.dart';
 
 class AddEditEmployeeScreen extends StatefulWidget {
   const AddEditEmployeeScreen({super.key});
@@ -13,8 +15,7 @@ class AddEditEmployeeScreen extends StatefulWidget {
 }
 
 class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
-
-  final userBloc = getIt<UserBloc>();
+  final usersBloc = getIt<UsersBloc>();
 
   String _name = '';
   String? _nameError;
@@ -45,20 +46,18 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
-      bloc: userBloc,
+    return BlocListener<UsersBloc, UsersState>(
+      bloc: usersBloc,
       listener: (context, state) {
-        if (state is EmployeeSuccess) {
+        if (state is UsersFetchingSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Zaposleni je dodat. Poslan je email za reset lozinke.'),
+              content: Text(
+                'Zaposleni je dodat. Poslan je email za reset lozinke.',
+              ),
             ),
           );
           Navigator.of(context).pop(_name.trim());
-        } else if (state is EmployeeFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
         }
       },
       child: Scaffold(
@@ -66,14 +65,13 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
         appBar: const CustomAppBar(title: Text('Dodajte novog zaposlenog')),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CustomInputField(
                   label: 'Ime',
                   hint: 'Ime',
-                  isPassword: false,
                   errorText: _nameError,
                   onChanged: (value) {
                     setState(() {
@@ -85,7 +83,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 CustomInputField(
                   label: 'Prezime',
                   hint: 'Prezime',
-                  isPassword: false,
                   errorText: _lastNameError,
                   onChanged: (value) {
                     setState(() {
@@ -97,7 +94,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 CustomInputField(
                   label: 'Korisnicko ime',
                   hint: 'Korisnicko ime',
-                  isPassword: false,
                   errorText: _usernameError,
                   onChanged: (value) {
                     setState(() {
@@ -109,7 +105,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 CustomInputField(
                   label: 'Email',
                   hint: 'Email',
-                  isPassword: false,
                   errorText: _emailError,
                   onChanged: (value) {
                     setState(() {
@@ -123,32 +118,35 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 // SUBMIT BUTTON
                 SizedBox(
                   height: 48,
-                  child: BlocBuilder<UserBloc, UserState>(
-                    bloc: userBloc,
-                    buildWhen: (prev, next) =>
-                        prev.runtimeType != next.runtimeType,
+                  child: BlocBuilder<UsersBloc, UsersState>(
+                    bloc: usersBloc,
+                    buildWhen:
+                        (prev, next) => prev.runtimeType != next.runtimeType,
                     builder: (context, state) {
-                      final isSubmitting = state is EmployeeSubmitting;
+                      final isSubmitting = state is UsersFetching;
 
                       return ElevatedButton(
-                        onPressed: (isSubmitting || !_canSubmit)
-                            ? null
-                            : () => _onSubmit(context),
+                        onPressed:
+                            (isSubmitting || !_canSubmit)
+                                ? null
+                                : () => _onSubmit(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: AppColors.amber500,
                           foregroundColor: Colors.white,
                         ),
-                        child: isSubmitting
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text('Potvrdi'),
+                        child:
+                            isSubmitting
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text('Potvrdi'),
                       );
                     },
                   ),
@@ -183,7 +181,9 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
       _lastNameError =
           _lastName.trim().isEmpty ? 'Prezime ne smije biti prazno' : null;
       _usernameError =
-          _username.trim().isEmpty ? 'Korisničko ime ne smije biti prazno' : null;
+          _username.trim().isEmpty
+              ? 'Korisničko ime ne smije biti prazno'
+              : null;
 
       if (_email.trim().isEmpty) {
         _emailError = 'Email ne smije biti prazan';
@@ -202,13 +202,15 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
 
     if (hasError) return;
 
-    userBloc.add(
-          CreateEmployeeSubmitted(
-            name: _name,
-            lastName: _lastName,
-            username: _username,
-            email: _email,
-          ),
-        );
+    usersBloc.add(
+      UserAdded(
+        user: UserModel(
+          name: _name,
+          surname: _lastName,
+          username: _username,
+          email: _email,
+        ),
+      ),
+    );
   }
 }

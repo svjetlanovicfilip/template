@@ -1,4 +1,5 @@
 import '../../../../common/models/result.dart';
+import '../../../login/data/models/user_model.dart';
 import '../datasources/user_remote_datasource.dart';
 import 'user_repository.dart';
 
@@ -8,7 +9,7 @@ class UserRepositoryImpl implements UserRepository {
   final UserRemoteDatasource remote;
 
   @override
-  Future<Result<Map<String, dynamic>, Exception>> createEmployee({
+  Future<Result<UserModel, Exception>> createEmployee({
     required String name,
     required String lastName,
     required String username,

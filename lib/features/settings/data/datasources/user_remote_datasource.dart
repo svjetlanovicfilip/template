@@ -1,20 +1,17 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:template/common/models/result.dart' as app;
+import '../../../../common/models/result.dart' as app;
 
+import '../../../login/data/models/user_model.dart';
 
 class UserRemoteDatasource {
-  UserRemoteDatasource({
-    required this.functions,
-    required this.firebaseAuth,
-  });
+  UserRemoteDatasource({required this.functions, required this.firebaseAuth});
 
   FirebaseFunctions functions;
   final FirebaseAuth firebaseAuth;
 
-
   /// Kreira employee preko callable funkcije + pošalje reset password email (bez SMTP)
-  Future<app.Result<Map<String, dynamic>, Exception>> createEmployee({
+  Future<app.Result<UserModel, Exception>> createEmployee({
     required String name,
     required String lastName,
     required String username,
@@ -36,7 +33,12 @@ class UserRemoteDatasource {
       // Pošalji reset email (Firebase šalje)
       await firebaseAuth.sendPasswordResetEmail(email: email.trim());
 
-      return app.Result.success(data);
+      return app.Result.success(
+        UserModel.fromJson(
+          Map<String, dynamic>.from(data['user'] as Map),
+          data['uid'],
+        ),
+      );
     } on FirebaseFunctionsException catch (e) {
       // e.code: unauthenticated, permission-denied, already-exists, internal...
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
@@ -48,7 +50,7 @@ class UserRemoteDatasource {
     }
   }
 
-    /// Soft delete employee:
+  /// Soft delete employee:
   /// - Cloud Function disable-uje Auth user-a
   /// - Firestore users/{uid} postavlja isActive=false
   Future<app.Result<Map<String, dynamic>, Exception>> deleteEmployee({
