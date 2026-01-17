@@ -4,6 +4,7 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
+import '../../../../config/style/colors.dart';
 import '../../../authentication/domain/bloc/authentication_bloc.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
@@ -15,27 +16,34 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: const CustomAppBar(title: Text('Vaša podešavanja')),
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 16),
           child: Column(
+            spacing: 12,
             children: [
               _SettingsMenuItem(
                 label: 'Upravljanje zaposlenima',
+                icon: Icons.group_outlined,
                 onTap: () {
                   context.pushNamed(Routes.employeesScreen);
                 },
               ),
-              _SettingsDivider(),
-
+              _SettingsMenuItem(
+                label: 'Klijenti',
+                icon: Icons.person_outline,
+                onTap: () {
+                  context.pushNamed(Routes.employeesScreen);
+                },
+              ),
               _SettingsMenuItem(
                 label: 'Cjenovnik',
+                icon: Icons.local_offer_outlined,
                 onTap: () {
                   context.pushNamed(Routes.serviceListScreen);
                 },
               ),
-              _SettingsDivider(),
 
               // _SettingsMenuItem(
               //   label: 'Promjena lozinke',
@@ -46,6 +54,8 @@ class SettingsScreen extends StatelessWidget {
               // _SettingsDivider(),
               _SettingsMenuItem(
                 label: 'Odjavite se',
+                icon: Icons.lock_outline,
+                isDestructive: true,
                 onTap: () async {
                   // final confirm = await showLogoutDialog(context);
                   // if (confirm) {
@@ -55,7 +65,6 @@ class SettingsScreen extends StatelessWidget {
                   // TODO: Test
                 },
               ),
-              _SettingsDivider(),
             ],
           ),
         ),
@@ -102,7 +111,7 @@ Future<bool> showLogoutDialog(BuildContext context) async {
                 child: const Text('Odustani'),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(onPressed: logout, child: const Text('Odjavi se')),
+              ElevatedButton(onPressed: logout, child: const Text('Odjavi se'), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(AppColors.red600))),
             ],
           ),
         ],
@@ -114,38 +123,55 @@ Future<bool> showLogoutDialog(BuildContext context) async {
 }
 
 class _SettingsMenuItem extends StatelessWidget {
+  const _SettingsMenuItem({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+
   final String label;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _SettingsMenuItem({required this.label, required this.onTap});
+  /// Ako je true -> crven tekst, ikonica i chevron (za "Odjavite se")
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = isDestructive ? AppColors.red600 : AppColors.amber500;
+    ;
+    final trailingColor = isDestructive ? AppColors.red600 : AppColors.amber500;
+    final textColor = isDestructive ? AppColors.red600 : Colors.black;
+
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 16, color: Colors.black),
-          ),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: accentColor, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: trailingColor, size: 24),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _SettingsDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Divider(
-      height: 0,
-      thickness: 1,
-      color: Colors.black12,
-      indent: 16,
-      endIndent: 16,
     );
   }
 }

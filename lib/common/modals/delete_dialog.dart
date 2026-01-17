@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../config/style/colors.dart';
+
 class RemoveDialog extends StatelessWidget {
   const RemoveDialog({
     required this.title,
@@ -41,7 +43,7 @@ class RemoveDialog extends StatelessWidget {
             const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.red600,
                 foregroundColor: Colors.white,
               ),
               onPressed: onDelete,
