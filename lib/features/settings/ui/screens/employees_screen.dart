@@ -32,13 +32,13 @@ class EmployeesScreen extends StatelessWidget {
               },
               borderRadius: BorderRadius.circular(30),
             ),
-            backgroundColor: Colors.white,
             appBar: const CustomAppBar(title: Text('Zaposleni')),
             body:
                 state is UsersFetchingSuccess
                     ? SafeArea(
                       child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+
                         itemCount: state.users.length,
                         separatorBuilder:
                             (context, index) => const SizedBox(height: 12),
@@ -145,16 +145,14 @@ class _EmployeeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 56,
+      padding: const EdgeInsets.only(top: 12, bottom: 12, left: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
       ),
       child: Row(
         children: [
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -164,11 +162,10 @@ class _EmployeeItem extends StatelessWidget {
                 ),
               ),
             ),
-          ),
           IconButton(
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline),
-            color: Colors.redAccent,
+            color: AppColors.red600,
           ),
         ],
       ),
