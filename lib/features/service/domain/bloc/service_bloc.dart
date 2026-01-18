@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../common/di/di_container.dart';
@@ -43,6 +44,8 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
       return;
     }
 
+    emit(const ServiceState());
+
     _serviceListener = serviceRepository
         .listenForNewChanges(organizationId)
         .listen((docs) {
@@ -73,7 +76,12 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
       }
     }
 
-    emit(ServiceState(services: List.from(_services)));
+    emit(
+      ServiceState(
+        services: List.from(_services),
+        status: ServiceStatus.loaded,
+      ),
+    );
   }
 
   void _onClearSearchServices(
@@ -98,10 +106,12 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
       return;
     }
 
-    final searchQuery = event.searchQuery;
+    final searchQuery = event.searchQuery.toLowerCase();
     final services =
         _services
-            .where((service) => service.title.contains(searchQuery))
+            .where(
+              (service) => service.title.toLowerCase().contains(searchQuery),
+            )
             .toList();
     emit(
       ServiceState(
@@ -123,7 +133,11 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
 
     final services =
         _services
-            .where((service) => service.title.contains(event.searchQuery))
+            .where(
+              (service) => service.title.toLowerCase().contains(
+                event.searchQuery.toLowerCase(),
+              ),
+            )
             .toList();
 
     emit(
@@ -135,13 +149,18 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
   }
 
   void _onAttachService(AttachService event, Emitter<ServiceState> emit) {
+    final services =
+        event.serviceIds
+            .map(
+              (id) => _services.firstWhereOrNull((service) => service.id == id),
+            )
+            .where((service) => service != null)
+            .cast<ServiceType>()
+            .toList();
+
     _selectedServices
       ..clear()
-      ..addAll(
-        event.serviceIds.map(
-          (id) => _services.firstWhere((service) => service.id == id),
-        ),
-      );
+      ..addAll(services);
     emit(
       ServiceState(
         services: List.from(_services),

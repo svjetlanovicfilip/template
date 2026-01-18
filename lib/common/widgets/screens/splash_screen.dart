@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-import '../../../features/authentication/domain/bloc/authentication_bloc.dart';
-import '../../../features/calendar/domain/bloc/slot_bloc.dart';
-import '../../../features/calendar/ui/screens/home_screen.dart';
-import '../../../features/service/domain/bloc/service_bloc.dart';
-import '../../../features/users/domain/bloc/users_bloc.dart';
+import '../../../blocs/app_init/bloc/app_init_bloc.dart';
 import '../../constants/routes.dart';
 import '../../di/di_container.dart';
 import '../../extensions/context_extension.dart';
@@ -20,46 +16,27 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final _authenticationBloc = getIt<AuthenticationBloc>();
+  late final AppInitBloc _appInitBloc = getIt<AppInitBloc>();
 
   @override
   void initState() {
     super.initState();
     FlutterNativeSplash.remove();
 
-    _authenticationBloc.add(AuthenticationCheckRequested());
+    _appInitBloc.add(AppInitStarted());
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<AuthenticationBloc, AuthenticationState>(
-          bloc: _authenticationBloc,
-          listener: (context, state) {
-            if (state.status == AuthenticationStatus.authenticated) {
-              getIt<SlotBloc>().add(InitListener());
-              getIt<ServiceBloc>().add(InitServiceListener());
-              getIt<UsersBloc>().add(UsersFetchRequested());
-            } else {
-              Future.delayed(const Duration(seconds: 1), () {
-                context.pushReplacementNamed(Routes.login);
-              });
-            }
-          },
-        ),
-        BlocListener<SlotBloc, SlotState>(
-          bloc: getIt<SlotBloc>(),
-          listener: (context, state) {
-            if (state is LoadedRangeSlots) {
-              context.pushReplacementNamed(
-                Routes.home,
-                arguments: HomeScreenArguments(slots: state.slots),
-              );
-            }
-          },
-        ),
-      ],
+    return BlocListener<AppInitBloc, AppInitState>(
+      bloc: _appInitBloc,
+      listener: (context, state) {
+        if (state is AppInitReady) {
+          context.pushReplacementNamed(Routes.home, arguments: state.slots);
+        } else if (state is AppInitUnauthenticated) {
+          context.pushReplacementNamed(Routes.login);
+        }
+      },
       child: Scaffold(
         body: Container(
           width: double.infinity,

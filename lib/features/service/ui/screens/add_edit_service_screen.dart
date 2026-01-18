@@ -10,16 +10,6 @@ import '../../data/models/service_type.dart';
 import '../../domain/bloc/service_bloc.dart';
 import '../widgets/service_input_field.dart';
 
-class ExtractAddEditServiceScreenArguments extends StatelessWidget {
-  const ExtractAddEditServiceScreenArguments({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as ServiceType?;
-    return AddEditServiceScreen(service: args);
-  }
-}
-
 class AddEditServiceScreen extends StatefulWidget {
   const AddEditServiceScreen({required this.service, super.key});
 
