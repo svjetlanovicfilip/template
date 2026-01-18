@@ -18,32 +18,11 @@ import '../../domain/bloc/slot_bloc.dart';
 import '../modals/employee_dropdown_menu.dart';
 import '../widgets/calendar_day_view.dart';
 import '../widgets/calendar_week_view.dart';
-import 'book_appointment_screen.dart';
-
-class HomeScreenArguments {
-  const HomeScreenArguments({required this.slots});
-
-  final List<Slot> slots;
-}
-
-class ExtractHomeScreenArguments extends StatelessWidget {
-  const ExtractHomeScreenArguments({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments is HomeScreenArguments
-            ? ModalRoute.of(context)!.settings.arguments as HomeScreenArguments
-            : const HomeScreenArguments(slots: []);
-
-    return HomeScreen(args: args);
-  }
-}
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({required this.args, super.key});
+  const HomeScreen({required this.slots, super.key});
 
-  final HomeScreenArguments args;
+  final List<Slot> slots;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -65,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_initializedFromArgs) return;
 
     final newSlots =
-        widget.args.slots.map((slot) => slot.toCalendarEventData()).toList();
+        widget.slots.map((slot) => slot.toCalendarEventData()).toList();
 
     // Defer controller updates until after the first frame to avoid
     // setState/markNeedsBuild during build of ancestor widgets.
@@ -202,10 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
           floatingActionButton: PrimaryButton(
             icon: Icons.add,
             onTap: () {
-              context.pushNamed(
-                Routes.bookAppointment,
-                arguments: const BookAppointmentScreenArguments(),
-              );
+              context.pushNamed(Routes.bookAppointment);
             },
             borderRadius: BorderRadius.circular(30),
           ),

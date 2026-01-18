@@ -46,19 +46,16 @@ class UserChanged extends SlotEvent {
 }
 
 class AddNewSlot extends SlotEvent {
-  const AddNewSlot(this.slot, this.userId);
+  const AddNewSlot(this.slot);
   final Slot slot;
-  final String userId;
 }
 
 class UpdateSlot extends SlotEvent {
-  const UpdateSlot(this.slot, this.userId);
+  const UpdateSlot(this.slot);
   final Slot slot;
-  final String userId;
 }
 
 class DeleteSlot extends SlotEvent {
-  const DeleteSlot(this.slotId, this.userId);
+  const DeleteSlot(this.slotId);
   final String slotId;
-  final String userId;
 }

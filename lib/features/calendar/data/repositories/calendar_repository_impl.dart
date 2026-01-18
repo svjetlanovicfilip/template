@@ -48,8 +48,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<String, Exception>> createSlot(Slot slot, String userId) async {
-    final result = await calendarRemoteDatasource.createSlot(slot, userId);
+  Future<Result<String, Exception>> createSlot(Slot slot) async {
+    final result = await calendarRemoteDatasource.createSlot(slot);
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);
     }
@@ -58,8 +58,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<bool, Exception>> updateSlot(Slot slot, String userId) async {
-    final result = await calendarRemoteDatasource.updateSlot(slot, userId);
+  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
+    final result = await calendarRemoteDatasource.updateSlot(slot);
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);
     }
@@ -68,11 +68,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<bool, Exception>> deleteSlot(
-    String slotId,
-    String userId,
-  ) async {
-    final result = await calendarRemoteDatasource.deleteSlot(slotId, userId);
+  Future<Result<bool, Exception>> deleteSlot(String slotId) async {
+    final result = await calendarRemoteDatasource.deleteSlot(slotId);
     if (result.isFailure) {
       return Result.failure(result.failure as Exception);
     }

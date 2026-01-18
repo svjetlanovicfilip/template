@@ -8,7 +8,6 @@ import '../../../../config/style/colors.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
-import '../screens/book_appointment_screen.dart';
 
 class CalendarDayView extends StatelessWidget {
   const CalendarDayView({required this.dayViewKey, super.key});
@@ -142,10 +141,7 @@ class CalendarDayView extends StatelessWidget {
         final event = events.first;
         final eventSlot = event.event as Slot;
 
-        context.pushNamed(
-          Routes.bookAppointment,
-          arguments: BookAppointmentScreenArguments(slot: eventSlot),
-        );
+        context.pushNamed(Routes.bookAppointment, arguments: eventSlot);
       },
 
       onPageChange: (date, page) {
@@ -165,9 +161,7 @@ class CalendarDayView extends StatelessWidget {
 
         context.pushNamed(
           Routes.bookAppointment,
-          arguments: BookAppointmentScreenArguments(
-            slot: Slot(title: '', startDateTime: date),
-          ),
+          arguments: Slot(title: '', startDateTime: date),
         );
       },
 
