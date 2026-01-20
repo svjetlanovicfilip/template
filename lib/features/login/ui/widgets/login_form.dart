@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
+import '../../../../blocs/app_init/bloc/app_init_bloc.dart';
 import '../../../../common/constants/routes.dart';
+import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/custom_input_field.dart';
 import '../../../../common/widgets/primary_button.dart';
@@ -62,18 +64,26 @@ class LoginForm extends StatelessWidget {
 
         const SizedBox(height: 50),
 
-        BlocBuilder<LoginBloc, LoginState>(
-          bloc: loginBloc,
-          builder:
-              (context, state) => SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: PrimaryButton(
-                  title: 'Prijavi se',
-                  onTap: () => loginBloc.add(const LoginSubmitted()),
-                  borderRadius: BorderRadius.circular(8),
-                  isLoading: state.status == FormzSubmissionStatus.inProgress,
-                ),
-              ),
+        BlocBuilder<AppInitBloc, AppInitState>(
+          bloc: getIt<AppInitBloc>(),
+          builder: (context, appInitState) {
+            return BlocBuilder<LoginBloc, LoginState>(
+              bloc: loginBloc,
+              builder:
+                  (context, loginState) => SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: PrimaryButton(
+                      title: 'Prijavi se',
+                      onTap: () => loginBloc.add(const LoginSubmitted()),
+                      borderRadius: BorderRadius.circular(8),
+                      isLoading:
+                          loginState.status ==
+                              FormzSubmissionStatus.inProgress ||
+                          appInitState is AppInitLoading,
+                    ),
+                  ),
+            );
+          },
         ),
       ],
     );

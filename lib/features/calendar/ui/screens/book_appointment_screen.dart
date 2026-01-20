@@ -5,39 +5,22 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
+import '../../../employees/domain/cubit/employees_picker_cubit.dart';
+import '../../../login/data/models/user_model.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
-import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
+import '../widgets/employee_picker.dart';
 import '../widgets/label.dart';
-import '../widgets/service_input_field.dart';
+import '../widgets/selected_employees_list.dart';
+import '../widgets/selected_services_list.dart';
 import '../widgets/time_input_field.dart';
-import '../widgets/user_picker.dart';
-
-class BookAppointmentScreenArguments {
-  const BookAppointmentScreenArguments({this.slot});
-
-  final Slot? slot;
-}
-
-class ExtractBookAppointmentArgumentsScreen extends StatelessWidget {
-  const ExtractBookAppointmentArgumentsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments
-            as BookAppointmentScreenArguments;
-
-    return BookAppointmentScreen(args: args);
-  }
-}
 
 class BookAppointmentScreen extends StatefulWidget {
-  const BookAppointmentScreen({required this.args, super.key});
+  const BookAppointmentScreen({this.slot, super.key});
 
-  final BookAppointmentScreenArguments args;
+  final Slot? slot;
 
   @override
   State<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
@@ -46,37 +29,56 @@ class BookAppointmentScreen extends StatefulWidget {
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   late TextEditingController titleController;
 
+  late EmployeesPickerCubit _employeesPickerCubit;
+  late ServiceBloc _serviceBloc;
+
   late DateTime selectedDate;
   DateTime? selectedStart;
   DateTime? selectedEnd;
   DateTime initialDate = DateTime.now();
-  String? selectedUserId;
   bool isEditing = false;
   bool isFormSubmitted = false;
 
   bool isTimeRangeValid = true;
-  bool isTitleValid = true;
+  bool anyEmployeeSelected = true;
+  bool anyServiceSelected = true;
 
   late final String selectedColor;
 
   @override
   void initState() {
     super.initState();
-    isEditing = widget.args.slot?.title.isNotEmpty ?? false;
+    _serviceBloc = getIt<ServiceBloc>();
+    isEditing =
+        widget.slot?.startDateTime != null && widget.slot?.endDateTime != null;
     final random = Random();
     final colors = List<Color>.from(AppColors.possibleEventColors)
       ..shuffle(random);
     final length = colors.length;
     final eventIndex = random.nextInt(length);
     selectedColor = colors[eventIndex % colors.length].toARGB32().toString();
-    selectedStart = widget.args.slot?.startDateTime;
-    selectedEnd = widget.args.slot?.endDateTime;
-    selectedDate = widget.args.slot?.startDateTime ?? DateTime.now();
-    titleController = TextEditingController(text: widget.args.slot?.title);
-    selectedUserId = appState.currentSelectedUserId;
-    getIt<ServiceBloc>().add(
-      AttachService(serviceIds: widget.args.slot?.serviceIds ?? []),
-    );
+    selectedStart = widget.slot?.startDateTime;
+    selectedEnd = widget.slot?.endDateTime;
+    selectedDate = widget.slot?.startDateTime ?? DateTime.now();
+    titleController = TextEditingController(text: widget.slot?.title);
+
+    _employeesPickerCubit = getIt<EmployeesPickerCubit>();
+
+    if (widget.slot?.employeeIds != null &&
+        widget.slot!.employeeIds.isNotEmpty) {
+      for (final employeeId in widget.slot?.employeeIds ?? []) {
+        _employeesPickerCubit.pickEmployee(
+          employeeId: employeeId,
+          isPicked: true,
+        );
+      }
+    } else {
+      _employeesPickerCubit.pickEmployee(
+        employeeId: appState.currentSelectedUserId ?? '',
+        isPicked: true,
+      );
+    }
+    _serviceBloc.add(AttachService(serviceIds: widget.slot?.serviceIds ?? []));
   }
 
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
@@ -102,164 +104,168 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: const CustomAppBar(title: Text('Dodaj termin')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (appState.currentUser?.role == 'ORG_OWNER' && !isEditing)
-                BlocBuilder<UsersBloc, UsersState>(
-                  bloc: getIt<UsersBloc>(),
-                  builder: (context, state) {
-                    if (state is UsersFetchingSuccess &&
-                        state.users.isNotEmpty) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Label(title: 'Zaposleni'),
-                          const SizedBox(height: 8),
-                          UserPicker(
-                            employees: state.users,
-                            onChanged:
-                                (userId) =>
-                                    setState(() => selectedUserId = userId),
-                          ),
-                        ],
-                      );
-                    }
-
-                    return const SizedBox.shrink();
-                  },
-                ),
-              const SizedBox(height: 20),
-              const Label(title: 'Datum'),
-              const SizedBox(height: 8),
-              InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _pickDate,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: AppColors.slate200,
-                  ),
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      const Icon(
-                        Icons.calendar_month,
-                        color: AppColors.slate800,
-                      ),
-                      Text(
-                        formatDateLong(selectedDate),
-                        style: theme.textTheme.labelMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                spacing: 16,
-                children: [
-                  Expanded(
-                    child: TimeInputField(
-                      isTimeRangeValid: isTimeRangeValid,
-                      label: 'Početak',
-                      selectedDateTime: selectedStart,
-                      onTimeSelected: _onStartTimeSelected,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EmployeesPickerCubit, Map<String, bool>>(
+          bloc: _employeesPickerCubit,
+          listener: (context, state) {
+            setState(() {
+              anyEmployeeSelected = state.values.any((value) => value);
+            });
+          },
+        ),
+        BlocListener<ServiceBloc, ServiceState>(
+          bloc: _serviceBloc,
+          listener: (context, state) {
+            if (isFormSubmitted) {
+              setState(() {
+                anyServiceSelected = state.selectedServices.isNotEmpty;
+              });
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        appBar: const CustomAppBar(title: Text('Dodaj termin')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SelectedEmployeesList(anyEmployeeSelected: anyEmployeeSelected),
+                const SizedBox(height: 20),
+                const Label(title: 'Datum'),
+                const SizedBox(height: 8),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _pickDate,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.slate200,
+                    ),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        const Icon(
+                          Icons.calendar_month,
+                          color: AppColors.slate800,
+                        ),
+                        Text(
+                          formatDateLong(selectedDate),
+                          style: theme.textTheme.labelMedium,
+                        ),
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: TimeInputField(
-                      isTimeRangeValid: isTimeRangeValid,
-                      label: 'Kraj',
-                      selectedDateTime: selectedEnd,
-                      onTimeSelected: _onEndTimeSelected,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  spacing: 16,
+                  children: [
+                    Expanded(
+                      child: TimeInputField(
+                        isTimeRangeValid: isTimeRangeValid,
+                        label: 'Početak',
+                        selectedDateTime: selectedStart,
+                        onTimeSelected: _onStartTimeSelected,
+                      ),
+                    ),
+                    Expanded(
+                      child: TimeInputField(
+                        isTimeRangeValid: isTimeRangeValid,
+                        label: 'Kraj',
+                        selectedDateTime: selectedEnd,
+                        onTimeSelected: _onEndTimeSelected,
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (!isTimeRangeValid) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Vrijeme nije pravilno uneseno. Molimo vas da provjerite početak i kraj termina.',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppColors.red600,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
-              ),
-
-              if (!isTimeRangeValid) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Vrijeme nije pravilno uneseno. Molimo vas da provjerite početak i kraj termina.',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppColors.red600,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 20),
-              const Label(title: 'Usluga'),
-              const SizedBox(height: 8),
-              const ServiceInputField(),
-              const SizedBox(height: 20),
-              const Label(title: 'Detalji usluge'),
-              const SizedBox(height: 8),
-              TextField(
-                controller: titleController,
-                maxLines: 3,
-                textInputAction: TextInputAction.done,
-                onChanged:
-                    (value) => setState(() => isTitleValid = value.isNotEmpty),
-                decoration: InputDecoration(
-                  hintText: 'Unesite detalje usluge...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.slate400,
-                      width: 2,
+                const SizedBox(height: 20),
+                const Label(title: 'Usluga'),
+                const SizedBox(height: 8),
+                SelectedServicesList(anyServiceSelected: anyServiceSelected),
+                const SizedBox(height: 20),
+                const Label(title: 'Detalji usluge'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: titleController,
+                  maxLines: 3,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    hintText: 'Unesite detalje usluge...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.slate400,
+                        width: 2,
+                      ),
+                    ),
+                    fillColor: AppColors.slate200,
+                    hintStyle: theme.textTheme.labelMedium?.copyWith(
+                      color: AppColors.slate500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                  fillColor: AppColors.slate200,
-                  hintStyle: theme.textTheme.labelMedium?.copyWith(
-                    color: AppColors.slate500,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.red600),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.red600),
-                  ),
-                  errorText:
-                      isTitleValid ? null : 'Molimo unesite detalje usluge',
                 ),
-              ),
-              const SizedBox(height: 20),
-              PrimaryButton(
-                onTap: handleSubmit,
-                title: 'Potvrdi',
-                borderRadius: BorderRadius.circular(12),
-                padding: const EdgeInsets.all(10),
-              ),
-              const SizedBox(height: 12),
-              if (isEditing)
+                const SizedBox(height: 20),
                 PrimaryButton(
-                  onTap: handleDelete,
-                  title: 'Izbriši termin',
+                  onTap: handleSubmit,
+                  title: 'Potvrdi',
                   borderRadius: BorderRadius.circular(12),
-                  backgroundColor: AppColors.red600,
                   padding: const EdgeInsets.all(10),
                 ),
-            ],
+                const SizedBox(height: 12),
+                if (isEditing)
+                  PrimaryButton(
+                    onTap: handleDelete,
+                    title: 'Izbriši termin',
+                    borderRadius: BorderRadius.circular(12),
+                    backgroundColor: AppColors.red600,
+                    padding: const EdgeInsets.all(10),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  void showEmployeePickerBottomSheet({
+    required BuildContext context,
+    required List<UserModel> employees,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => EmployeePicker(employees: employees),
+    );
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    _employeesPickerCubit.clear();
+    super.dispose();
   }
 
   Future<void> _pickDate() async {
@@ -346,41 +352,51 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     final title = titleController.text.trim();
 
-    if (title.isEmpty) {
+    final employeeIds =
+        _employeesPickerCubit.state.keys
+            .where((key) => _employeesPickerCubit.state[key] ?? false)
+            .toList();
+
+    final serviceIds =
+        _serviceBloc.state.selectedServices.map((e) => e.id ?? '').toList();
+
+    if (employeeIds.isEmpty || !anyEmployeeSelected) {
       setState(() {
-        isTitleValid = false;
+        anyEmployeeSelected = false;
       });
     }
 
-    if (!isTimeRangeValid || !isTitleValid) {
+    if (serviceIds.isEmpty || !anyServiceSelected) {
+      setState(() {
+        anyServiceSelected = false;
+      });
+    }
+
+    if (!isTimeRangeValid || !anyEmployeeSelected || !anyServiceSelected) {
       return;
     }
 
     final newSlot = Slot(
-      id: widget.args.slot?.id,
+      id: widget.slot?.id,
       startDateTime: selectedStart ?? DateTime.now(),
       endDateTime: selectedEnd ?? DateTime.now(),
       title: title,
-      color: widget.args.slot?.color ?? selectedColor,
-      serviceIds:
-          getIt<ServiceBloc>().state.selectedServices
-              .map((e) => e.id ?? '')
-              .toList(),
+      color: widget.slot?.color ?? selectedColor,
+      serviceIds: serviceIds,
+      employeeIds: employeeIds,
     );
 
     if (isEditing) {
-      getIt<SlotBloc>().add(UpdateSlot(newSlot, selectedUserId ?? ''));
+      getIt<SlotBloc>().add(UpdateSlot(newSlot));
     } else {
-      getIt<SlotBloc>().add(AddNewSlot(newSlot, selectedUserId ?? ''));
+      getIt<SlotBloc>().add(AddNewSlot(newSlot));
     }
 
     Navigator.of(context).pop();
   }
 
   void handleDelete() {
-    getIt<SlotBloc>().add(
-      DeleteSlot(widget.args.slot?.id ?? '', selectedUserId ?? ''),
-    );
+    getIt<SlotBloc>().add(DeleteSlot(widget.slot?.id ?? ''));
     Navigator.of(context).pop();
   }
 

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../common/di/di_container.dart';
+import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../config/style/colors.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../../login/data/models/user_model.dart';
-import '../../../service/ui/widgets/service_input_field.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 
 class AddEditEmployeeScreen extends StatefulWidget {
@@ -76,7 +77,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Ime'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: nameController,
                   hintText: 'Unesite ime',
                   keyboardType: TextInputType.text,
@@ -92,7 +93,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Prezime'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: lastNameController,
                   hintText: 'Unesite prezime',
                   keyboardType: TextInputType.text,
@@ -109,7 +110,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Korisnicko ime'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: usernameController,
                   hintText: 'Unesite korisnicko ime',
                   keyboardType: TextInputType.text,
@@ -126,7 +127,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Email'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: emailController,
                   hintText: 'Unesite email',
                   keyboardType: TextInputType.text,

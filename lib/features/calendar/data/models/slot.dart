@@ -10,11 +10,12 @@ import '../../../../config/style/colors.dart';
 class Slot extends Equatable {
   const Slot({
     required this.startDateTime,
-    required this.title,
+    this.title,
     this.endDateTime,
     this.color,
     this.id,
     this.serviceIds = const [],
+    this.employeeIds = const [],
   });
 
   factory Slot.fromJson(Map<String, dynamic> json, String id) {
@@ -29,6 +30,11 @@ class Slot extends Equatable {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      employeeIds:
+          (json['employeeIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -39,6 +45,7 @@ class Slot extends Equatable {
       'startDateTime': startDateTime,
       'endDateTime': endDateTime,
       'serviceIds': serviceIds,
+      'employeeIds': employeeIds,
     };
   }
 
@@ -48,7 +55,7 @@ class Slot extends Equatable {
       startTime: startDateTime,
       endTime: endDateTime,
       endDate: endDateTime,
-      title: title,
+      title: title ?? '',
       event: this,
       color:
           color != null && color!.isNotEmpty
@@ -64,6 +71,7 @@ class Slot extends Equatable {
     DateTime? endDateTime,
     String? color,
     String? title,
+    List<String>? employeeIds,
   }) {
     return Slot(
       id: id ?? this.id,
@@ -72,6 +80,7 @@ class Slot extends Equatable {
       endDateTime: endDateTime ?? this.endDateTime,
       color: color ?? this.color,
       serviceIds: serviceIds ?? this.serviceIds,
+      employeeIds: employeeIds ?? this.employeeIds,
     );
   }
 
@@ -83,12 +92,14 @@ class Slot extends Equatable {
     endDateTime,
     color,
     serviceIds,
+    employeeIds,
   ];
 
   final String? id;
-  final String title;
+  final String? title;
   final DateTime startDateTime;
   final DateTime? endDateTime;
   final String? color;
   final List<String> serviceIds;
+  final List<String> employeeIds;
 }

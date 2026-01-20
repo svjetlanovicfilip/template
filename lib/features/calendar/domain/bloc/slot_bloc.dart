@@ -69,25 +69,25 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     }
   }
 
-  void _onLoadSlots(LoadSlots e, Emitter<SlotState> emit) {
+  void _onLoadSlots(LoadSlots event, Emitter<SlotState> emit) {
     emit(const SlotStateInitial());
     final currentRange = _usersSlotsRanges.firstWhere(
-      (e) => e.userId == e.userId,
+      (e) => event.userId == e.userId,
     );
 
     emit(
       LoadedRangeSlots(
-        slots: List.from(_usersSlots[e.userId] ?? []),
+        slots: List.from(_usersSlots[event.userId] ?? []),
         loadedFrom: currentRange.from,
         loadedTo: currentRange.to,
-        userId: e.userId,
-        changedSlotIds: e.changedSlotIds,
-        removedSlotIds: e.removedSlotIds,
+        userId: event.userId,
+        changedSlotIds: event.changedSlotIds,
+        removedSlotIds: event.removedSlotIds,
       ),
     );
   }
 
-  Future<void> _onInit(InitListener e, Emitter<SlotState> emit) async {
+  Future<void> _onInit(_, Emitter<SlotState> emit) async {
     emit(const SlotStateLoading());
 
     final userId = appState.currentSelectedUserId ?? '';
@@ -115,8 +115,6 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
             final changedSlotIds = <String>[];
             final removedSlotIds = <String>[];
 
-            print(_usersSlots[userId]?.length);
-
             for (final change in snapshot.docChanges) {
               final id = change.doc.id;
               final slot = Slot.fromJson(change.doc.data() ?? {}, id);
@@ -125,6 +123,12 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
                 case DocumentChangeType.added:
                 case DocumentChangeType.modified:
                   _usersSlots[userId] ??= [];
+                  if (!slot.employeeIds.contains(userId)) {
+                    _usersSlots[userId]?.removeWhere((s) => s.id == id);
+                    removedSlotIds.add(id);
+                    break;
+                  }
+
                   final index = _usersSlots[userId]!.indexWhere(
                     (s) => s.id == slot.id,
                   );
@@ -134,7 +138,6 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
                   } else {
                     _usersSlots[userId]!.add(slot);
                   }
-
                   break;
                 case DocumentChangeType.removed:
                   _usersSlots[userId]?.removeWhere((s) => s.id == id);
@@ -143,15 +146,15 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
               }
             }
 
-            print(_usersSlots[userId]?.length);
-
-            add(
-              LoadSlots(
-                userId: userId,
-                changedSlotIds: changedSlotIds,
-                removedSlotIds: removedSlotIds,
-              ),
-            );
+            if (appState.currentSelectedUserId == userId) {
+              add(
+                LoadSlots(
+                  userId: userId,
+                  changedSlotIds: changedSlotIds,
+                  removedSlotIds: removedSlotIds,
+                ),
+              );
+            }
           }),
     );
   }
@@ -276,24 +279,25 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    final isOverlapping = await calendarRepository.isSlotOverlapping(
-      newStart: e.slot.startDateTime,
-      newEnd: e.slot.endDateTime!,
-      userId: e.userId,
-    );
-
-    if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
-      emit(
-        const ErrorLoadingSlots(
-          errorMessage:
-              'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
-        ),
+    for (final userId in e.slot.employeeIds) {
+      final isOverlapping = await calendarRepository.isSlotOverlapping(
+        newStart: e.slot.startDateTime,
+        newEnd: e.slot.endDateTime!,
+        userId: userId,
       );
-      return;
+
+      if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
+        emit(
+          const ErrorLoadingSlots(
+            errorMessage:
+                'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
+          ),
+        );
+        return;
+      }
     }
 
-    final result = await calendarRepository.createSlot(e.slot, e.userId);
-
+    final result = await calendarRepository.createSlot(e.slot);
     if (result.isFailure) {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;
@@ -314,28 +318,34 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    final isOverlapping = await calendarRepository.isSlotOverlapping(
-      newStart: slot.startDateTime,
-      newEnd: slot.endDateTime!,
-      userId: e.userId,
-      excludeSlotId: slot.id,
-    );
-
-    if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
-      emit(
-        const ErrorLoadingSlots(
-          errorMessage:
-              'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
-        ),
+    for (final userId in slot.employeeIds) {
+      final isOverlapping = await calendarRepository.isSlotOverlapping(
+        newStart: slot.startDateTime,
+        newEnd: slot.endDateTime!,
+        userId: userId,
+        excludeSlotId: slot.id,
       );
-      return;
+
+      if ((isOverlapping.success ?? false) || isOverlapping.isFailure) {
+        emit(
+          const ErrorLoadingSlots(
+            errorMessage:
+                'Termin se preklapa s drugim terminom. Molimo Vas izaberite drugi termin.',
+          ),
+        );
+        return;
+      }
     }
 
-    await calendarRepository.updateSlot(slot, e.userId);
+    final result = await calendarRepository.updateSlot(slot);
+    if (result.isFailure) {
+      emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
+      return;
+    }
   }
 
   Future<void> _onDeleteSlot(DeleteSlot e, Emitter<SlotState> emit) async {
-    final result = await calendarRepository.deleteSlot(e.slotId, e.userId);
+    final result = await calendarRepository.deleteSlot(e.slotId);
     if (result.isFailure) {
       emit(ErrorLoadingSlots(errorMessage: result.failure?.toString() ?? ''));
       return;

@@ -20,9 +20,10 @@ class CalendarRemoteDatasource {
     required DateTime to,
   }) =>
       firebaseFirestore
-          .collection(usersCollection)
-          .doc(userId)
+          .collection(organizationsCollection)
+          .doc(appState.organizationId)
           .collection(slotsCollection)
+          .where('employeeIds', arrayContains: userId)
           .where('startDateTime', isLessThanOrEqualTo: Timestamp.fromDate(to))
           .where(
             'endDateTime',
@@ -59,14 +60,11 @@ class CalendarRemoteDatasource {
     }
   }
 
-  Future<Result<DocumentReference, Exception>> createSlot(
-    Slot slot,
-    String userId,
-  ) async {
+  Future<Result<DocumentReference, Exception>> createSlot(Slot slot) async {
     try {
       final result = await firebaseFirestore
-          .collection(usersCollection)
-          .doc(userId)
+          .collection(organizationsCollection)
+          .doc(appState.organizationId)
           .collection(slotsCollection)
           .add(slot.toJson());
 
@@ -76,11 +74,11 @@ class CalendarRemoteDatasource {
     }
   }
 
-  Future<Result<bool, Exception>> updateSlot(Slot slot, String userId) async {
+  Future<Result<bool, Exception>> updateSlot(Slot slot) async {
     try {
       await firebaseFirestore
-          .collection(usersCollection)
-          .doc(userId)
+          .collection(organizationsCollection)
+          .doc(appState.organizationId)
           .collection(slotsCollection)
           .doc(slot.id)
           .update(slot.toJson());
@@ -91,14 +89,11 @@ class CalendarRemoteDatasource {
     }
   }
 
-  Future<Result<bool, Exception>> deleteSlot(
-    String slotId,
-    String userId,
-  ) async {
+  Future<Result<bool, Exception>> deleteSlot(String slotId) async {
     try {
       await firebaseFirestore
-          .collection(usersCollection)
-          .doc(userId)
+          .collection(organizationsCollection)
+          .doc(appState.organizationId)
           .collection(slotsCollection)
           .doc(slotId)
           .delete();
@@ -117,9 +112,10 @@ class CalendarRemoteDatasource {
   }) async {
     final snap =
         await FirebaseFirestore.instance
-            .collection(usersCollection)
-            .doc(userId)
+            .collection(organizationsCollection)
+            .doc(appState.organizationId)
             .collection(slotsCollection)
+            .where('employeeIds', arrayContains: userId)
             .where('startDateTime', isLessThan: Timestamp.fromDate(newEnd))
             .where('endDateTime', isGreaterThan: Timestamp.fromDate(newStart))
             .orderBy('startDateTime')
@@ -193,11 +189,30 @@ Future<void> generateTestData() async {
 
   for (final s in slots) {
     await FirebaseFirestore.instance
-        .collection(usersCollection)
-        .doc(appState.currentSelectedUserId)
+        .collection(organizationsCollection)
+        .doc(appState.organizationId)
         .collection(slotsCollection)
         .add(s.toJson());
   }
 
   print('Test data generated');
+}
+
+Future<void> example() async {
+  final snap =
+      await FirebaseFirestore.instance
+          .collection('slotsExample')
+          .where('userId', arrayContains: 'fsdfdsdfs')
+          .where(
+            'startDateTime',
+            isLessThanOrEqualTo: Timestamp.fromDate(DateTime.now()),
+          )
+          .where(
+            'endDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()),
+          )
+          .orderBy('startDateTime')
+          .get();
+
+  print(snap.docs.length);
 }
