@@ -43,6 +43,7 @@ class ServiceListScreen extends StatelessWidget {
                         SearchServices(searchQuery: value),
                       );
                     },
+                    hint: 'Pretraga usluga...',
                   ),
                 ),
               ),

@@ -44,6 +44,7 @@ class _ServiceListState extends State<ServiceList> {
             controller: _searchController,
             onChanged:
                 (value) => serviceBloc.add(SearchServices(searchQuery: value)),
+                hint: 'Pretraga usluga...',
           ),
           Expanded(
             child: BlocBuilder<ServiceBloc, ServiceState>(

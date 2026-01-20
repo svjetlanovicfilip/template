@@ -34,7 +34,7 @@ class SettingsScreen extends StatelessWidget {
                 label: 'Klijenti',
                 icon: Icons.person_outline,
                 onTap: () {
-                  context.pushNamed(Routes.employeesScreen);
+                  context.pushNamed(Routes.clientsScreen);
                 },
               ),
               _SettingsMenuItem(

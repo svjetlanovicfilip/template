@@ -13,9 +13,11 @@ import 'features/login/ui/screens/forgot_password_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
 import 'features/service/ui/screens/add_edit_service_screen.dart';
 import 'features/service/ui/screens/service_list_screen.dart';
+import 'features/settings/ui/screens/add_edit_client_screen.dart';
 import 'features/settings/ui/screens/add_edit_employee_screen.dart';
 import 'features/settings/ui/screens/change_password_screen.dart';
 import 'features/settings/ui/screens/change_title_screen.dart';
+import 'features/settings/ui/screens/clients_screen.dart';
 import 'features/settings/ui/screens/employees_screen.dart';
 import 'features/settings/ui/screens/settings_screen.dart';
 
@@ -63,7 +65,7 @@ class _MyAppState extends State<MyApp> {
               (context) => const ChangePasswordScreen(),
           Routes.changeTitleScreen: (context) => const ChangeTitleScreen(),
           Routes.employeesScreen: (context) => const EmployeesScreen(),
-          Routes.addEditmployeesScreen:
+          Routes.addEditEmployeesScreen:
               (context) => const AddEditEmployeeScreen(),
           Routes.bookAppointment:
               (context) => const ExtractBookAppointmentArgumentsScreen(),
@@ -71,6 +73,9 @@ class _MyAppState extends State<MyApp> {
           Routes.addEditServicesScreen:
               (context) => const ExtractAddEditServiceScreenArguments(),
           Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
+          Routes.clientsScreen: (context) => const ClientsScreen(),
+          Routes.addEditClientsScreen:
+              (context) => const ExtractAddEditClientScreenArguments(),
         },
       ),
     );

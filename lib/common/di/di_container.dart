@@ -22,9 +22,13 @@ import '../../features/service/data/datasources/service_remote_datasource.dart';
 import '../../features/service/data/repositories/service_repository.dart';
 import '../../features/service/data/repositories/service_repository_impl.dart';
 import '../../features/service/domain/bloc/service_bloc.dart';
+import '../../features/settings/data/datasources/client_remote_datasource.dart';
 import '../../features/settings/data/datasources/user_remote_datasource.dart';
+import '../../features/settings/data/repositories/client_repository.dart';
+import '../../features/settings/data/repositories/client_repository_impl.dart';
 import '../../features/settings/data/repositories/user_repository.dart';
 import '../../features/settings/data/repositories/user_repository_impl.dart';
+import '../../features/settings/domain/bloc/clients_bloc.dart';
 import '../../features/users/domain/bloc/users_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
@@ -59,6 +63,11 @@ void setupDependencies() {
     ..registerSingleton<UserRemoteDatasource>(
       UserRemoteDatasource(functions: firebaseFunc, firebaseAuth: firebaseAuth),
     )
+
+      ..registerSingleton<ClientRemoteDatasource>(
+      ClientRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
+
     ..registerSingleton<OrganizationRemoteDatasource>(
       OrganizationRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
@@ -89,6 +98,13 @@ void setupDependencies() {
         organizationRemoteDatasource: getIt<OrganizationRemoteDatasource>(),
       ),
     )
+
+     ..registerSingleton<ClientRepository>(
+      ClientRepositoryImpl(
+        clientRemoteDatasource: getIt<ClientRemoteDatasource>(),
+      ),
+    )
+
     ..registerSingleton<ServiceRepository>(
       ServiceRepositoryImpl(
         serviceRemoteDatasource: getIt<ServiceRemoteDatasource>(),
@@ -120,6 +136,12 @@ void setupDependencies() {
       () => UsersBloc(
         organizationRepository: getIt<OrganizationRepository>(),
         userRepository: getIt<UserRepository>(),
+      ),
+    )
+
+    ..registerLazySingleton<ClientsBloc>(
+      () => ClientsBloc(
+        clientRepository: getIt<ClientRepository>()
       ),
     );
 }
