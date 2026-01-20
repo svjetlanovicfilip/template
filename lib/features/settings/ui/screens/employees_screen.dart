@@ -28,7 +28,7 @@ class EmployeesScreen extends StatelessWidget {
               icon: Icons.add,
               title: 'Dodaj zaposlenog',
               onTap: () {
-                context.pushNamed(Routes.addEditmployeesScreen);
+                context.pushNamed(Routes.addEditEmployeesScreen);
               },
               borderRadius: BorderRadius.circular(30),
             ),
@@ -145,7 +145,7 @@ class _EmployeeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 12, left: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: AppColors.white,
@@ -162,10 +162,16 @@ class _EmployeeItem extends StatelessWidget {
                 ),
               ),
             ),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline),
-            color: AppColors.red600,
+            GestureDetector(
+            onTap: onDelete,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.red50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline, color: AppColors.red600),
+            ),
           ),
         ],
       ),

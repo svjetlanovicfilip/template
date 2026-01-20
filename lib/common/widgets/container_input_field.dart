@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../config/style/colors.dart';
+import '../../config/style/colors.dart';
 
-class ServiceInputField extends StatelessWidget {
-  const ServiceInputField({
+class ContainerInputField extends StatelessWidget {
+  const ContainerInputField({
     required this.controller,
     required this.hintText,
     required this.keyboardType,

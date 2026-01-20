@@ -5,6 +5,7 @@ import '../../../features/authentication/domain/bloc/authentication_bloc.dart';
 import '../../../features/calendar/data/models/slot.dart';
 import '../../../features/calendar/domain/bloc/slot_bloc.dart';
 import '../../../features/service/domain/bloc/service_bloc.dart';
+import '../../../features/settings/domain/bloc/clients_bloc.dart';
 import '../../../features/users/domain/bloc/users_bloc.dart';
 
 part 'app_init_event.dart';
@@ -16,6 +17,7 @@ class AppInitBloc extends Bloc<AppInitEvent, AppInitState> {
     required this.slotBloc,
     required this.serviceBloc,
     required this.usersBloc,
+    required this.clientsBloc,
   }) : super(AppInitInitial()) {
     on<AppInitStarted>(_onStarted);
     on<AppInitAfterLogin>(_onAfterLogin);
@@ -25,6 +27,7 @@ class AppInitBloc extends Bloc<AppInitEvent, AppInitState> {
   final SlotBloc slotBloc;
   final ServiceBloc serviceBloc;
   final UsersBloc usersBloc;
+  final ClientsBloc clientsBloc;
 
   Future<void> _onStarted(
     AppInitStarted event,
@@ -62,11 +65,13 @@ class AppInitBloc extends Bloc<AppInitEvent, AppInitState> {
     slotBloc.add(InitListener());
     serviceBloc.add(InitServiceListener());
     usersBloc.add(UsersFetchRequested());
+    clientsBloc.add(ClientsFetchRequested());
 
     final results = await Future.wait([
       slotBloc.stream.firstWhere((s) => s is LoadedRangeSlots),
       serviceBloc.stream.firstWhere((s) => s.status == ServiceStatus.loaded),
       usersBloc.stream.firstWhere((s) => s is UsersFetchingSuccess),
+      clientsBloc.stream.firstWhere((s) => s is ClientsFetchingSuccess),
     ]);
 
     return (results[0] as LoadedRangeSlots).slots;

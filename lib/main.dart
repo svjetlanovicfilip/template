@@ -16,9 +16,12 @@ import 'features/login/ui/screens/login_screen.dart';
 import 'features/service/data/models/service_type.dart';
 import 'features/service/ui/screens/add_edit_service_screen.dart';
 import 'features/service/ui/screens/service_list_screen.dart';
+import 'features/settings/data/client.dart';
+import 'features/settings/ui/screens/add_edit_client_screen.dart';
 import 'features/settings/ui/screens/add_edit_employee_screen.dart';
 import 'features/settings/ui/screens/change_password_screen.dart';
 import 'features/settings/ui/screens/change_title_screen.dart';
+import 'features/settings/ui/screens/clients_screen.dart';
 import 'features/settings/ui/screens/employees_screen.dart';
 import 'features/settings/ui/screens/settings_screen.dart';
 
@@ -90,7 +93,7 @@ class _MyAppState extends State<MyApp> {
               return CupertinoPageRoute(
                 builder: (context) => const EmployeesScreen(),
               );
-            case Routes.addEditmployeesScreen:
+            case Routes.addEditEmployeesScreen:
               return CupertinoPageRoute(
                 builder: (context) => const AddEditEmployeeScreen(),
               );
@@ -115,6 +118,17 @@ class _MyAppState extends State<MyApp> {
             case Routes.forgotPassword:
               return CupertinoPageRoute(
                 builder: (context) => const ForgotPasswordScreen(),
+              );
+            case Routes.clientsScreen:
+              return CupertinoPageRoute(
+                builder: (context) => const ClientsScreen(),
+              );
+            case Routes.addEditClientsScreen:
+              return CupertinoPageRoute(
+                builder:
+                    (context) => AddEditClientScreen(
+                      client: settings.arguments as Client?,
+                    ),
               );
             default:
               return MaterialPageRoute(

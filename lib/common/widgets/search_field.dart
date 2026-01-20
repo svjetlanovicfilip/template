@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../../config/style/colors.dart';
 
 class SearchField extends StatelessWidget {
-  const SearchField({required this.onChanged, this.controller, super.key});
+  const SearchField({required this.onChanged, required this.hint, this.controller, super.key});
 
   final TextEditingController? controller;
   final Function(String) onChanged;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class SearchField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.slate400, width: 2),
         ),
-        hintText: 'Pretraga usluga...',
+        hintText: hint,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

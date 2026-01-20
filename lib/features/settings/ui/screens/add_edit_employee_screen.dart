@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../common/di/di_container.dart';
+import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
-import '../../../../common/widgets/custom_input_field.dart';
 import '../../../../config/style/colors.dart';
+import '../../../calendar/ui/widgets/label.dart';
 import '../../../login/data/models/user_model.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 
@@ -15,29 +17,32 @@ class AddEditEmployeeScreen extends StatefulWidget {
 }
 
 class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
   final usersBloc = getIt<UsersBloc>();
 
-  String _name = '';
+  final _errorNameMessage = 'Ime ne smije biti prazno';
+  final _errorLastNameMessage = 'Prezime ne smije biti prazno';
+  final _errorUsernameMessage = 'Korisničko ime ne smije biti prazno';
+  final _errorEmailMessage = 'Email ne smije biti prazan';
+
   String? _nameError;
-
-  String _lastName = '';
   String? _lastNameError;
-
-  String _username = '';
   String? _usernameError;
-
-  String _email = '';
   String? _emailError;
 
   bool get _isFormFilled =>
-      _name.trim().isNotEmpty &&
-      _lastName.trim().isNotEmpty &&
-      _username.trim().isNotEmpty &&
-      _email.trim().isNotEmpty;
+      nameController.text.trim().isNotEmpty &&
+      lastNameController.text.trim().isNotEmpty &&
+      usernameController.text.trim().isNotEmpty &&
+      emailController.text.trim().isNotEmpty;
 
   // (opciono) basic email check
   bool get _isEmailValid {
-    final e = _email.trim();
+    final e = emailController.text.trim();
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     return emailRegex.hasMatch(e);
   }
@@ -57,7 +62,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
               ),
             ),
           );
-          Navigator.of(context).pop(_name.trim());
+          Navigator.of(context).pop(nameController.text.trim());
         }
       },
       child: Scaffold(
@@ -69,52 +74,74 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CustomInputField(
-                  label: 'Ime',
-                  hint: 'Ime',
+                const SizedBox(height: 16),
+                const Label(title: 'Ime'),
+                const SizedBox(height: 8),
+                ContainerInputField(
+                  controller: nameController,
+                  hintText: 'Unesite ime',
+                  keyboardType: TextInputType.text,
+                  inputFormatters: const [],
+                  maxLines: 1,
                   errorText: _nameError,
                   onChanged: (value) {
                     setState(() {
-                      _name = value;
-                      _nameError = null;
+                      _nameError = value.isNotEmpty ? null : _errorNameMessage;
                     });
                   },
                 ),
-                CustomInputField(
-                  label: 'Prezime',
-                  hint: 'Prezime',
+                const SizedBox(height: 16),
+                const Label(title: 'Prezime'),
+                const SizedBox(height: 8),
+                ContainerInputField(
+                  controller: lastNameController,
+                  hintText: 'Unesite prezime',
+                  keyboardType: TextInputType.text,
+                  inputFormatters: const [],
+                  maxLines: 1,
                   errorText: _lastNameError,
                   onChanged: (value) {
                     setState(() {
-                      _lastName = value;
-                      _lastNameError = null;
+                      _lastNameError =
+                          value.isNotEmpty ? null : _errorLastNameMessage;
                     });
                   },
                 ),
-                CustomInputField(
-                  label: 'Korisnicko ime',
-                  hint: 'Korisnicko ime',
+                const SizedBox(height: 16),
+                const Label(title: 'Korisnicko ime'),
+                const SizedBox(height: 8),
+                ContainerInputField(
+                  controller: usernameController,
+                  hintText: 'Unesite korisnicko ime',
+                  keyboardType: TextInputType.text,
+                  inputFormatters: const [],
+                  maxLines: 1,
                   errorText: _usernameError,
                   onChanged: (value) {
                     setState(() {
-                      _username = value;
-                      _usernameError = null;
+                      _usernameError =
+                          value.isNotEmpty ? null : _errorUsernameMessage;
                     });
                   },
                 ),
-                CustomInputField(
-                  label: 'Email',
-                  hint: 'Email',
+                const SizedBox(height: 16),
+                const Label(title: 'Email'),
+                const SizedBox(height: 8),
+                ContainerInputField(
+                  controller: emailController,
+                  hintText: 'Unesite email',
+                  keyboardType: TextInputType.text,
+                  inputFormatters: const [],
+                  maxLines: 1,
                   errorText: _emailError,
                   onChanged: (value) {
                     setState(() {
-                      _email = value;
-                      _emailError = null;
+                      _emailError =
+                          value.isNotEmpty ? null : _errorEmailMessage;
                     });
                   },
                 ),
                 const SizedBox(height: 32),
-
                 // SUBMIT BUTTON
                 SizedBox(
                   height: 48,
@@ -176,39 +203,59 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
 
   void _onSubmit(BuildContext context) {
     // dodatna validacija (čak i ako je dugme disabled dok nije validno)
-    setState(() {
-      _nameError = _name.trim().isEmpty ? 'Ime ne smije biti prazno' : null;
-      _lastNameError =
-          _lastName.trim().isEmpty ? 'Prezime ne smije biti prazno' : null;
-      _usernameError =
-          _username.trim().isEmpty
-              ? 'Korisničko ime ne smije biti prazno'
-              : null;
 
-      if (_email.trim().isEmpty) {
-        _emailError = 'Email ne smije biti prazan';
-      } else if (!_isEmailValid) {
-        _emailError = 'Email nije ispravan';
-      } else {
-        _emailError = null;
-      }
-    });
+    final name = nameController.text.trim();
+    final lastName = lastNameController.text.trim();
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
 
-    final hasError =
-        _nameError != null ||
-        _lastNameError != null ||
-        _usernameError != null ||
-        _emailError != null;
+    // if (title.isEmpty && price.isEmpty) {
+    //   setState(() {
+    //     _nameError = _errorNameMessage;
+    //     _phoneNumberError = _errorPhoneNumberMessage;
+    //   });
+    //   return;
+    // }
 
-    if (hasError) return;
+    if (name.isEmpty) {
+      setState(() {
+        _nameError = _errorNameMessage;
+      });
+      return;
+    }
+
+    if (lastName.isEmpty) {
+      setState(() {
+        _lastNameError = _errorLastNameMessage;
+      });
+      return;
+    }
+
+    if (username.isEmpty) {
+      setState(() {
+        _usernameError = _errorUsernameMessage;
+      });
+      return;
+    }
+
+    if (email.isEmpty) {
+      setState(() {
+        _emailError = _errorEmailMessage;
+        if (!_isEmailValid) {
+          _emailError = 'Email nije ispravan';
+        } else {
+          _emailError = null;
+        }
+      });
+    }
 
     usersBloc.add(
       UserAdded(
         user: UserModel(
-          name: _name,
-          surname: _lastName,
-          username: _username,
-          email: _email,
+          name: name,
+          surname: lastName,
+          username: username,
+          email: email,
         ),
       ),
     );

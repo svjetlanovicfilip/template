@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../data/models/service_type.dart';
 import '../../domain/bloc/service_bloc.dart';
-import '../widgets/service_input_field.dart';
 
 class AddEditServiceScreen extends StatefulWidget {
   const AddEditServiceScreen({required this.service, super.key});
@@ -56,7 +56,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Naziv usluge'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: titleController,
                   hintText: 'Unesite naziv usluge...',
                   keyboardType: TextInputType.text,
@@ -73,7 +73,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 const SizedBox(height: 16),
                 const Label(title: 'Cijena usluge'),
                 const SizedBox(height: 8),
-                ServiceInputField(
+                ContainerInputField(
                   controller: priceController,
                   onChanged: (value) {
                     setState(() {
