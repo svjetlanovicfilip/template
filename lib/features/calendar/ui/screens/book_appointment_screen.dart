@@ -4,10 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
+import '../../../../common/widgets/search_field.dart';
 import '../../../../config/style/colors.dart';
 import '../../../employees/domain/cubit/employees_picker_cubit.dart';
 import '../../../login/data/models/user_model.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../../settings/data/client.dart';
+import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -196,6 +199,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     ),
                   ),
                 ],
+                // const SizedBox(height: 20),
+
+                // const Label(title: 'Klijent'),
+                // const SizedBox(height: 8),
+                // SelectedClientList(),
                 const SizedBox(height: 20),
                 const Label(title: 'Usluga'),
                 const SizedBox(height: 8),
@@ -432,3 +440,138 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 }
+
+// class SelectedClientList extends StatelessWidget {
+//   const SelectedClientList({super.key});
+
+//   ClientsBloc get _clientsBloc => getIt<ClientsBloc>();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<ClientsBloc, ClientsState>(
+//       bloc: _clientsBloc,
+//       buildWhen: (_, current) => current is ClientsFetchingSuccess,
+//       builder: (context, state) {
+//         if (state is ClientsFetchingSuccess) {
+//           return Column(
+//             mainAxisSize: MainAxisSize.min,
+//             crossAxisAlignment: CrossAxisAlignment.stretch,
+//             children: [
+//               GestureDetector(
+//                 behavior: HitTestBehavior.opaque,
+//                 onTap: () {
+//                   _showBottomSheet(context);
+//                 },
+//                 child: Container(
+//                   padding: const EdgeInsets.all(8),
+//                   decoration: BoxDecoration(
+//                     borderRadius: BorderRadius.circular(12),
+//                     color: AppColors.slate200,
+//                   ),
+
+//                   child: Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       BlocBuilder<ClientsBloc, ClientsState>(
+//                         bloc: _clientsBloc,
+
+//                         builder: (context, state) {
+//                           return Text(
+//                             state.client.name,
+//                             style: Theme.of(context).textTheme.labelMedium,
+//                           );
+
+//                           // return Text(
+//                           //   'Izaberi klijenta',
+//                           //   style: Theme.of(
+//                           //     context,
+//                           //   ).textTheme.labelMedium?.copyWith(
+//                           //     color: AppColors.slate500,
+//                           //     fontWeight: FontWeight.w400,
+//                           //   ),
+//                           // );
+//                         },
+//                       ),
+//                       const Icon(Icons.expand_more, color: AppColors.slate800),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           );
+//         }
+//         return const SizedBox.shrink();
+//       },
+//     );
+//   }
+
+//   void _showBottomSheet(BuildContext context) {
+//     showModalBottomSheet(
+//       context: context,
+//       builder:
+//           (context) => Container(
+//             height: MediaQuery.of(context).size.height * 0.5,
+//             decoration: const BoxDecoration(
+//               color: AppColors.white,
+//               borderRadius: BorderRadius.only(
+//                 topLeft: Radius.circular(16),
+//                 topRight: Radius.circular(16),
+//               ),
+//             ),
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//             child: Column(
+//               children: [
+//                 SearchField(
+//                   onChanged: (value) {},
+//                   hint: 'Pretraga klijenata...',
+//                 ),
+//                 Expanded(
+//                   child: BlocBuilder<ClientsBloc, ClientsState>(
+//                     bloc: _clientsBloc,
+//                     buildWhen: (_, current) => current is ClientsSearchSuccess,
+//                     builder: (context, state) {
+//                       if (state is ClientsSearchSuccess) {
+//                         final clients = state.clients;
+//                         return ListView.builder(
+//                           itemBuilder:
+//                               (context, index) =>
+//                                   BlocBuilder<ClientsBloc, ClientsState>(
+//                                     bloc: _clientsBloc,
+//                                     buildWhen:
+//                                         (_, current) =>
+//                                             current is ClientsSelectSuccess,
+//                                     builder: (context, state) {
+//                                       return RadioGroup<String>(
+//                                         groupValue:
+//                                             state is ClientsSelectSuccess
+//                                                 ? state.client.id ?? ''
+//                                                 : null,
+//                                         onChanged: (value) {
+//                                           if (value == null) return;
+//                                         },
+//                                         child: RadioListTile<String>(
+//                                           activeColor: AppColors.amber500,
+//                                           shape: RoundedRectangleBorder(
+//                                             borderRadius: BorderRadius.circular(
+//                                               12,
+//                                             ),
+//                                           ),
+//                                           value: clients[index].id ?? '',
+//                                           title: Text(clients[index].name),
+//                                         ),
+//                                       );
+//                                     },
+//                                   ),
+//                           itemCount: clients.length,
+//                         );
+//                       }
+//                       return const SizedBox.shrink();
+//                     },
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//     );
+//   }
+// }

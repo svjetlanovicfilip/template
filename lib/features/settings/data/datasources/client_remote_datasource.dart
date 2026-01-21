@@ -52,19 +52,6 @@ class ClientRemoteDatasource {
     }
   }
 
-  Future<void> updateClient2(Client client, String organizationId) async {
-    try {
-      await firebaseFirestore
-          .collection(organizationsCollection)
-          .doc(organizationId)
-          .collection(clientsCollection)
-          .doc(client.id)
-          .update(client.toJson());
-    } on Exception catch (e) {
-      throw Exception(e);
-    }
-  }
-
   Future<void> deleteClient(String clientId, String organizationId) async {
     try {
       await firebaseFirestore

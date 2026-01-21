@@ -7,6 +7,7 @@ import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../../service/data/models/service_type.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../data/datasources/calendar_remote_datasource.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -171,6 +172,7 @@ class CalendarDayView extends StatelessWidget {
       },
 
       onHeaderTitleTap: (date) async {
+        // await generateTestData();
         final picked = await showDatePicker(
           context: context,
           firstDate: DateTime.now().subtract(const Duration(days: 365)),
