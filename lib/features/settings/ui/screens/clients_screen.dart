@@ -4,11 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../common/widgets/search_field.dart';
 import '../../domain/bloc/clients_bloc.dart';
 import 'client_list_item.dart';
+
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -93,9 +95,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         return ClientListItem(
                           client: c,
                           onDelete: () {
-                            // Ovdje kasnije okineš delete event:
-                            // context.read<ClientsBloc>().add(ClientRemoved(clientId: c.id ?? ''));
-                          },
+                          showDeleteDialog(
+                            context: context,
+                            title: 'Izbrisi klijenta!',
+                            description:
+                                'Da li ste sigurni da želite da izbrisete ${c.name}?',
+                            onDelete: () {
+                              getIt<ClientsBloc>().add(
+                                ClientRemoved(clientId: c.id ?? ''),
+                              );
+                              context.pop();
+                            },
+                          );
+                        },
                         );
                       },
                     ),

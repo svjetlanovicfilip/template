@@ -2,9 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../common/di/di_container.dart';
-import '../../../login/data/models/user_model.dart';
-import '../../../organization/data/repositories/organization_repository.dart';
-import '../../../settings/data/repositories/user_repository.dart';
 import '../../data/client.dart';
 import '../../data/repositories/client_repository.dart';
 
@@ -13,39 +10,15 @@ part 'clients_state.dart';
 
 class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
   ClientsBloc({required this.clientRepository}) : super(ClientsInitial()) {
-    // on<ClientsFetchRequested>(_onClientsFetchRequested);
     on<ClientsFetchRequested>(_onFetchClients);
     on<ClientAdded>(_onClientAdded);
-    // on<ClientRemoved>(_onClientRemoved);
+    on<ClientRemoved>(_onClientRemoved);
+    on<ClientUpdated>(_onClientUpdated);
   }
 
   final ClientRepository clientRepository;
 
   List<Client> _clients = [];
-
-  // Future<void> _onClientsFetchRequested(
-  //   ClientsFetchRequested event,
-  //   Emitter<ClientsState> emit,
-  // ) async {
-  //   // Check this
-  //   // if (appState.currentUser?.role != 'ORG_OWNER') {
-  //   //   return;
-  //   // }
-
-  //   emit(ClientsFetching());
-
-  //   final clients = await organizationRepository.getOrganizationUsers(
-  //     appState.organizationId!,
-  //   );
-
-  //   if (clients.isFailure) {
-  //     return;
-  //   }
-
-  //   _clients = (clients.success ?? []).where((u) => u.isActive).toList();
-
-  //   emit(ClientsFetchingSuccess(List.from(_clients)));
-  // }
 
   Future<void> _onFetchClients(
     ClientsFetchRequested event,
@@ -106,6 +79,72 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
       // Za sada možeš bar vratiti prethodno stanje ili prazan:
       emit(ClientsFetchingSuccess(List.from(_clients)));
     }
+  }
+
+  Future<void> _onClientUpdated(
+    ClientUpdated event,
+    Emitter<ClientsState> emit,
+  ) async {
+    emit(ClientsFetching());
+
+    final orgId = appState.organizationId;
+    if (orgId == null) {
+      // nema orgId -> vrati listu kakva je
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+      return;
+    }
+
+    final updated = event.client;
+    final updatedId = updated.id;
+
+    if (updatedId == null || updatedId.isEmpty) {
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+      return;
+    }
+
+    try {
+      // 1) update u bazi
+      await clientRepository.updateClient(updated, orgId);
+
+      // 2) update lokalne liste
+      final index = _clients.indexWhere((c) => c.id == updatedId);
+      if (index != -1) {
+        // zadrži createdAt iz lokalnog (server timestamp je već tamo),
+        // osim ako ti baš šalješ novi createdAt (obično ne treba)
+        final prev = _clients[index];
+
+        final merged = Client(
+          id: updatedId,
+          name: updated.name,
+          phoneNumber: updated.phoneNumber,
+          description: updated.description,
+          createdAt: prev.createdAt,
+        );
+
+        _clients[index] = merged;
+      }
+
+      // 3) emit za UI
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+    } catch (e) {
+      // bez Failure state-a, vraćamo trenutno stanje
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+    }
+  }
+
+  Future<void> _onClientRemoved(
+    ClientRemoved event,
+    Emitter<ClientsState> emit,
+  ) async {
+    _clients.removeWhere((client) => client.id == event.clientId);
+
+    emit(ClientsFetchingSuccess(List.from(_clients)));
+    final organizationId = appState.organizationId;
+
+    if (organizationId == null) {
+      return;
+    }
+    await clientRepository.deleteClient(event.clientId, organizationId);
   }
 
   void clearState() {
