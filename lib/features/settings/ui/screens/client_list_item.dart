@@ -53,7 +53,7 @@ class ClientListItem extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 context.pushNamed(
-                  Routes.addEditServicesScreen,
+                  Routes.addEditClientsScreen,
                   arguments: client,
                 );
               },

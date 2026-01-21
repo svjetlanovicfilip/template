@@ -26,17 +26,13 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
   final clientBloc = getIt<ClientsBloc>();
 
   final _errorNameMessage = 'Ime i prezime klijenta ne smije biti prazano';
-  final _errorPhoneNumberMessage =
-      'Broj telefona klijenta ne smije biti prazan';
-
+  
   String? _nameError;
-  String? _phoneNumberError;
 
   bool _isEditing = false;
 
   bool get _isFormFilled =>
-      nameController.text.trim().isNotEmpty &&
-      phoneNumberController.text.trim().isNotEmpty;
+      nameController.text.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -53,9 +49,11 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       bloc: clientBloc,
       listener: (context, state) {
         if (state is ClientsFetchingSuccess) {
+          final message =
+              _isEditing ? 'Klijent je izmijenjen!' : 'Klijent je dodat!';
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Klijent je dodat!')));
+          ).showSnackBar(SnackBar(content: Text(message)));
           Navigator.of(context).pop(nameController.text.trim());
         }
       },
@@ -91,17 +89,11 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                   const SizedBox(height: 8),
                   ContainerInputField(
                     controller: phoneNumberController,
-                    onChanged: (value) {
-                      setState(() {
-                        _phoneNumberError =
-                            value.isNotEmpty ? null : _errorPhoneNumberMessage;
-                      });
-                    },
                     hintText: 'Broj telefona',
+                    onChanged: (value){},
                     maxLines: 1,
                     keyboardType: TextInputType.number,
                     inputFormatters: const [],
-                    errorText: _phoneNumberError,
                   ),
                   const SizedBox(height: 16),
                   const Label(title: 'Napomena'),
@@ -170,14 +162,6 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
     final name = nameController.text.trim();
     final phoneNumber = phoneNumberController.text.trim();
 
-    if (name.isEmpty && phoneNumber.isEmpty) {
-      setState(() {
-        _nameError = _errorNameMessage;
-        _phoneNumberError = _errorPhoneNumberMessage;
-      });
-      return;
-    }
-
     if (name.isEmpty) {
       setState(() {
         _nameError = _errorNameMessage;
@@ -185,23 +169,17 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       return;
     }
 
-    if (phoneNumber.isEmpty) {
-      setState(() {
-        _phoneNumberError = _errorPhoneNumberMessage;
-      });
-      return;
-    }
-
     if (_isEditing) {
-      // _serviceBloc.add(
-      //   UpdateService(
-      //     service: ServiceType(
-      //       id: widget.service?.id,
-      //       title: titleController.text,
-      //       price: double.parse(priceController.text),
-      //     ),
-      //   ),
-      // );
+      clientBloc.add(
+        ClientUpdated(
+          client: Client(
+            id: widget.client?.id,
+            name: name,
+            phoneNumber: phoneNumber,
+            description: descriptionController.text,
+          ),
+        ),
+      );
     } else {
       clientBloc.add(
         ClientAdded(
