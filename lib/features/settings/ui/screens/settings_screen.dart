@@ -111,7 +111,13 @@ Future<bool> showLogoutDialog(BuildContext context) async {
                 child: const Text('Odustani'),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(onPressed: logout, child: const Text('Odjavi se'), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(AppColors.red600))),
+              ElevatedButton(
+                onPressed: logout,
+                child: const Text('Odjavi se'),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(AppColors.red600),
+                ),
+              ),
             ],
           ),
         ],
@@ -144,32 +150,34 @@ class _SettingsMenuItem extends StatelessWidget {
     final trailingColor = isDestructive ? AppColors.red600 : AppColors.amber500;
     final textColor = isDestructive ? AppColors.red600 : Colors.black;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: AppColors.white,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: accentColor, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: AppColors.white,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: accentColor, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-            Icon(Icons.chevron_right, color: trailingColor, size: 24),
-          ],
+              Icon(Icons.chevron_right, color: trailingColor, size: 24),
+            ],
+          ),
         ),
       ),
     );

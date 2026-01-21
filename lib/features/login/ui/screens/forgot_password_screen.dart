@@ -111,7 +111,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             );
                           },
                         ),
-
+                        const SizedBox(height: 50),
                         TextButton(
                           onPressed: () => context.pop(),
                           child: Row(

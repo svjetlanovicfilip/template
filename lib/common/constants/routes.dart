@@ -13,6 +13,7 @@ class Routes {
   static const String addEditServicesScreen = '/addEditServicesScreen';
   static const String clientsScreen = '/clientsScreen';
   static const String addEditClientsScreen = '/addEditClientsScreen';
+  static const String clientHistory = '/clientHistory';
 }
 
 const String organizationsCollection = 'organizations';

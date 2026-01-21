@@ -11,6 +11,7 @@ import 'config/style/theme.dart';
 import 'features/calendar/data/models/slot.dart';
 import 'features/calendar/ui/screens/book_appointment_screen.dart';
 import 'features/calendar/ui/screens/home_screen.dart';
+import 'features/client_history/ui/screens/client_history_screen.dart';
 import 'features/login/ui/screens/forgot_password_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
 import 'features/service/data/models/service_type.dart';
@@ -43,7 +44,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final EventController _eventController;
+  late final EventController<Slot> _eventController;
 
   @override
   void initState() {
@@ -118,6 +119,13 @@ class _MyAppState extends State<MyApp> {
             case Routes.forgotPassword:
               return CupertinoPageRoute(
                 builder: (context) => const ForgotPasswordScreen(),
+              );
+            case Routes.clientHistory:
+              return CupertinoPageRoute(
+                builder:
+                    (context) => ClientHistoryScreen(
+                      client: settings.arguments as Client,
+                    ),
               );
             case Routes.clientsScreen:
               return CupertinoPageRoute(

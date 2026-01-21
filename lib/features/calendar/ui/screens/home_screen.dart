@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // setState/markNeedsBuild during build of ancestor widgets.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      CalendarControllerProvider.of(context).controller.addAll(newSlots);
+      CalendarControllerProvider.of<Slot>(context).controller.addAll(newSlots);
     });
 
     _initializedFromArgs = true;
@@ -71,7 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
           final newSlots =
               state.slots.map((slot) => slot.toCalendarEventData()).toList();
 
-          final controller = CalendarControllerProvider.of(context).controller;
+          final controller =
+              CalendarControllerProvider.of<Slot>(context).controller;
 
           // snapshot prevents ConcurrentModificationError
           final oldSlots = List.of(controller.allEvents);
@@ -83,7 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
           final newSlots =
               state.slots.map((slot) => slot.toCalendarEventData()).toList();
 
-          final controller = CalendarControllerProvider.of(context).controller;
+          final controller =
+              CalendarControllerProvider.of<Slot>(context).controller;
 
           // snapshot prevents ConcurrentModificationError
           final oldSlots = List.of(controller.allEvents);

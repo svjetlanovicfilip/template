@@ -5,6 +5,8 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
+import '../../../service/data/models/service_type.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -16,11 +18,15 @@ class CalendarWeekView extends StatelessWidget {
 
   SlotBloc get _slotBloc => getIt<SlotBloc>();
 
+  List<ServiceType> get _services => getIt<ServiceBloc>().state.services;
+
   @override
   Widget build(BuildContext context) {
-    return WeekView(
+    return WeekView<Slot>(
       initialDay: weekViewKey.currentState?.currentDate ?? DateTime.now(),
       key: weekViewKey,
+      showHalfHours: true,
+      heightPerMinute: 1.5,
       startHour: 6,
       timeLineWidth: 80,
       backgroundColor: AppColors.slate50,
@@ -56,8 +62,15 @@ class CalendarWeekView extends StatelessWidget {
         var isEventLessThan30Minutes = false;
         var lines = 1;
         const double padding = 2;
-        final title = events.first.title;
-        final color = events.first.color;
+        final title =
+            events.first.event?.serviceIds
+                .map(
+                  (id) => _services.firstWhere((service) => service.id == id),
+                )
+                .map((service) => service.title)
+                .join(', ') ??
+            '';
+        final color = events.first.event?.color;
         const titleStyle = TextStyle(color: AppColors.white, fontSize: 12);
 
         final duration = endDuration.difference(startDuration);
@@ -79,7 +92,7 @@ class CalendarWeekView extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: color,
+            color: Color(int.parse(color!)),
             borderRadius: BorderRadius.circular(4),
           ),
           margin: const EdgeInsets.symmetric(vertical: padding),
@@ -105,26 +118,15 @@ class CalendarWeekView extends StatelessWidget {
         ),
       ),
       hourIndicatorSettings: const HourIndicatorSettings(
-        color: AppColors.slate200,
-        height: 3,
+        color: AppColors.slate300,
+        height: 2,
+      ),
+      halfHourIndicatorSettings: const HourIndicatorSettings(
+        color: AppColors.slate300,
+        height: 2,
       ),
       onPageChange: (date, page) {
         _slotBloc.add(LoadMore(date: date));
-        // if (date.isAfter(
-        //   weekViewKey.currentState?.currentDate ?? DateTime.now(),
-        // )) {
-        //   _slotBloc.add(
-        //     LoadMoreForward(
-        //       currentDisplayedDate: date.add(const Duration(days: 6)),
-        //     ),
-        //   );
-        // } else {
-        //   _slotBloc.add(
-        //     LoadMoreBackward(
-        //       currentDisplayedDate: date.subtract(const Duration(days: 6)),
-        //     ),
-        //   );
-        // }
       },
       onEventTap: (events, date) {
         final event = events.first;
@@ -142,7 +144,7 @@ class CalendarWeekView extends StatelessWidget {
           arguments: Slot(title: '', startDateTime: date),
         );
       },
-      liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 3),
+      liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 2),
       timeLineBuilder: (date) {
         return Transform.translate(
           offset: const Offset(0, -7.5),

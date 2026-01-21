@@ -5,6 +5,8 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
+import '../../../service/data/models/service_type.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -16,12 +18,14 @@ class CalendarDayView extends StatelessWidget {
 
   SlotBloc get _slotBloc => getIt<SlotBloc>();
 
+  List<ServiceType> get _services => getIt<ServiceBloc>().state.services;
+
   @override
   Widget build(BuildContext context) {
-    return DayView(
+    return DayView<Slot>(
       key: dayViewKey,
       initialDay: dayViewKey.currentState?.currentDate ?? DateTime.now(),
-      controller: CalendarControllerProvider.of(context).controller,
+      controller: CalendarControllerProvider.of<Slot>(context).controller,
       startHour: 6,
       showHalfHours: true,
       heightPerMinute: 2,
@@ -31,8 +35,9 @@ class CalendarDayView extends StatelessWidget {
           (date, {secondaryDate}) =>
               '${formatWeekday(date.weekday - 1)} ${date.day}.${date.month}.${date.year}',
       halfHourIndicatorSettings: const HourIndicatorSettings(
-        color: AppColors.slate200,
-        height: 3,
+        dashSpaceWidth: 8,
+        color: AppColors.slate300,
+        height: 2,
         lineStyle: LineStyle.dashed,
       ),
       backgroundColor: AppColors.slate50,
@@ -46,10 +51,10 @@ class CalendarDayView extends StatelessWidget {
       ),
       showVerticalLine: false,
       hourIndicatorSettings: const HourIndicatorSettings(
-        color: AppColors.slate200,
-        height: 3,
+        color: AppColors.slate300,
+        height: 2,
       ),
-      liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 3),
+      liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 2),
       timeLineBuilder: (date) {
         return Transform.translate(
           offset: const Offset(0, -7.5),
@@ -67,14 +72,14 @@ class CalendarDayView extends StatelessWidget {
         var isEventLessThan20Minutes = false;
         var canFitHeightForTime = false;
 
-        String fmt(int v) => v.toString().padLeft(2, '0');
-        final startStr =
-            '${fmt(startDuration.hour)}:${fmt(startDuration.minute)}';
-        final endStr = '${fmt(endDuration.hour)}:${fmt(endDuration.minute)}';
+        final services = events.first.event?.serviceIds
+            .map((id) => _services.firstWhere((service) => service.id == id))
+            .map((service) => service.title)
+            .join(', ');
 
-        final title = events.first.title;
-        final timeRange = '$startStr - $endStr';
-        final color = events.first.color;
+        final title = services ?? events.first.event?.title ?? '';
+        final timeRange = formatDateRange(startDuration, endDuration);
+        final color = events.first.event?.color;
 
         const titleStyle = TextStyle(
           color: Colors.white,
@@ -108,7 +113,7 @@ class CalendarDayView extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: color,
+            color: Color(int.parse(color!)),
             borderRadius: BorderRadius.circular(8),
           ),
           margin: const EdgeInsets.symmetric(vertical: 2).copyWith(right: 6),

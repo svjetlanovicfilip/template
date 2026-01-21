@@ -12,6 +12,10 @@ import '../../features/calendar/data/datasources/calendar_remote_datasource.dart
 import '../../features/calendar/data/repositories/calendar_repository.dart';
 import '../../features/calendar/data/repositories/calendar_repository_impl.dart';
 import '../../features/calendar/domain/bloc/slot_bloc.dart';
+import '../../features/client_history/data/datasources/client_history_remote_datasource.dart';
+import '../../features/client_history/data/repositories/client_history_repository.dart';
+import '../../features/client_history/data/repositories/client_history_repository_impl.dart';
+import '../../features/client_history/domain/bloc/client_history_bloc.dart';
 import '../../features/employees/domain/cubit/employees_picker_cubit.dart';
 import '../../features/login/data/datasources/login_remote_datasource.dart';
 import '../../features/login/data/repositories/login_repository.dart';
@@ -74,6 +78,9 @@ void setupDependencies() {
     ..registerSingleton<ServiceRemoteDatasource>(
       ServiceRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
+    ..registerSingleton<ClientHistoryRemoteDatasource>(
+      ClientHistoryRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
     //repositories
     ..registerSingleton<LoginRepository>(
       LoginRepositoryImpl(
@@ -108,6 +115,11 @@ void setupDependencies() {
         serviceRemoteDatasource: getIt<ServiceRemoteDatasource>(),
       ),
     )
+    ..registerSingleton<ClientHistoryRepository>(
+      ClientHistoryRepositoryImpl(
+        clientHistoryRemoteDatasource: getIt<ClientHistoryRemoteDatasource>(),
+      ),
+    )
     //cubits
     ..registerLazySingleton<CalendarTypeViewCubit>(CalendarTypeViewCubit.new)
     ..registerLazySingleton<EmployeesPickerCubit>(EmployeesPickerCubit.new)
@@ -139,6 +151,11 @@ void setupDependencies() {
     )
     ..registerLazySingleton<ClientsBloc>(
       () => ClientsBloc(clientRepository: getIt<ClientRepository>()),
+    )
+    ..registerFactory<ClientHistoryBloc>(
+      () => ClientHistoryBloc(
+        clientHistoryRepository: getIt<ClientHistoryRepository>(),
+      ),
     )
     ..registerLazySingleton<AppInitBloc>(
       () => AppInitBloc(

@@ -50,6 +50,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
             /// LISTA
             BlocBuilder<ClientsBloc, ClientsState>(
+              buildWhen:
+                  (_, current) =>
+                      current is ClientsFetchingSuccess ||
+                      current is ClientsFetching,
               bloc: getIt<ClientsBloc>(),
               builder: (context, state) {
                 if (state is ClientsFetching || state is ClientsInitial) {

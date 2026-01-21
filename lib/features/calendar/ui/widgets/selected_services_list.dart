@@ -73,7 +73,10 @@ class SelectedServicesList extends StatelessWidget {
                         )
                         : Text(
                           'Izaberi uslugu',
-                          style: theme.textTheme.labelMedium,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
               ),
             ),

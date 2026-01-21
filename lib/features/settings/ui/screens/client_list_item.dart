@@ -24,56 +24,65 @@ class ClientListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         color: AppColors.white,
       ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                client.name,
-                style: const TextStyle(fontSize: 16, color: Colors.black),
-                overflow: TextOverflow.ellipsis,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          context.pushNamed(Routes.clientHistory, arguments: client);
+        },
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  client.name,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  client.phoneNumber,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.amber500,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: () {
+                context.pushNamed(
+                  Routes.addEditServicesScreen,
+                  arguments: client,
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.amber50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.edit, color: AppColors.amber500),
               ),
-              Text(
-                client.phoneNumber,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.amber500,
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onDelete,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.red50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.red600,
                 ),
               ),
-            ],
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              context.pushNamed(
-                Routes.addEditServicesScreen,
-                arguments: client,
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.amber50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.edit, color: AppColors.amber500),
             ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: onDelete,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.red50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.delete_outline, color: AppColors.red600),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
