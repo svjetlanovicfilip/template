@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
+import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
@@ -59,8 +60,16 @@ class EmployeesScreen extends StatelessWidget {
                                 );
                                 return;
                               }
-
-                              showDeleteDialog(context, employeeUid: uid);
+                              showDeleteDialog(
+                                context: context,
+                                title: 'Izbrisi zaposlenog!',
+                                description:
+                                    'Da li ste sigurni da želite da izbrisete $fullName?',
+                                onDelete: () {
+                                  _usersBloc.add(UserRemoved(userId: uid));
+                                  context.pop();
+                                },
+                              );
                             },
                           );
                         },
@@ -72,66 +81,6 @@ class EmployeesScreen extends StatelessWidget {
                       ),
                     ),
           ),
-    );
-  }
-
-  /// Dialog: ovdje direktno dispatch-aš delete event na klik "Izbrisi"
-  Future<void> showDeleteDialog(
-    BuildContext context, {
-    required String employeeUid,
-  }) async {
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(
-            'Izbrisi zaposlenog!',
-            style: Theme.of(
-              dialogContext,
-            ).textTheme.titleLarge?.copyWith(color: Colors.black),
-          ),
-          content: Text(
-            'Da li ste sigurni da želite da izbrisete zaposlenog?',
-            style: Theme.of(
-              dialogContext,
-            ).textTheme.titleMedium?.copyWith(color: Colors.black),
-          ),
-          actionsPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Odustani'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    // 1) dispatch delete
-                    // deleteUserBloc.add(
-                    //   DeleteEmployeeSubmitted(employeeUid: employeeUid),
-                    // );
-
-                    _usersBloc.add(UserRemoved(userId: employeeUid));
-
-                    // 2) close dialog
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: const Text('Izbrisi'),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
     );
   }
 }
@@ -153,16 +102,16 @@ class _EmployeeItem extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  name,
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                  overflow: TextOverflow.ellipsis,
-                ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                name,
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            GestureDetector(
+          ),
+          GestureDetector(
             onTap: onDelete,
             child: Container(
               padding: const EdgeInsets.all(4),
