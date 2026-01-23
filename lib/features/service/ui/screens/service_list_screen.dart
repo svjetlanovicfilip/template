@@ -47,7 +47,7 @@ class ServiceListScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
               BlocBuilder<ServiceBloc, ServiceState>(
                 bloc: getIt<ServiceBloc>(),
                 builder: (context, state) {

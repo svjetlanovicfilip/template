@@ -7,6 +7,7 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/models/result.dart';
 import '../../../../config/style/colors.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../models/slot.dart';
 
 class CalendarRemoteDatasource {
@@ -129,18 +130,7 @@ class CalendarRemoteDatasource {
 Future<void> generateTestData() async {
   final slots = <Slot>[];
 
-  final titles = [
-    'Sisanje',
-    'Fade',
-    'Pramenovi',
-    'Farbanje',
-    'Feniranje',
-    'Mini val',
-    'Feniranje i sisanje',
-    'Brijanje',
-    'Farbanje i brijanje',
-    'Brijanje i sisanje',
-  ];
+  final services = getIt<ServiceBloc>().state.services;
 
   final startHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]..shuffle();
 
@@ -151,8 +141,8 @@ Future<void> generateTestData() async {
 
   final days = <DateTime>[];
 
-  for (var i = 0; i < 50; i++) {
-    final day = now.add(Duration(days: random.nextInt(150)));
+  for (var i = 0; i < 20; i++) {
+    final day = now.add(Duration(days: random.nextInt(20)));
     if (!days.contains(day)) {
       days.add(day);
     }
@@ -161,11 +151,13 @@ Future<void> generateTestData() async {
   final colors = List<Color>.from(AppColors.possibleEventColors);
 
   for (final day in days) {
-    titles.shuffle();
+    services.shuffle();
     colors.shuffle();
     startHours.shuffle();
 
     for (var eventIndex = 0; eventIndex < 10; eventIndex++) {
+      final randomService = [services[random.nextInt(services.length)]];
+
       final startDateTime = DateTime(
         day.year,
         day.month,
@@ -178,10 +170,12 @@ Future<void> generateTestData() async {
 
       slots.add(
         Slot(
-          title: titles[eventIndex],
+          title: 'Termin ${eventIndex + 1}',
+          serviceIds: randomService.map((e) => e.id ?? '').toList(),
           startDateTime: startDateTime,
           endDateTime: endDateTime,
           color: colors[eventIndex % colors.length].toARGB32().toString(),
+          employeeIds: ['jVvdg724fzakojKBCmgkLzWrQ5G3'],
         ),
       );
     }
@@ -192,27 +186,8 @@ Future<void> generateTestData() async {
         .collection(organizationsCollection)
         .doc(appState.organizationId)
         .collection(slotsCollection)
-        .add(s.toJson());
+        .add({...s.toJson(), 'clientId': '9sX9OExudIznJYbbQVJo'});
   }
 
   print('Test data generated');
-}
-
-Future<void> example() async {
-  final snap =
-      await FirebaseFirestore.instance
-          .collection('slotsExample')
-          .where('userId', arrayContains: 'fsdfdsdfs')
-          .where(
-            'startDateTime',
-            isLessThanOrEqualTo: Timestamp.fromDate(DateTime.now()),
-          )
-          .where(
-            'endDateTime',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()),
-          )
-          .orderBy('startDateTime')
-          .get();
-
-  print(snap.docs.length);
 }
