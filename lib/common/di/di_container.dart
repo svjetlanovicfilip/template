@@ -35,6 +35,7 @@ import '../../features/settings/data/repositories/client_repository_impl.dart';
 import '../../features/settings/data/repositories/user_repository.dart';
 import '../../features/settings/data/repositories/user_repository_impl.dart';
 import '../../features/settings/domain/bloc/clients_bloc.dart';
+import '../../features/settings/domain/cubit/client_picker_cubit.dart';
 import '../../features/users/domain/bloc/users_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
@@ -123,6 +124,7 @@ void setupDependencies() {
     //cubits
     ..registerLazySingleton<CalendarTypeViewCubit>(CalendarTypeViewCubit.new)
     ..registerLazySingleton<EmployeesPickerCubit>(EmployeesPickerCubit.new)
+    ..registerLazySingleton<ClientPickerCubit>(ClientPickerCubit.new)
     //blocs
     ..registerFactory<LoginBloc>(
       () => LoginBloc(

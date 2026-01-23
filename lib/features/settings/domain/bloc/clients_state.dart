@@ -1,6 +1,5 @@
 part of 'clients_bloc.dart';
 
-
 sealed class ClientsState extends Equatable {
   const ClientsState();
 
@@ -18,4 +17,17 @@ class ClientsFetchingSuccess extends ClientsState {
 
   @override
   List<Object> get props => [clients];
+}
+
+class ClientsSearchSuccess extends ClientsState {
+  const ClientsSearchSuccess(this.clients);
+  final List<Client> clients;
+
+  @override
+  List<Object> get props => [clients];
+}
+
+class ClientsSelectSuccess extends ClientsState {
+  const ClientsSelectSuccess(this.client);
+  final Client client;
 }

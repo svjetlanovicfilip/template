@@ -49,19 +49,30 @@ class EmployeesScreen extends StatelessWidget {
 
                           return _EmployeeItem(
                             name: fullName.isEmpty ? 'Bez imena' : fullName,
-                            onDelete: () {
-                              final uid = user.id ?? '';
-                              if (uid.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Nedostaje ID korisnika.'),
-                                  ),
-                                );
-                                return;
-                              }
+                            onDelete:
+                                user.id != null &&
+                                        appState.currentUser?.id == user.id
+                                    ? null
+                                    : () {
+                                      final uid = user.id ?? '';
+                                      if (uid.isEmpty) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Nedostaje ID korisnika.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
 
-                              showDeleteDialog(context, employeeUid: uid);
-                            },
+                                      showDeleteDialog(
+                                        context,
+                                        employeeUid: uid,
+                                      );
+                                    },
                           );
                         },
                       ),
@@ -137,10 +148,10 @@ class EmployeesScreen extends StatelessWidget {
 }
 
 class _EmployeeItem extends StatelessWidget {
-  const _EmployeeItem({required this.name, required this.onDelete});
+  const _EmployeeItem({required this.name, this.onDelete});
 
   final String name;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -153,26 +164,30 @@ class _EmployeeItem extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  name,
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                  overflow: TextOverflow.ellipsis,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                name,
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          if (onDelete != null)
+            GestureDetector(
+              onTap: onDelete,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.red50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.red600,
                 ),
               ),
             ),
-            GestureDetector(
-            onTap: onDelete,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.red50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.delete_outline, color: AppColors.red600),
-            ),
-          ),
         ],
       ),
     );

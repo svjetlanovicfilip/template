@@ -35,3 +35,21 @@ class ClientRemoved extends ClientsEvent {
   @override
   List<Object?> get props => [clientId];
 }
+
+class ClientsSearched extends ClientsEvent {
+  const ClientsSearched({required this.searchQuery});
+
+  final String searchQuery;
+
+  @override
+  List<Object?> get props => [searchQuery];
+}
+
+class ClientSelected extends ClientsEvent {
+  const ClientSelected({this.clientId});
+
+  final String? clientId;
+
+  @override
+  List<Object?> get props => [clientId];
+}

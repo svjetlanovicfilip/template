@@ -180,13 +180,41 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           backgroundColor: AppColors.slate900,
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: PrimaryButton(
-            icon: Icons.add,
-            onTap: () {
-              context.pushNamed(Routes.bookAppointment);
-            },
-            borderRadius: BorderRadius.circular(30),
-          ),
+          floatingActionButton:
+              BlocBuilder<CalendarTypeViewCubit, CalendarType>(
+                bloc: _calendarTypeViewCubit,
+                builder: (context, cubitState) {
+                  return PrimaryButton(
+                    icon: Icons.add,
+                    onTap: () {
+                      late DateTime currentDate;
+
+                      if (cubitState == CalendarType.day) {
+                        currentDate =
+                            _dayViewKey.currentState?.currentDate ??
+                            DateTime.now();
+                      } else {
+                        currentDate =
+                            _weekViewKey.currentState?.currentDate ??
+                            DateTime.now();
+                      }
+
+                      final currentDateTime = DateTime(
+                        currentDate.year,
+                        currentDate.month,
+                        currentDate.day,
+                        DateTime.now().hour,
+                        DateTime.now().minute,
+                      );
+                      context.pushNamed(
+                        Routes.bookAppointment,
+                        arguments: Slot(startDateTime: currentDateTime),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(30),
+                  );
+                },
+              ),
           body: SafeArea(
             child: CustomScrollView(
               physics: const NeverScrollableScrollPhysics(),

@@ -1,4 +1,5 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../common/constants/routes.dart';
@@ -7,6 +8,8 @@ import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../../service/data/models/service_type.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
+import '../../../settings/data/client.dart';
+import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -19,6 +22,7 @@ class CalendarWeekView extends StatelessWidget {
   SlotBloc get _slotBloc => getIt<SlotBloc>();
 
   List<ServiceType> get _services => getIt<ServiceBloc>().state.services;
+  List<Client> get _clients => getIt<ClientsBloc>().clients;
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +66,18 @@ class CalendarWeekView extends StatelessWidget {
         var isEventLessThan30Minutes = false;
         var lines = 1;
         const double padding = 2;
+        final clientId = events.first.event?.clientId;
+        final client = _clients.firstWhereOrNull(
+          (client) => client.id == clientId,
+        );
         final title =
+            client?.name ??
             events.first.event?.serviceIds
                 .map(
-                  (id) => _services.firstWhere((service) => service.id == id),
+                  (id) =>
+                      _services.firstWhereOrNull((service) => service.id == id),
                 )
-                .map((service) => service.title)
+                .map((service) => service?.title)
                 .join(', ') ??
             '';
         final color = events.first.event?.color;

@@ -2,20 +2,21 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
+import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
-import '../../../../common/widgets/search_field.dart';
 import '../../../../config/style/colors.dart';
 import '../../../employees/domain/cubit/employees_picker_cubit.dart';
 import '../../../login/data/models/user_model.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
-import '../../../settings/data/client.dart';
 import '../../../settings/domain/bloc/clients_bloc.dart';
+import '../../../settings/domain/cubit/client_picker_cubit.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
 import '../widgets/employee_picker.dart';
 import '../widgets/label.dart';
+import '../widgets/selected_client_list.dart';
 import '../widgets/selected_employees_list.dart';
 import '../widgets/selected_services_list.dart';
 import '../widgets/time_input_field.dart';
@@ -33,7 +34,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   late TextEditingController titleController;
 
   late EmployeesPickerCubit _employeesPickerCubit;
+  late ClientPickerCubit _clientPickerCubit;
   late ServiceBloc _serviceBloc;
+  late ClientsBloc _clientsBloc;
 
   late DateTime selectedDate;
   DateTime? selectedStart;
@@ -52,6 +55,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   void initState() {
     super.initState();
     _serviceBloc = getIt<ServiceBloc>();
+    _clientsBloc = getIt<ClientsBloc>();
+    _clientPickerCubit = getIt<ClientPickerCubit>();
     isEditing =
         widget.slot?.startDateTime != null && widget.slot?.endDateTime != null;
     final random = Random();
@@ -82,6 +87,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       );
     }
     _serviceBloc.add(AttachService(serviceIds: widget.slot?.serviceIds ?? []));
+    if (widget.slot?.clientId != null) {
+      final selectedClient = _clientsBloc.clients.firstWhere(
+        (client) => client.id == widget.slot?.clientId,
+      );
+      _clientPickerCubit.pickClient(client: selectedClient);
+    } else {
+      _clientPickerCubit.unpickClient();
+    }
   }
 
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
@@ -199,11 +212,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     ),
                   ),
                 ],
-                // const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                // const Label(title: 'Klijent'),
-                // const SizedBox(height: 8),
-                // SelectedClientList(),
+                const Label(title: 'Klijent'),
+                const SizedBox(height: 8),
+                const SelectedClientList(),
                 const SizedBox(height: 20),
                 const Label(title: 'Usluga'),
                 const SizedBox(height: 8),
@@ -245,7 +258,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 const SizedBox(height: 12),
                 if (isEditing)
                   PrimaryButton(
-                    onTap: handleDelete,
+                    onTap:
+                        () => showDeleteDialog(
+                          context: context,
+                          title: 'Izbriši termin',
+                          description:
+                              'Da li ste sigurni da želite da izbrišete ovaj termin?',
+                          onDelete: handleDelete,
+                        ),
                     title: 'Izbriši termin',
                     borderRadius: BorderRadius.circular(12),
                     backgroundColor: AppColors.red600,
@@ -384,6 +404,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       return;
     }
 
+    final clientId = _clientPickerCubit.state?.id;
+
     final newSlot = Slot(
       id: widget.slot?.id,
       startDateTime: selectedStart ?? DateTime.now(),
@@ -392,6 +414,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       color: widget.slot?.color ?? selectedColor,
       serviceIds: serviceIds,
       employeeIds: employeeIds,
+      clientId: clientId,
     );
 
     if (isEditing) {
@@ -405,7 +428,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   void handleDelete() {
     getIt<SlotBloc>().add(DeleteSlot(widget.slot?.id ?? ''));
-    Navigator.of(context).pop();
+    Navigator.of(context)
+      ..pop()
+      ..pop();
   }
 
   void _validateTimeRange() {
@@ -440,138 +465,3 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 }
-
-// class SelectedClientList extends StatelessWidget {
-//   const SelectedClientList({super.key});
-
-//   ClientsBloc get _clientsBloc => getIt<ClientsBloc>();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocBuilder<ClientsBloc, ClientsState>(
-//       bloc: _clientsBloc,
-//       buildWhen: (_, current) => current is ClientsFetchingSuccess,
-//       builder: (context, state) {
-//         if (state is ClientsFetchingSuccess) {
-//           return Column(
-//             mainAxisSize: MainAxisSize.min,
-//             crossAxisAlignment: CrossAxisAlignment.stretch,
-//             children: [
-//               GestureDetector(
-//                 behavior: HitTestBehavior.opaque,
-//                 onTap: () {
-//                   _showBottomSheet(context);
-//                 },
-//                 child: Container(
-//                   padding: const EdgeInsets.all(8),
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(12),
-//                     color: AppColors.slate200,
-//                   ),
-
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       BlocBuilder<ClientsBloc, ClientsState>(
-//                         bloc: _clientsBloc,
-
-//                         builder: (context, state) {
-//                           return Text(
-//                             state.client.name,
-//                             style: Theme.of(context).textTheme.labelMedium,
-//                           );
-
-//                           // return Text(
-//                           //   'Izaberi klijenta',
-//                           //   style: Theme.of(
-//                           //     context,
-//                           //   ).textTheme.labelMedium?.copyWith(
-//                           //     color: AppColors.slate500,
-//                           //     fontWeight: FontWeight.w400,
-//                           //   ),
-//                           // );
-//                         },
-//                       ),
-//                       const Icon(Icons.expand_more, color: AppColors.slate800),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           );
-//         }
-//         return const SizedBox.shrink();
-//       },
-//     );
-//   }
-
-//   void _showBottomSheet(BuildContext context) {
-//     showModalBottomSheet(
-//       context: context,
-//       builder:
-//           (context) => Container(
-//             height: MediaQuery.of(context).size.height * 0.5,
-//             decoration: const BoxDecoration(
-//               color: AppColors.white,
-//               borderRadius: BorderRadius.only(
-//                 topLeft: Radius.circular(16),
-//                 topRight: Radius.circular(16),
-//               ),
-//             ),
-//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-//             child: Column(
-//               children: [
-//                 SearchField(
-//                   onChanged: (value) {},
-//                   hint: 'Pretraga klijenata...',
-//                 ),
-//                 Expanded(
-//                   child: BlocBuilder<ClientsBloc, ClientsState>(
-//                     bloc: _clientsBloc,
-//                     buildWhen: (_, current) => current is ClientsSearchSuccess,
-//                     builder: (context, state) {
-//                       if (state is ClientsSearchSuccess) {
-//                         final clients = state.clients;
-//                         return ListView.builder(
-//                           itemBuilder:
-//                               (context, index) =>
-//                                   BlocBuilder<ClientsBloc, ClientsState>(
-//                                     bloc: _clientsBloc,
-//                                     buildWhen:
-//                                         (_, current) =>
-//                                             current is ClientsSelectSuccess,
-//                                     builder: (context, state) {
-//                                       return RadioGroup<String>(
-//                                         groupValue:
-//                                             state is ClientsSelectSuccess
-//                                                 ? state.client.id ?? ''
-//                                                 : null,
-//                                         onChanged: (value) {
-//                                           if (value == null) return;
-//                                         },
-//                                         child: RadioListTile<String>(
-//                                           activeColor: AppColors.amber500,
-//                                           shape: RoundedRectangleBorder(
-//                                             borderRadius: BorderRadius.circular(
-//                                               12,
-//                                             ),
-//                                           ),
-//                                           value: clients[index].id ?? '',
-//                                           title: Text(clients[index].name),
-//                                         ),
-//                                       );
-//                                     },
-//                                   ),
-//                           itemCount: clients.length,
-//                         );
-//                       }
-//                       return const SizedBox.shrink();
-//                     },
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//     );
-//   }
-// }

@@ -11,7 +11,6 @@ import '../../../../common/widgets/search_field.dart';
 import '../../domain/bloc/clients_bloc.dart';
 import 'client_list_item.dart';
 
-
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
 
@@ -67,6 +66,20 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   );
                 }
 
+                if (state is ClientsFetchingSuccess && state.clients.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: Center(
+                        child: Text(
+                          'Nema klijenata',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
                 if (state is ClientsFetchingSuccess) {
                   final clients = state.clients; // kod tebe se zove clinets
 
@@ -99,19 +112,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         return ClientListItem(
                           client: c,
                           onDelete: () {
-                          showDeleteDialog(
-                            context: context,
-                            title: 'Izbrisi klijenta!',
-                            description:
-                                'Da li ste sigurni da želite da izbrisete ${c.name}?',
-                            onDelete: () {
-                              getIt<ClientsBloc>().add(
-                                ClientRemoved(clientId: c.id ?? ''),
-                              );
-                              context.pop();
-                            },
-                          );
-                        },
+                            showDeleteDialog(
+                              context: context,
+                              title: 'Izbrisi klijenta!',
+                              description:
+                                  'Da li ste sigurni da želite da izbrisete ${c.name}?',
+                              onDelete: () {
+                                getIt<ClientsBloc>().add(
+                                  ClientRemoved(clientId: c.id ?? ''),
+                                );
+                                context.pop();
+                              },
+                            );
+                          },
                         );
                       },
                     ),

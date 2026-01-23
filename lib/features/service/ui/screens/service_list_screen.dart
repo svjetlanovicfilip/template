@@ -51,6 +51,20 @@ class ServiceListScreen extends StatelessWidget {
               BlocBuilder<ServiceBloc, ServiceState>(
                 bloc: getIt<ServiceBloc>(),
                 builder: (context, state) {
+                  if (state.services.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: Center(
+                          child: Text(
+                            'Cjenovnik je prazan',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
                   return SliverList.separated(
                     itemBuilder: (context, index) {
                       final service = state.services[index];

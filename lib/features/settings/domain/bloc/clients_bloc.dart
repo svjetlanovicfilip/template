@@ -14,9 +14,13 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     on<ClientAdded>(_onClientAdded);
     on<ClientRemoved>(_onClientRemoved);
     on<ClientUpdated>(_onClientUpdated);
+    on<ClientsSearched>(_onClientsSearched);
+    on<ClientSelected>(_onClientSelected);
   }
 
   final ClientRepository clientRepository;
+
+  List<Client> get clients => _clients;
 
   List<Client> _clients = [];
 
@@ -149,5 +153,36 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
   void clearState() {
     _clients.clear();
+  }
+
+  void _onClientsSearched(ClientsSearched event, Emitter<ClientsState> emit) {
+    if (_clients.isEmpty) {
+      return;
+    }
+
+    final searchQuery = event.searchQuery;
+    if (searchQuery.isEmpty) {
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+      return;
+    }
+
+    final clients =
+        _clients
+            .where(
+              (client) =>
+                  client.name.toLowerCase().contains(searchQuery.toLowerCase()),
+            )
+            .toList();
+
+    emit(ClientsSearchSuccess(List.from(clients)));
+  }
+
+  void _onClientSelected(ClientSelected event, Emitter<ClientsState> emit) {
+    if (event.clientId == null) {
+      return;
+    }
+
+    final client = _clients.firstWhere((client) => client.id == event.clientId);
+    emit(ClientsSelectSuccess(client));
   }
 }
