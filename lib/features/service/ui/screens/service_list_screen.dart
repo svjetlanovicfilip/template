@@ -51,7 +51,8 @@ class ServiceListScreen extends StatelessWidget {
               BlocBuilder<ServiceBloc, ServiceState>(
                 bloc: getIt<ServiceBloc>(),
                 builder: (context, state) {
-                  if (state.services.isEmpty) {
+                  final activeServices = state.services.where((s) => (s.isActive) == true).toList();
+                  if (activeServices.isEmpty) {
                     return SliverToBoxAdapter(
                       child: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.5,
@@ -67,7 +68,7 @@ class ServiceListScreen extends StatelessWidget {
 
                   return SliverList.separated(
                     itemBuilder: (context, index) {
-                      final service = state.services[index];
+                      final service = activeServices[index];
                       return ServiceListItem(
                         service: service,
                         onDelete: () {
@@ -88,7 +89,7 @@ class ServiceListScreen extends StatelessWidget {
                     },
                     separatorBuilder:
                         (context, index) => const SizedBox(height: 12),
-                    itemCount: state.services.length,
+                    itemCount: activeServices.length,
                   );
                 },
               ),

@@ -136,6 +136,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
             id: widget.service?.id,
             title: titleController.text,
             price: double.parse(priceController.text),
+            isActive: true
           ),
         ),
       );
@@ -145,6 +146,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
           service: ServiceType(
             title: titleController.text,
             price: double.parse(priceController.text),
+            isActive: true
           ),
         ),
       );
