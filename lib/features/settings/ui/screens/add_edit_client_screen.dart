@@ -177,6 +177,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
             name: name,
             phoneNumber: phoneNumber,
             description: descriptionController.text,
+            isActive: true
           ),
         ),
       );
@@ -187,6 +188,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
             name: name,
             phoneNumber: phoneNumber,
             description: descriptionController.text,
+            isActive: true
           ),
         ),
       );

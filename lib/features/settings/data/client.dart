@@ -5,6 +5,7 @@ class Client extends Equatable {
   const Client({
     required this.name,
     required this.phoneNumber,
+    required this.isActive,
     this.id,
     this.description,
     this.createdAt,
@@ -17,6 +18,7 @@ class Client extends Equatable {
       id: clientId,
       description: json['description'] as String?,
       createdAt: json['createdAt'] as Timestamp?,
+      isActive: json['isActive'] as bool,
     );
   }
 
@@ -25,6 +27,7 @@ class Client extends Equatable {
       'name': name,
       'phoneNumber': phoneNumber,
       'description': description,
+      'isActive': isActive,
       // 'createdAt': createdAt,
       // 'id' ne moraš čuvati u dokumentu, id ti je doc.id
     };
@@ -35,7 +38,8 @@ class Client extends Equatable {
   final String? id;
   final String? description;
   final Timestamp? createdAt;
+  final bool isActive;
 
   @override
-  List<Object?> get props => [name, phoneNumber, id, description, createdAt];
+  List<Object?> get props => [name, phoneNumber, id, description, createdAt, isActive];
 }

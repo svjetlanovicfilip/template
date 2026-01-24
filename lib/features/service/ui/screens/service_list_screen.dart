@@ -57,7 +57,7 @@ class ServiceListScreen extends StatelessWidget {
                         height: MediaQuery.of(context).size.height * 0.5,
                         child: Center(
                           child: Text(
-                            'Cjenovnik je prazan',
+                            'Cjenovnik je prazan.',
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                         ),

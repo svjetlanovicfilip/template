@@ -72,7 +72,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       height: MediaQuery.of(context).size.height * 0.5,
                       child: Center(
                         child: Text(
-                          'Nema klijenata',
+                          'Nema klijenata za prikaz.',
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                       ),
@@ -81,10 +81,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 }
 
                 if (state is ClientsFetchingSuccess) {
-                  final clients = state.clients; // kod tebe se zove clinets
+                  final clients = state.clients;
 
                   final filtered =
-                      clients.where((c) {
+                      clients.where((c) => (c.isActive) == true).where((c) {
                         final q = _query.trim().toLowerCase();
                         if (q.isEmpty) return true;
 
@@ -93,10 +93,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       }).toList();
 
                   if (filtered.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 32),
-                        child: Center(child: Text('Nema klijenata za prikaz.')),
+                    return SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: Center(
+                          child: Text(
+                            'Nema klijenata za prikaz.',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                        ),
                       ),
                     );
                   }

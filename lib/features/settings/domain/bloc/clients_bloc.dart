@@ -72,6 +72,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
         phoneNumber: event.client.phoneNumber,
         description: event.client.description,
         createdAt: event.client.createdAt,
+        isActive: event.client.isActive
       );
 
       _clients.add(createdClient);
@@ -123,6 +124,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
           phoneNumber: updated.phoneNumber,
           description: updated.description,
           createdAt: prev.createdAt,
+          isActive: updated.isActive
         );
 
         _clients[index] = merged;
@@ -136,20 +138,41 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     }
   }
 
-  Future<void> _onClientRemoved(
-    ClientRemoved event,
-    Emitter<ClientsState> emit,
-  ) async {
-    _clients.removeWhere((client) => client.id == event.clientId);
+Future<void> _onClientRemoved(
+  ClientRemoved event,
+  Emitter<ClientsState> emit,
+) async {
+  final organizationId = appState.organizationId;
+  if (organizationId == null) return;
+
+  // opcionalno: prikaži loader
+  emit(ClientsFetching());
+
+  try {
+    // 1) prvo soft-delete na backendu
+    await clientRepository.deleteClient(event.clientId, organizationId);
+
+    // 2) tek onda lokalno markiraj isActive=false
+    final index = _clients.indexWhere((c) => c.id == event.clientId);
+    if (index != -1) {
+      final old = _clients[index];
+
+      _clients[index] = Client(
+        id: old.id,
+        name: old.name,
+        phoneNumber: old.phoneNumber,
+        description: old.description,
+        createdAt: old.createdAt,
+        isActive: false,
+      );
+    }
 
     emit(ClientsFetchingSuccess(List.from(_clients)));
-    final organizationId = appState.organizationId;
-
-    if (organizationId == null) {
-      return;
-    }
-    await clientRepository.deleteClient(event.clientId, organizationId);
+  } catch (e) {
+    // ako imaš Failure state, emituj njega; u suprotnom vrati listu kakva je bila
+    emit(ClientsFetchingSuccess(List.from(_clients)));
   }
+}
 
   void clearState() {
     _clients.clear();

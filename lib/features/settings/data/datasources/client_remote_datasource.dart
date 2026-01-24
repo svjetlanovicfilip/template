@@ -31,6 +31,7 @@ class ClientRemoteDatasource {
   ) async {
     final data = client.toJson();
     data['createdAt'] = FieldValue.serverTimestamp();
+    data['isActive'] = true;
 
     return firebaseFirestore
         .collection(organizationsCollection)
@@ -59,9 +60,11 @@ class ClientRemoteDatasource {
           .doc(organizationId)
           .collection(clientsCollection)
           .doc(clientId)
-          .delete();
-    } on Exception catch (e) {
-      throw Exception(e);
+          .update(<String, dynamic>{'isActive': false});
+    } on FirebaseException catch (e) {
+      throw Exception('${e.code}: ${e.message}');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 }
