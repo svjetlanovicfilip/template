@@ -36,54 +36,52 @@ class EmployeesScreen extends StatelessWidget {
             appBar: const CustomAppBar(title: Text('Zaposleni')),
             body:
                 state is UsersFetchingSuccess
-                    ? SafeArea(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                    ? ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
 
-                        itemCount: state.users.length,
-                        separatorBuilder:
-                            (context, index) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final user = state.users[index];
-                          final fullName =
-                              '${user.name ?? ''} ${user.surname ?? ''}'.trim();
+                      itemCount: state.users.length,
+                      separatorBuilder:
+                          (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final user = state.users[index];
+                        final fullName =
+                            '${user.name ?? ''} ${user.surname ?? ''}'.trim();
 
-                          return _EmployeeItem(
-                            name: fullName.isEmpty ? 'Bez imena' : fullName,
-                            onDelete:
-                                user.id != null &&
-                                        appState.currentUser?.id == user.id
-                                    ? null
-                                    : () {
-                                      final uid = user.id ?? '';
-                                      if (uid.isEmpty) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Nedostaje ID korisnika.',
-                                            ),
+                        return _EmployeeItem(
+                          name: fullName.isEmpty ? 'Bez imena' : fullName,
+                          onDelete:
+                              user.id != null &&
+                                      appState.currentUser?.id == user.id
+                                  ? null
+                                  : () {
+                                    final uid = user.id ?? '';
+                                    if (uid.isEmpty) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Nedostaje ID korisnika.',
                                           ),
-                                        );
-                                        return;
-                                      }
-
-                                      showDeleteDialog(
-                                        context: context,
-                                        title: 'Izbriši zaposlenog',
-                                        description:
-                                            'Da li ste sigurni da želite da izbrišete ovog zaposlenog?',
-                                        onDelete: () {
-                                          getIt<UsersBloc>().add(
-                                            UserRemoved(userId: uid),
-                                          );
-                                        },
+                                        ),
                                       );
-                                    },
-                          );
-                        },
-                      ),
+                                      return;
+                                    }
+
+                                    showDeleteDialog(
+                                      context: context,
+                                      title: 'Izbriši zaposlenog',
+                                      description:
+                                          'Da li ste sigurni da želite da izbrišete ovog zaposlenog?',
+                                      onDelete: () {
+                                        getIt<UsersBloc>().add(
+                                          UserRemoved(userId: uid),
+                                        );
+                                      },
+                                    );
+                                  },
+                        );
+                      },
                     )
                     : const Center(
                       child: CircularProgressIndicator(
@@ -121,17 +119,21 @@ class _EmployeeItem extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
-            onTap: onDelete,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.red50,
-                borderRadius: BorderRadius.circular(8),
+          if (onDelete != null)
+            GestureDetector(
+              onTap: onDelete,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.red50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.red600,
+                ),
               ),
-              child: const Icon(Icons.delete_outline, color: AppColors.red600),
             ),
-          ),
         ],
       ),
     );

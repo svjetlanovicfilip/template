@@ -44,13 +44,16 @@ class _ServiceListState extends State<ServiceList> {
             controller: _searchController,
             onChanged:
                 (value) => serviceBloc.add(SearchServices(searchQuery: value)),
-                hint: 'Pretraga usluga...',
+            hint: 'Pretraga usluga...',
           ),
           Expanded(
             child: BlocBuilder<ServiceBloc, ServiceState>(
               bloc: serviceBloc,
               builder: (context, state) {
-                final services = state.services;
+                final services =
+                    state.services
+                        .where((service) => service.isActive)
+                        .toList();
                 final selectedServices = state.selectedServices;
 
                 if (services.isEmpty) {

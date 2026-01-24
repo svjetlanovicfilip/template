@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
@@ -88,10 +89,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
     _serviceBloc.add(AttachService(serviceIds: widget.slot?.serviceIds ?? []));
     if (widget.slot?.clientId != null) {
-      final selectedClient = _clientsBloc.clients.firstWhere(
+      final selectedClient = _clientsBloc.clients.firstWhereOrNull(
         (client) => client.id == widget.slot?.clientId,
       );
-      _clientPickerCubit.pickClient(client: selectedClient);
+      if (selectedClient != null) {
+        _clientPickerCubit.pickClient(client: selectedClient);
+      } else {
+        _clientPickerCubit.unpickClient();
+      }
     } else {
       _clientPickerCubit.unpickClient();
     }
@@ -340,13 +345,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     if (picked == null) return;
 
-    selectedStart = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      picked.hour,
-      picked.minute,
-    );
+    setState(() {
+      selectedStart = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        picked.hour,
+        picked.minute,
+      );
+    });
 
     _validateTimeRange();
   }

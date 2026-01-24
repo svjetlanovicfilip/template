@@ -102,9 +102,17 @@ class SelectedClientList extends StatelessWidget {
                             current is ClientsFetchingSuccess,
                     builder: (context, state) {
                       if (state is ClientsSearchSuccess) {
-                        return BottomSheetClientsList(clients: state.clients);
+                        final clients =
+                            state.clients
+                                .where((client) => client.isActive)
+                                .toList();
+                        return BottomSheetClientsList(clients: clients);
                       } else if (state is ClientsFetchingSuccess) {
-                        return BottomSheetClientsList(clients: state.clients);
+                        final clients =
+                            state.clients
+                                .where((client) => client.isActive)
+                                .toList();
+                        return BottomSheetClientsList(clients: clients);
                       }
 
                       return const SizedBox.shrink();
