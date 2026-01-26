@@ -60,17 +60,6 @@ class AuthenticationBloc
       ..organizationId = userProfile.success!.organizationId
       ..userOrganization = organization.success;
 
-    if (appState.currentUser?.role == 'ORG_OWNER') {
-      final organizationUsers = await organizationRepository
-          .getOrganizationUsers(userProfile.success!.organizationId!);
-
-      if (organizationUsers.isFailure) {
-        return;
-      }
-
-      appState.setOrganizationUsers(organizationUsers.success!);
-    }
-
     emit(state.copyWith(status: AuthenticationStatus.authenticated));
   }
 

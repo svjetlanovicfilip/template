@@ -7,6 +7,7 @@ import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../config/style/colors.dart';
 import '../../../authentication/domain/bloc/authentication_bloc.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
+import '../../../login/data/models/user_role.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 
@@ -23,13 +24,14 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             spacing: 12,
             children: [
-              _SettingsMenuItem(
-                label: 'Upravljanje zaposlenima',
-                icon: Icons.group_outlined,
-                onTap: () {
-                  context.pushNamed(Routes.employeesScreen);
-                },
-              ),
+              if (appState.currentUser?.role == UserRole.orgOwner)
+                _SettingsMenuItem(
+                  label: 'Upravljanje zaposlenima',
+                  icon: Icons.group_outlined,
+                  onTap: () {
+                    context.pushNamed(Routes.employeesScreen);
+                  },
+                ),
               _SettingsMenuItem(
                 label: 'Klijenti',
                 icon: Icons.person_outline,
@@ -37,13 +39,14 @@ class SettingsScreen extends StatelessWidget {
                   context.pushNamed(Routes.clientsScreen);
                 },
               ),
-              _SettingsMenuItem(
-                label: 'Cjenovnik',
-                icon: Icons.local_offer_outlined,
-                onTap: () {
-                  context.pushNamed(Routes.serviceListScreen);
-                },
-              ),
+              if (appState.currentUser?.role == UserRole.orgOwner)
+                _SettingsMenuItem(
+                  label: 'Cjenovnik',
+                  icon: Icons.local_offer_outlined,
+                  onTap: () {
+                    context.pushNamed(Routes.serviceListScreen);
+                  },
+                ),
 
               // _SettingsMenuItem(
               //   label: 'Promjena lozinke',

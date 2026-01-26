@@ -1,3 +1,5 @@
+import 'user_role.dart';
+
 class UserModel {
   UserModel({
     required this.email,
@@ -19,7 +21,7 @@ class UserModel {
       surname: json['surname'],
       username: json['username'],
       organizationId: json['orgId'],
-      role: json['role'],
+      role: UserRole.fromString(json['role']),
     );
   }
 
@@ -30,5 +32,5 @@ class UserModel {
   final String? surname;
   final String? username;
   final String? organizationId;
-  final String? role;
+  final UserRole? role;
 }

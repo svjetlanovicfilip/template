@@ -5,20 +5,12 @@ class AppState {
   String? organizationId;
   UserModel? currentUser;
   String? currentSelectedUserId;
-  List<UserModel> _organizationUsers = [];
   Organization? userOrganization;
-
-  List<UserModel> get organizationUsers => _organizationUsers;
-
-  void setOrganizationUsers(List<UserModel> users) {
-    _organizationUsers = users;
-  }
 
   void clearState() {
     organizationId = null;
     currentUser = null;
     currentSelectedUserId = null;
-    _organizationUsers = [];
     userOrganization = null;
   }
 }

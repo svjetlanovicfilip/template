@@ -131,17 +131,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ..organizationId = userProfile.success!.organizationId
       ..userOrganization = organization.success;
 
-    // if (appState.currentUser?.role == 'ORG_OWNER') {
-    //   final organizationUsers = await organizationRepository
-    //       .getOrganizationUsers(userProfile.success!.organizationId!);
-
-    //   if (organizationUsers.isFailure) {
-    //     return false;
-    //   }
-
-    //   appState.userOrganization?.addUsers(organizationUsers.success!);
-    // }
-
     return true;
   }
 

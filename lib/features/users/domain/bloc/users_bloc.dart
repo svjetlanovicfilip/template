@@ -28,10 +28,6 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     UsersFetchRequested event,
     Emitter<UsersState> emit,
   ) async {
-    if (appState.currentUser?.role != 'ORG_OWNER') {
-      return;
-    }
-
     emit(UsersFetching());
 
     final users = await organizationRepository.getOrganizationUsers(
