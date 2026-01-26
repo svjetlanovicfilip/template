@@ -31,7 +31,7 @@ class UserRemoteDatasource {
       final data = Map<String, dynamic>.from(res.data as Map);
 
       // Pošalji reset email (Firebase šalje)
-      await firebaseAuth.sendPasswordResetEmail(email: email.trim());
+      // await firebaseAuth.sendPasswordResetEmail(email: email.trim());
 
       return app.Result.success(
         UserModel.fromJson(
