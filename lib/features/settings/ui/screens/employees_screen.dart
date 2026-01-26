@@ -77,6 +77,7 @@ class EmployeesScreen extends StatelessWidget {
                                         getIt<UsersBloc>().add(
                                           UserRemoved(userId: uid),
                                         );
+                                        context.pop();
                                       },
                                     );
                                   },
