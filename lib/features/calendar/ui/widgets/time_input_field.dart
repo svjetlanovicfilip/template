@@ -8,6 +8,7 @@ class TimeInputField extends StatelessWidget {
     required this.label,
     required this.selectedDateTime,
     required this.onTimeSelected,
+    this.disabled = false,
     super.key,
   });
 
@@ -15,6 +16,7 @@ class TimeInputField extends StatelessWidget {
   final String label;
   final DateTime? selectedDateTime;
   final VoidCallback onTimeSelected;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class TimeInputField extends StatelessWidget {
         ),
         InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: onTimeSelected,
+          onTap: disabled ? null : onTimeSelected,
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

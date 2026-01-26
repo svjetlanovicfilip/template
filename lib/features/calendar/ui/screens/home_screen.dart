@@ -18,6 +18,7 @@ import '../../domain/bloc/slot_bloc.dart';
 import '../modals/employee_dropdown_menu.dart';
 import '../widgets/calendar_day_view.dart';
 import '../widgets/calendar_week_view.dart';
+import 'book_appointment_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.slots, super.key});
@@ -199,16 +200,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             DateTime.now();
                       }
 
-                      final currentDateTime = DateTime(
-                        currentDate.year,
-                        currentDate.month,
-                        currentDate.day,
-                        DateTime.now().hour,
-                        DateTime.now().minute,
-                      );
+                      currentDate =
+                          currentDate.isBefore(DateTime.now())
+                              ? DateTime.now()
+                              : currentDate;
+
                       context.pushNamed(
                         Routes.bookAppointment,
-                        arguments: Slot(startDateTime: currentDateTime),
+                        arguments: BookAppointmentScreenArguments(
+                          selectedDate: currentDate,
+                        ),
                       );
                     },
                     borderRadius: BorderRadius.circular(30),

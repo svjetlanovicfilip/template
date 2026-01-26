@@ -13,6 +13,7 @@ import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
+import '../screens/book_appointment_screen.dart';
 
 class CalendarWeekView extends StatelessWidget {
   const CalendarWeekView({required this.weekViewKey, super.key});
@@ -142,7 +143,10 @@ class CalendarWeekView extends StatelessWidget {
         final event = events.first;
         final eventSlot = event.event as Slot;
 
-        context.pushNamed(Routes.bookAppointment, arguments: eventSlot);
+        context.pushNamed(
+          Routes.bookAppointment,
+          arguments: BookAppointmentScreenArguments(slot: eventSlot),
+        );
       },
       onDateTap: (date) {
         if (date.isBefore(DateTime.now())) {
@@ -151,7 +155,10 @@ class CalendarWeekView extends StatelessWidget {
 
         context.pushNamed(
           Routes.bookAppointment,
-          arguments: Slot(title: '', startDateTime: date),
+          arguments: BookAppointmentScreenArguments(
+            selectedDate: date,
+            selectedStart: date,
+          ),
         );
       },
       liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 2),

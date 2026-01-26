@@ -5,11 +5,9 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../config/style/colors.dart';
 import '../../../calendar/domain/utils/utils.dart';
-import '../../../service/data/models/service_type.dart';
-import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../settings/data/client.dart';
-import '../../data/models/client_slot.dart';
 import '../../domain/bloc/client_history_bloc.dart';
+import '../widgets/client_visit_item.dart';
 
 class ClientHistoryScreen extends StatefulWidget {
   const ClientHistoryScreen({required this.client, super.key});
@@ -86,7 +84,7 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
                                   radius: 30,
                                   backgroundColor: AppColors.white,
                                   child: Text(
-                                    widget.client.name.substring(0, 2),
+                                    getInitials(widget.client.name),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyMedium?.copyWith(
@@ -130,15 +128,6 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
                               ],
                             ),
                           ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          margin: const EdgeInsets.only(top: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.amber400.withValues(alpha: 0.4),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.edit, color: AppColors.white),
                         ),
                       ],
                     ),
@@ -283,116 +272,8 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
       ),
     );
   }
-}
 
-class ClientVisitItem extends StatelessWidget {
-  const ClientVisitItem({required this.clientSlot, super.key});
-
-  final ClientSlot clientSlot;
-
-  List<ServiceType> get _services =>
-      clientSlot.serviceIds
-          .map(
-            (id) => getIt<ServiceBloc>().state.services.firstWhere(
-              (service) => service.id == id,
-            ),
-          )
-          .toList();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: AppColors.white,
-      ),
-      child: Column(
-        spacing: 8,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            formatDateLong(clientSlot.startDateTime),
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          ClientVisitInfo(
-            title: formatDateRange(
-              clientSlot.startDateTime,
-              clientSlot.endDateTime,
-            ),
-            icon: Icons.access_time_outlined,
-          ),
-          if (_services.isNotEmpty) ...[
-            ClientVisitInfo(
-              title: _services.map((service) => service.title).join('\n'),
-              icon: Icons.local_offer_outlined,
-            ),
-          ],
-          if (clientSlot.title != null && clientSlot.title!.isNotEmpty)
-            ClientVisitInfo(title: clientSlot.title!, icon: Icons.note),
-        ],
-      ),
-    );
-  }
-}
-
-class ClientVisitInfo extends StatelessWidget {
-  const ClientVisitInfo({required this.title, required this.icon, super.key});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      spacing: 16,
-      children: [
-        Icon(icon, color: AppColors.amber500, size: 18),
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.amber500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ClientProperty extends StatelessWidget {
-  const ClientProperty({required this.title, required this.value, super.key});
-
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      spacing: 16,
-      children: [
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.amber500,
-            ),
-            textAlign: TextAlign.justify,
-          ),
-        ),
-      ],
-    );
+  String getInitials(String name) {
+    return name.split(' ').map((e) => e.substring(0, 1)).join().toUpperCase();
   }
 }

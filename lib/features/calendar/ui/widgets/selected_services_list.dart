@@ -7,9 +7,14 @@ import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../service/ui/widgets/service_list.dart';
 
 class SelectedServicesList extends StatelessWidget {
-  const SelectedServicesList({required this.anyServiceSelected, super.key});
+  const SelectedServicesList({
+    required this.anyServiceSelected,
+    this.disabled = false,
+    super.key,
+  });
 
   final bool anyServiceSelected;
+  final bool disabled;
 
   ServiceBloc get _serviceBloc => getIt<ServiceBloc>();
 
@@ -25,7 +30,7 @@ class SelectedServicesList extends StatelessWidget {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => _showBottomSheet(context),
+              onTap: disabled ? null : () => _showBottomSheet(context),
               child: Container(
                 padding:
                     state.selectedServices.isNotEmpty
@@ -56,13 +61,14 @@ class SelectedServicesList extends StatelessWidget {
                                         Icons.close,
                                         color: AppColors.white,
                                       ),
-                                      onDeleted: () {
-                                        _serviceBloc.add(
-                                          DetachService(
-                                            serviceId: service.id ?? '',
-                                          ),
-                                        );
-                                      },
+                                      onDeleted:
+                                          disabled
+                                              ? null
+                                              : () => _serviceBloc.add(
+                                                DetachService(
+                                                  serviceId: service.id ?? '',
+                                                ),
+                                              ),
                                       backgroundColor: AppColors.amber500,
                                       side: const BorderSide(
                                         color: AppColors.amber500,

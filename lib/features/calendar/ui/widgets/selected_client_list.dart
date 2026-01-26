@@ -10,7 +10,9 @@ import '../../../settings/domain/cubit/client_picker_cubit.dart';
 import 'bottom_sheet_clients_list.dart';
 
 class SelectedClientList extends StatelessWidget {
-  const SelectedClientList({super.key});
+  const SelectedClientList({this.disabled = false, super.key});
+
+  final bool disabled;
 
   ClientPickerCubit get _clientPickerCubit => getIt<ClientPickerCubit>();
   ClientsBloc get _clientsBloc => getIt<ClientsBloc>();
@@ -26,9 +28,7 @@ class SelectedClientList extends StatelessWidget {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                _showBottomSheet(context);
-              },
+              onTap: disabled ? null : () => _showBottomSheet(context),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(

@@ -9,9 +9,14 @@ import '../../../users/domain/bloc/users_bloc.dart';
 import 'employee_picker.dart';
 
 class SelectedEmployeesList extends StatelessWidget {
-  const SelectedEmployeesList({required this.anyEmployeeSelected, super.key});
+  const SelectedEmployeesList({
+    required this.anyEmployeeSelected,
+    this.disabled = false,
+    super.key,
+  });
 
   final bool anyEmployeeSelected;
+  final bool disabled;
 
   EmployeesPickerCubit get _employeesPickerCubit =>
       getIt<EmployeesPickerCubit>();
@@ -24,10 +29,12 @@ class SelectedEmployeesList extends StatelessWidget {
         if (state is UsersFetchingSuccess && state.users.isNotEmpty) {
           return GestureDetector(
             onTap:
-                () => showEmployeePickerBottomSheet(
-                  context: context,
-                  employees: state.users,
-                ),
+                disabled
+                    ? null
+                    : () => showEmployeePickerBottomSheet(
+                      context: context,
+                      employees: state.users,
+                    ),
 
             child: BlocBuilder<EmployeesPickerCubit, Map<String, bool>>(
               bloc: _employeesPickerCubit,

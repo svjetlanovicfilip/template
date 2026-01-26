@@ -22,10 +22,22 @@ import '../widgets/selected_employees_list.dart';
 import '../widgets/selected_services_list.dart';
 import '../widgets/time_input_field.dart';
 
-class BookAppointmentScreen extends StatefulWidget {
-  const BookAppointmentScreen({this.slot, super.key});
+class BookAppointmentScreenArguments {
+  const BookAppointmentScreenArguments({
+    this.slot,
+    this.selectedDate,
+    this.selectedStart,
+  });
 
   final Slot? slot;
+  final DateTime? selectedDate;
+  final DateTime? selectedStart;
+}
+
+class BookAppointmentScreen extends StatefulWidget {
+  const BookAppointmentScreen({this.arguments, super.key});
+
+  final BookAppointmentScreenArguments? arguments;
 
   @override
   State<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
@@ -38,6 +50,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   late ClientPickerCubit _clientPickerCubit;
   late ServiceBloc _serviceBloc;
   late ClientsBloc _clientsBloc;
+  BookAppointmentScreenArguments? args;
 
   late DateTime selectedDate;
   DateTime? selectedStart;
@@ -50,6 +63,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   bool anyEmployeeSelected = true;
   bool anyServiceSelected = true;
 
+  bool isSlotInPast = false;
+
   late final String selectedColor;
 
   @override
@@ -58,24 +73,25 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     _serviceBloc = getIt<ServiceBloc>();
     _clientsBloc = getIt<ClientsBloc>();
     _clientPickerCubit = getIt<ClientPickerCubit>();
-    isEditing =
-        widget.slot?.startDateTime != null && widget.slot?.endDateTime != null;
+    args = widget.arguments;
+    isEditing = args?.slot != null;
     final random = Random();
     final colors = List<Color>.from(AppColors.possibleEventColors)
       ..shuffle(random);
     final length = colors.length;
     final eventIndex = random.nextInt(length);
     selectedColor = colors[eventIndex % colors.length].toARGB32().toString();
-    selectedStart = widget.slot?.startDateTime;
-    selectedEnd = widget.slot?.endDateTime;
-    selectedDate = widget.slot?.startDateTime ?? DateTime.now();
-    titleController = TextEditingController(text: widget.slot?.title);
+    isSlotInPast = args?.slot?.startDateTime.isBefore(DateTime.now()) ?? false;
+    selectedStart = args?.selectedStart ?? args?.slot?.startDateTime;
+    selectedEnd = args?.slot?.endDateTime;
+    selectedDate =
+        args?.slot?.startDateTime ?? args?.selectedDate ?? DateTime.now();
+    titleController = TextEditingController(text: args?.slot?.title);
 
     _employeesPickerCubit = getIt<EmployeesPickerCubit>();
 
-    if (widget.slot?.employeeIds != null &&
-        widget.slot!.employeeIds.isNotEmpty) {
-      for (final employeeId in widget.slot?.employeeIds ?? []) {
+    if (args?.slot?.employeeIds != null && args!.slot!.employeeIds.isNotEmpty) {
+      for (final employeeId in args!.slot!.employeeIds) {
         _employeesPickerCubit.pickEmployee(
           employeeId: employeeId,
           isPicked: true,
@@ -87,10 +103,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         isPicked: true,
       );
     }
-    _serviceBloc.add(AttachService(serviceIds: widget.slot?.serviceIds ?? []));
-    if (widget.slot?.clientId != null) {
+    _serviceBloc.add(AttachService(serviceIds: args?.slot?.serviceIds ?? []));
+    if (args?.slot?.clientId != null) {
       final selectedClient = _clientsBloc.clients.firstWhereOrNull(
-        (client) => client.id == widget.slot?.clientId,
+        (client) => client.id == args?.slot?.clientId,
       );
       if (selectedClient != null) {
         _clientPickerCubit.pickClient(client: selectedClient);
@@ -147,7 +163,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ),
       ],
       child: Scaffold(
-        appBar: const CustomAppBar(title: Text('Dodaj termin')),
+        appBar: CustomAppBar(
+          title: Text(isEditing ? 'Uredi termin' : 'Dodaj termin'),
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -155,13 +173,61 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SelectedEmployeesList(anyEmployeeSelected: anyEmployeeSelected),
+                if (isSlotInPast) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.amber300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      spacing: 8,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: AppColors.slate600,
+                        ),
+                        Expanded(
+                          child: Column(
+                            spacing: 4,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Upozorenje',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: AppColors.slate800,
+                                ),
+                              ),
+                              Text(
+                                'Ovaj termin je u prošlosti i ne može biti uređen.',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: AppColors.slate600,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                SelectedEmployeesList(
+                  anyEmployeeSelected: anyEmployeeSelected,
+                  disabled: isSlotInPast,
+                ),
                 const SizedBox(height: 20),
                 const Label(title: 'Datum'),
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: _pickDate,
+                  onTap: !isSlotInPast ? _pickDate : null,
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -193,6 +259,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         label: 'Početak',
                         selectedDateTime: selectedStart,
                         onTimeSelected: _onStartTimeSelected,
+                        disabled: isSlotInPast,
                       ),
                     ),
                     Expanded(
@@ -201,6 +268,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         label: 'Kraj',
                         selectedDateTime: selectedEnd,
                         onTimeSelected: _onEndTimeSelected,
+                        disabled: isSlotInPast,
                       ),
                     ),
                   ],
@@ -221,17 +289,21 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
                 const Label(title: 'Klijent'),
                 const SizedBox(height: 8),
-                const SelectedClientList(),
+                SelectedClientList(disabled: isSlotInPast),
                 const SizedBox(height: 20),
                 const Label(title: 'Usluga'),
                 const SizedBox(height: 8),
-                SelectedServicesList(anyServiceSelected: anyServiceSelected),
+                SelectedServicesList(
+                  anyServiceSelected: anyServiceSelected,
+                  disabled: isSlotInPast,
+                ),
                 const SizedBox(height: 20),
                 const Label(title: 'Detalji usluge'),
                 const SizedBox(height: 8),
                 TextField(
                   controller: titleController,
                   maxLines: 3,
+                  enabled: !isSlotInPast,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     hintText: 'Unesite detalje usluge...',
@@ -254,14 +326,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                PrimaryButton(
-                  onTap: handleSubmit,
-                  title: 'Potvrdi',
-                  borderRadius: BorderRadius.circular(12),
-                  padding: const EdgeInsets.all(10),
-                ),
+                if (!isSlotInPast)
+                  PrimaryButton(
+                    onTap: handleSubmit,
+                    title: 'Potvrdi',
+                    borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.all(10),
+                  ),
                 const SizedBox(height: 12),
-                if (isEditing)
+                if (isEditing && !isSlotInPast)
                   PrimaryButton(
                     onTap:
                         () => showDeleteDialog(
@@ -414,11 +487,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     final clientId = _clientPickerCubit.state?.id;
 
     final newSlot = Slot(
-      id: widget.slot?.id,
+      id: args?.slot?.id,
       startDateTime: selectedStart ?? DateTime.now(),
       endDateTime: selectedEnd ?? DateTime.now(),
       title: title,
-      color: widget.slot?.color ?? selectedColor,
+      color: args?.slot?.color ?? selectedColor,
       serviceIds: serviceIds,
       employeeIds: employeeIds,
       clientId: clientId,
@@ -434,7 +507,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   void handleDelete() {
-    getIt<SlotBloc>().add(DeleteSlot(widget.slot?.id ?? ''));
+    getIt<SlotBloc>().add(DeleteSlot(args?.slot?.id ?? ''));
     Navigator.of(context)
       ..pop()
       ..pop();
