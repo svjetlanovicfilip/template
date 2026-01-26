@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
-import '../../../../config/style/colors.dart';
+import '../../../../common/widgets/primary_button.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../data/client.dart';
 import '../../domain/bloc/clients_bloc.dart';
@@ -26,13 +26,12 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
   final clientBloc = getIt<ClientsBloc>();
 
   final _errorNameMessage = 'Ime i prezime klijenta ne smije biti prazano';
-  
+
   String? _nameError;
 
   bool _isEditing = false;
 
-  bool get _isFormFilled =>
-      nameController.text.trim().isNotEmpty;
+  bool _isFormValid = false;
 
   @override
   void initState() {
@@ -41,6 +40,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
     phoneNumberController.text = widget.client?.phoneNumber ?? '';
     descriptionController.text = widget.client?.description ?? '';
     _isEditing = widget.client?.id != null;
+    _isFormValid = nameController.text.isNotEmpty;
   }
 
   @override
@@ -81,6 +81,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                       setState(() {
                         _nameError =
                             value.isNotEmpty ? null : _errorNameMessage;
+                        _isFormValid = value.isNotEmpty;
                       });
                     },
                   ),
@@ -90,7 +91,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                   ContainerInputField(
                     controller: phoneNumberController,
                     hintText: 'Broj telefona',
-                    onChanged: (value){},
+                    onChanged: (_) {},
                     maxLines: 1,
                     keyboardType: TextInputType.number,
                     inputFormatters: const [],
@@ -104,50 +105,27 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                     keyboardType: TextInputType.text,
                     inputFormatters: const [],
                     maxLines: 3,
-                    onChanged: (value) {
-                      // setState(() {
-                      //   _nameError =
-                      //       value.isNotEmpty ? null : _errorNameMessage;
-                      // });
-                    },
+                    onChanged: (_) {},
                   ),
                   const SizedBox(height: 30),
-                  // SUBMIT BUTTON
-                  SizedBox(
-                    height: 48,
+                  PrimaryButton(
+                    onTap: !_isFormValid ? null : _onSubmit,
                     width: MediaQuery.of(context).size.width,
-                    child: BlocBuilder<ClientsBloc, ClientsState>(
-                      bloc: clientBloc,
-                      buildWhen:
-                          (prev, next) => prev.runtimeType != next.runtimeType,
-                      builder: (context, state) {
-                        final isSubmitting = state is ClientsFetching;
-
-                        return ElevatedButton(
-                          onPressed:
-                              (isSubmitting || !_isFormFilled)
-                                  ? null
-                                  : _onSubmit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.amber500,
-                            foregroundColor: Colors.white,
-                          ),
-                          child:
-                              isSubmitting
-                                  ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                  : const Text('Potvrdi'),
-                        );
-                      },
-                    ),
+                    title: 'Potvrdi',
+                    borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.all(10),
+                    backgroundColor:
+                        !_isFormValid
+                            ? Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.12)
+                            : null,
+                    textColor:
+                        !_isFormValid
+                            ? Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.38)
+                            : null,
                   ),
                 ],
               ),
@@ -161,6 +139,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
   void _onSubmit() {
     final name = nameController.text.trim();
     final phoneNumber = phoneNumberController.text.trim();
+    final description = descriptionController.text.trim();
 
     if (name.isEmpty) {
       setState(() {
@@ -176,8 +155,8 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
             id: widget.client?.id,
             name: name,
             phoneNumber: phoneNumber,
-            description: descriptionController.text,
-            isActive: true
+            description: description,
+            isActive: true,
           ),
         ),
       );
@@ -187,8 +166,8 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
           client: Client(
             name: name,
             phoneNumber: phoneNumber,
-            description: descriptionController.text,
-            isActive: true
+            description: description,
+            isActive: true,
           ),
         ),
       );

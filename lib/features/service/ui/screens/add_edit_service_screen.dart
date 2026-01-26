@@ -31,6 +31,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
   String? _titleError;
   String? _priceError;
 
+  bool _isFormValid = false;
   bool _isEditing = false;
 
   @override
@@ -39,6 +40,8 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
     titleController.text = widget.service?.title ?? '';
     priceController.text = widget.service?.price.toString() ?? '';
     _isEditing = widget.service?.id != null;
+    _isFormValid =
+        titleController.text.isNotEmpty && priceController.text.isNotEmpty;
   }
 
   @override
@@ -67,6 +70,8 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                     setState(() {
                       _titleError =
                           value.isNotEmpty ? null : _errorTitleMessage;
+                      _isFormValid =
+                          value.isNotEmpty && priceController.text.isNotEmpty;
                     });
                   },
                 ),
@@ -79,6 +84,8 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                     setState(() {
                       _priceError =
                           value.isNotEmpty ? null : _errorPriceMessage;
+                      _isFormValid =
+                          titleController.text.isNotEmpty && value.isNotEmpty;
                     });
                   },
                   hintText: 'Cijena usluge',
@@ -89,11 +96,23 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 ),
                 const SizedBox(height: 30),
                 PrimaryButton(
-                  onTap: _onSubmit,
+                  onTap: !_isFormValid ? null : _onSubmit,
                   width: MediaQuery.of(context).size.width,
                   title: 'Potvrdi',
                   borderRadius: BorderRadius.circular(12),
                   padding: const EdgeInsets.all(10),
+                  backgroundColor:
+                      !_isFormValid
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.12)
+                          : null,
+                  textColor:
+                      !_isFormValid
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.38)
+                          : null,
                 ),
               ],
             ),
@@ -136,7 +155,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
             id: widget.service?.id,
             title: titleController.text,
             price: double.parse(priceController.text),
-            isActive: true
+            isActive: true,
           ),
         ),
       );
@@ -146,7 +165,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
           service: ServiceType(
             title: titleController.text,
             price: double.parse(priceController.text),
-            isActive: true
+            isActive: true,
           ),
         ),
       );

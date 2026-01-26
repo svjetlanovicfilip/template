@@ -10,17 +10,19 @@ class PrimaryButton extends StatelessWidget {
     this.borderRadius,
     this.isLoading = false,
     this.backgroundColor,
+    this.textColor,
     this.padding,
     this.width,
     super.key,
   });
 
   final String? title;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData? icon;
   final BorderRadius? borderRadius;
   final bool isLoading;
   final Color? backgroundColor;
+  final Color? textColor;
   final EdgeInsetsGeometry? padding;
   final double? width;
 
@@ -50,9 +52,10 @@ class PrimaryButton extends StatelessWidget {
             else if (title != null)
               Text(
                 title!,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: textColor ?? AppColors.white,
+                ),
               ),
           ],
         ),
