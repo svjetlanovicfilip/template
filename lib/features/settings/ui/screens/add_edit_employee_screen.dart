@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
+import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../../login/data/models/user_model.dart';
@@ -34,11 +35,13 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
   String? _usernameError;
   String? _emailError;
 
-  bool get _isFormFilled =>
+  bool _checkIsFormValid() =>
       nameController.text.trim().isNotEmpty &&
       lastNameController.text.trim().isNotEmpty &&
       usernameController.text.trim().isNotEmpty &&
-      emailController.text.trim().isNotEmpty;
+      _isEmailValid;
+
+  bool _isFormValid = false;
 
   // (opciono) basic email check
   bool get _isEmailValid {
@@ -46,8 +49,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     return emailRegex.hasMatch(e);
   }
-
-  bool get _canSubmit => _isFormFilled && _isEmailValid;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +88,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                   onChanged: (value) {
                     setState(() {
                       _nameError = value.isNotEmpty ? null : _errorNameMessage;
+                      _isFormValid = _checkIsFormValid();
                     });
                   },
                 ),
@@ -104,6 +106,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                     setState(() {
                       _lastNameError =
                           value.isNotEmpty ? null : _errorLastNameMessage;
+                      _isFormValid = _checkIsFormValid();
                     });
                   },
                 ),
@@ -121,6 +124,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                     setState(() {
                       _usernameError =
                           value.isNotEmpty ? null : _errorUsernameMessage;
+                      _isFormValid = _checkIsFormValid();
                     });
                   },
                 ),
@@ -136,61 +140,67 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                   errorText: _emailError,
                   onChanged: (value) {
                     setState(() {
-                      _emailError =
-                          value.isNotEmpty ? null : _errorEmailMessage;
+                      _emailError = _isEmailValid ? null : _errorEmailMessage;
+                      _isFormValid = _checkIsFormValid();
                     });
                   },
                 ),
                 const SizedBox(height: 32),
-                // SUBMIT BUTTON
-                SizedBox(
-                  height: 48,
-                  child: BlocBuilder<UsersBloc, UsersState>(
-                    bloc: usersBloc,
-                    buildWhen:
-                        (prev, next) => prev.runtimeType != next.runtimeType,
-                    builder: (context, state) {
-                      final isSubmitting = state is UsersFetching;
-
-                      return ElevatedButton(
-                        onPressed:
-                            (isSubmitting || !_canSubmit)
-                                ? null
-                                : () => _onSubmit(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.amber500,
-                          foregroundColor: Colors.white,
-                        ),
-                        child:
-                            isSubmitting
-                                ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                                : const Text('Potvrdi'),
-                      );
-                    },
-                  ),
+                PrimaryButton(
+                  onTap: !_isFormValid ? null : () => _onSubmit(context),
+                  width: MediaQuery.of(context).size.width,
+                  title: 'Potvrdi',
+                  borderRadius: BorderRadius.circular(12),
+                  padding: const EdgeInsets.all(10),
+                  backgroundColor:
+                      !_isFormValid
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.12)
+                          : null,
                 ),
 
-                // Mala pomoć korisniku kad je dugme disabled
-                if (!_isFormFilled) ...[
+                // SUBMIT BUTTON
+                // SizedBox(
+                //   height: 48,
+                //   child: BlocBuilder<UsersBloc, UsersState>(
+                //     bloc: usersBloc,
+                //     buildWhen:
+                //         (prev, next) => prev.runtimeType != next.runtimeType,
+                //     builder: (context, state) {
+                //       final isSubmitting = state is UsersFetching;
+
+                //       return ElevatedButton(
+                //         onPressed:
+                //             (isSubmitting || !_canSubmit)
+                //                 ? null
+                //                 : () => _onSubmit(context),
+                //         style: ElevatedButton.styleFrom(
+                //           backgroundColor: AppColors.amber500,
+                //           foregroundColor: Colors.white,
+                //         ),
+                //         child:
+                //             isSubmitting
+                //                 ? const SizedBox(
+                //                   width: 24,
+                //                   height: 24,
+                //                   child: CircularProgressIndicator(
+                //                     strokeWidth: 2,
+                //                     valueColor: AlwaysStoppedAnimation<Color>(
+                //                       Colors.white,
+                //                     ),
+                //                   ),
+                //                 )
+                //                 : const Text('Potvrdi'),
+                //       );
+                //     },
+                //   ),
+                // ),
+                if (!_isFormValid) ...[
                   const SizedBox(height: 12),
                   const Text(
                     'Popunite sva polja da biste mogli potvrditi.',
                     style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ] else if (!_isEmailValid) ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Unesite ispravan email format.',
-                    style: TextStyle(fontSize: 12, color: Colors.redAccent),
                   ),
                 ],
               ],
