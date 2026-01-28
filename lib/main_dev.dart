@@ -4,7 +4,7 @@ import 'config/flavor/flavor_config.dart';
 import 'firebase_options_dev.dart';
 
 void main() {
-  appFlavor = FlavorConfig(appTitle: 'Tefter Dev');
+  appFlavor = FlavorConfig(appTitle: 'Tefter Dev', flavor: Flavor.dev);
 
   mainApp(DefaultFirebaseOptions.currentPlatform);
 }

@@ -7,6 +7,8 @@ import '../../../blocs/app_init/bloc/app_init_bloc.dart';
 import '../../constants/routes.dart';
 import '../../di/di_container.dart';
 import '../../extensions/context_extension.dart';
+import '../../services/firebase_remote_config_service.dart';
+import '../../services/force_update_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,13 +19,30 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late final AppInitBloc _appInitBloc = getIt<AppInitBloc>();
+  late final ForceUpdateService _forceUpdateService =
+      getIt<ForceUpdateService>();
 
   @override
   void initState() {
     super.initState();
     FlutterNativeSplash.remove();
 
-    _appInitBloc.add(AppInitStarted());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await initialiseSDKs();
+    });
+  }
+
+  Future<void> initialiseSDKs() async {
+    try {
+      await getIt<FirebaseRemoteConfigService>().setupRemoteConfig();
+    } on Exception catch (_) {
+    } finally {
+      final hasUpdate = await _checkUpdate();
+
+      if (!hasUpdate) {
+        _appInitBloc.add(AppInitStarted());
+      }
+    }
   }
 
   @override
@@ -68,5 +87,23 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _checkUpdate() async {
+    final isUpdateRequired = await _forceUpdateService.isUpdateRequired();
+    if (isUpdateRequired) {
+      context.replace(Routes.update, arguments: true);
+
+      return true;
+    }
+
+    final isUpdateAvailable = await _forceUpdateService.isUpdateAvailable();
+    if (isUpdateAvailable) {
+      context.replace(Routes.update, arguments: false);
+
+      return true;
+    }
+
+    return false;
   }
 }

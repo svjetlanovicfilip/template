@@ -39,6 +39,8 @@ import '../../features/settings/domain/cubit/client_picker_cubit.dart';
 import '../../features/users/domain/bloc/users_bloc.dart';
 import '../app_state/app_state.dart';
 import '../cubits/calendar_type_view/calendar_type_view_cubit.dart';
+import '../services/firebase_remote_config_service.dart';
+import '../services/force_update_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -50,8 +52,15 @@ void setupDependencies() {
   final firebaseFirestore = FirebaseFirestore.instance;
   final firebaseFunc = FirebaseFunctions.instance;
 
-  //datasources
   getIt
+    //services
+    ..registerSingleton<FirebaseRemoteConfigService>(
+      FirebaseRemoteConfigService(),
+    )
+    ..registerSingleton<ForceUpdateService>(
+      ForceUpdateService(getIt<FirebaseRemoteConfigService>()),
+    )
+    //datasources
     ..registerSingleton<AuthenticationRemoteDatasource>(
       AuthenticationRemoteDatasource(
         firebaseAuth: firebaseAuth,

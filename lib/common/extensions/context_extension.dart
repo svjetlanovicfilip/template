@@ -14,4 +14,8 @@ extension ContextExtension on BuildContext {
   void pop({Object? result}) {
     _router.pop(result);
   }
+
+  void replace(String name, {Object? arguments}) {
+    _router.pushReplacementNamed(name, arguments: arguments);
+  }
 }

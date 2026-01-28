@@ -8,6 +8,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'common/constants/routes.dart';
 import 'common/di/di_container.dart';
 import 'common/widgets/screens/splash_screen.dart';
+import 'common/widgets/screens/update_screen.dart';
 import 'config/style/theme.dart';
 import 'features/calendar/data/models/slot.dart';
 import 'features/calendar/ui/screens/book_appointment_screen.dart';
@@ -72,6 +73,13 @@ class _MyAppState extends State<MyApp> {
             case Routes.splash:
               return CupertinoPageRoute(
                 builder: (context) => const SplashScreen(),
+              );
+            case Routes.update:
+              return CupertinoPageRoute(
+                builder:
+                    (context) => UpdateScreen(
+                      isRequred: settings.arguments as bool? ?? false,
+                    ),
               );
             case Routes.login:
               return CupertinoPageRoute(
