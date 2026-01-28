@@ -137,7 +137,11 @@ class CalendarWeekView extends StatelessWidget {
         height: 2,
       ),
       onPageChange: (date, page) {
-        _slotBloc.add(LoadMore(date: date));
+        if (date.isAfter(DateTime.now())) {
+          _slotBloc.add(LoadMoreForward(currentDisplayedDate: date));
+        } else {
+          _slotBloc.add(LoadMoreBackward(currentDisplayedDate: date));
+        }
       },
       onEventTap: (events, date) {
         final event = events.first;
@@ -161,6 +165,7 @@ class CalendarWeekView extends StatelessWidget {
           ),
         );
       },
+      pageTransitionCurve: Curves.linear,
       liveTimeIndicatorSettings: const LiveTimeIndicatorSettings(height: 2),
       timeLineBuilder: (date) {
         return Transform.translate(

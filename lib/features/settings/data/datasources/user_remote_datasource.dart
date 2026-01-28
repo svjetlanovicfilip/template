@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../../../../common/models/result.dart' as app;
 
 import '../../../login/data/models/user_model.dart';
@@ -40,12 +43,21 @@ class UserRemoteDatasource {
         ),
       );
     } on FirebaseFunctionsException catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       // e.code: unauthenticated, permission-denied, already-exists, internal...
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
     } on FirebaseAuthException catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       // Ako iz nekog razloga reset email faila
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
-    } catch (e) {
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       return app.Result.failure(Exception(e.toString()));
     }
   }
@@ -67,9 +79,15 @@ class UserRemoteDatasource {
       final data = Map<String, dynamic>.from(res.data as Map);
       return app.Result.success(data);
     } on FirebaseFunctionsException catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       // e.code: unauthenticated, permission-denied, not-found, internal...
       return app.Result.failure(Exception('${e.code}: ${e.message ?? ''}'));
-    } catch (e) {
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       return app.Result.failure(Exception(e.toString()));
     }
   }

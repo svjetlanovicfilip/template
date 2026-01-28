@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../../../common/di/di_container.dart';
 import '../../../organization/data/repositories/organization_repository.dart';
@@ -59,6 +62,13 @@ class AuthenticationBloc
       ..currentSelectedUserId = userProfile.success!.id
       ..organizationId = userProfile.success!.organizationId
       ..userOrganization = organization.success;
+
+    // Set user identifier for Crashlytics
+    unawaited(
+      FirebaseCrashlytics.instance.setUserIdentifier(
+        userProfile.success!.email,
+      ),
+    );
 
     emit(state.copyWith(status: AuthenticationStatus.authenticated));
   }

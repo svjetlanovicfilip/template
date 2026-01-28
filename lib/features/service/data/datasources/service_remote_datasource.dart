@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../../../common/constants/routes.dart';
 import '../models/service_type.dart';
@@ -26,6 +29,9 @@ class ServiceRemoteDatasource {
           .collection(servicesCollection)
           .add(service.toJson());
     } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e);
     }
   }
@@ -39,11 +45,14 @@ class ServiceRemoteDatasource {
           .doc(service.id)
           .update(service.toJson());
     } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e);
     }
   }
 
- Future<void> deleteService(String serviceId, String organizationId) async {
+  Future<void> deleteService(String serviceId, String organizationId) async {
     try {
       await firebaseFirestore
           .collection(organizationsCollection)
@@ -52,6 +61,9 @@ class ServiceRemoteDatasource {
           .doc(serviceId)
           .update(<String, dynamic>{'isActive': false});
     } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e);
     }
   }

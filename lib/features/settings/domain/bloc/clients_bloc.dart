@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../../../common/di/di_container.dart';
 import '../../data/client.dart';
@@ -22,7 +25,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
   List<Client> get clients => _clients;
 
-  List<Client> _clients = [];
+  final List<Client> _clients = [];
 
   Future<void> _onFetchClients(
     ClientsFetchRequested event,
@@ -72,14 +75,14 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
         phoneNumber: event.client.phoneNumber,
         description: event.client.description,
         createdAt: event.client.createdAt,
-        isActive: event.client.isActive
+        isActive: event.client.isActive,
       );
 
       _clients.add(createdClient);
 
       // 3) emit success za UI
       emit(ClientsFetchingSuccess(List.from(_clients)));
-    } catch (e) {
+    } on Exception catch (_) {
       // Ako želiš: dodaj ClientsFailure state
       // Za sada možeš bar vratiti prethodno stanje ili prazan:
       emit(ClientsFetchingSuccess(List.from(_clients)));
@@ -124,7 +127,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
           phoneNumber: updated.phoneNumber,
           description: updated.description,
           createdAt: prev.createdAt,
-          isActive: updated.isActive
+          isActive: updated.isActive,
         );
 
         _clients[index] = merged;
@@ -132,47 +135,50 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
       // 3) emit za UI
       emit(ClientsFetchingSuccess(List.from(_clients)));
-    } catch (e) {
+    } on Exception catch (_) {
       // bez Failure state-a, vraćamo trenutno stanje
       emit(ClientsFetchingSuccess(List.from(_clients)));
     }
   }
 
-Future<void> _onClientRemoved(
-  ClientRemoved event,
-  Emitter<ClientsState> emit,
-) async {
-  final organizationId = appState.organizationId;
-  if (organizationId == null) return;
+  Future<void> _onClientRemoved(
+    ClientRemoved event,
+    Emitter<ClientsState> emit,
+  ) async {
+    final organizationId = appState.organizationId;
+    if (organizationId == null) return;
 
-  // opcionalno: prikaži loader
-  emit(ClientsFetching());
+    // opcionalno: prikaži loader
+    emit(ClientsFetching());
 
-  try {
-    // 1) prvo soft-delete na backendu
-    await clientRepository.deleteClient(event.clientId, organizationId);
+    try {
+      // 1) prvo soft-delete na backendu
+      await clientRepository.deleteClient(event.clientId, organizationId);
 
-    // 2) tek onda lokalno markiraj isActive=false
-    final index = _clients.indexWhere((c) => c.id == event.clientId);
-    if (index != -1) {
-      final old = _clients[index];
+      // 2) tek onda lokalno markiraj isActive=false
+      final index = _clients.indexWhere((c) => c.id == event.clientId);
+      if (index != -1) {
+        final old = _clients[index];
 
-      _clients[index] = Client(
-        id: old.id,
-        name: old.name,
-        phoneNumber: old.phoneNumber,
-        description: old.description,
-        createdAt: old.createdAt,
-        isActive: false,
+        _clients[index] = Client(
+          id: old.id,
+          name: old.name,
+          phoneNumber: old.phoneNumber,
+          description: old.description,
+          createdAt: old.createdAt,
+          isActive: false,
+        );
+      }
+
+      emit(ClientsFetchingSuccess(List.from(_clients)));
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
       );
+      // ako imaš Failure state, emituj njega; u suprotnom vrati listu kakva je bila
+      emit(ClientsFetchingSuccess(List.from(_clients)));
     }
-
-    emit(ClientsFetchingSuccess(List.from(_clients)));
-  } catch (e) {
-    // ako imaš Failure state, emituj njega; u suprotnom vrati listu kakva je bila
-    emit(ClientsFetchingSuccess(List.from(_clients)));
   }
-}
 
   void clearState() {
     _clients.clear();

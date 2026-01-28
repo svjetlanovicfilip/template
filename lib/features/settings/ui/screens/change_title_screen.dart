@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import '../../../../common/widgets/custom_input_field.dart';
 
@@ -35,14 +38,13 @@ class _ChangeTitleScreenState extends State<ChangeTitleScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CustomInputField(
                 label: 'Novi naziv',
                 hint: 'Novi naziv',
-                isPassword: false,
                 errorText: _titleError,
                 onChanged: (value) {
                   setState(() {
@@ -112,8 +114,11 @@ class _ChangeTitleScreenState extends State<ChangeTitleScreen> {
       Navigator.of(
         context,
       ).pop(_title.trim()); // ako želiš da vratiš novi naziv
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Došlo je do greške pri izmjeni naziva')),
       );
@@ -126,4 +131,3 @@ class _ChangeTitleScreenState extends State<ChangeTitleScreen> {
     }
   }
 }
-

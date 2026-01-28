@@ -239,7 +239,13 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    final newTo = to.add(Duration(days: e.days));
+    late DateTime newTo;
+
+    if (e.currentDisplayedDate.isAfter(to.add(Duration(days: e.days)))) {
+      newTo = e.currentDisplayedDate.add(Duration(days: e.days));
+    } else {
+      newTo = to.add(Duration(days: e.days));
+    }
 
     currentRange.to = newTo;
 
@@ -261,7 +267,16 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
       return;
     }
 
-    final newFrom = from.subtract(Duration(days: e.days));
+    late DateTime newFrom;
+
+    if (e.currentDisplayedDate.isBefore(
+      from.subtract(Duration(days: e.days)),
+    )) {
+      newFrom = e.currentDisplayedDate.subtract(Duration(days: e.days));
+    } else {
+      newFrom = from.subtract(Duration(days: e.days));
+    }
+
     currentRange.from = newFrom;
 
     _attachNewSlotListener(userId: userId, from: newFrom, to: from);

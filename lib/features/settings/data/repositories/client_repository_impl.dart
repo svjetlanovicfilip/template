@@ -8,19 +8,18 @@ class ClientRepositoryImpl implements ClientRepository {
 
   final ClientRemoteDatasource clientRemoteDatasource;
 
- @override
+  @override
   Future<Result<List<Client>, Exception>> fetchClients({
     required String organizationId,
   }) async {
     try {
       final qs = await clientRemoteDatasource.fetchClients(organizationId);
 
-      final clients = qs.docs
-          .map((doc) => Client.fromJson(doc.data(), doc.id))
-          .toList();
+      final clients =
+          qs.docs.map((doc) => Client.fromJson(doc.data(), doc.id)).toList();
 
       return Result.success(clients);
-    } catch (e) {
+    } on Exception catch (e) {
       return Result.failure(Exception(e.toString()));
     }
   }

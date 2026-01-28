@@ -172,9 +172,6 @@ class CalendarDayView extends StatelessWidget {
           _slotBloc.add(LoadMoreBackward(currentDisplayedDate: date));
         }
       },
-
-      onEventLongTap: (events, date) {},
-
       onDateTap: (date) {
         if (date.isBefore(DateTime.now())) {
           return;
@@ -188,9 +185,7 @@ class CalendarDayView extends StatelessWidget {
           ),
         );
       },
-
       onHeaderTitleTap: (date) async {
-        // await generateTestData();
         final picked = await showDatePicker(
           context: context,
           firstDate: DateTime.now().subtract(const Duration(days: 365)),

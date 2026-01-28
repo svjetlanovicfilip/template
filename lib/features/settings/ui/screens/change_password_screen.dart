@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import '../../../../common/widgets/custom_input_field.dart';
 
@@ -41,7 +44,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -119,7 +122,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _confirmPasswordError = null;
     });
 
-    bool hasError = false;
+    var hasError = false;
 
     if (_oldPassword.isEmpty) {
       _oldPasswordError = 'Unesite staru šifru';
@@ -133,7 +136,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       if (_newPassword.length < 8) {
         _newPasswordError = 'Šifra mora imati najmanje 8 karaktera';
         hasError = true;
-      } else if (!_newPassword.contains(RegExp(r'[A-Z]'))) {
+      } else if (!_newPassword.contains(RegExp('[A-Z]'))) {
         _newPasswordError = 'Šifra mora sadržavati bar jedno veliko slovo';
         hasError = true;
       } else if (!_newPassword.contains(RegExp(r'\d'))) {
@@ -174,7 +177,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         const SnackBar(content: Text('Šifra je uspješno promijenjena')),
       );
       Navigator.of(context).pop();
-    } catch (e) {
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       setState(() {
         _oldPasswordError = 'Stara šifra nije tačna ili je došlo do greške';
       });

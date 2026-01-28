@@ -60,12 +60,7 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.lock_outline,
                 isDestructive: true,
                 onTap: () async {
-                  // final confirm = await showLogoutDialog(context);
-                  // if (confirm) {
-                  //   // logout logika
-                  // }
-                  showLogoutDialog(context);
-                  // TODO: Test
+                  await showLogoutDialog(context);
                 },
               ),
             ],
@@ -116,10 +111,10 @@ Future<bool> showLogoutDialog(BuildContext context) async {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: logout,
-                child: const Text('Odjavi se'),
-                style: ButtonStyle(
+                style: const ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll(AppColors.red600),
                 ),
+                child: const Text('Odjavi se'),
               ),
             ],
           ),
@@ -149,7 +144,7 @@ class _SettingsMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = isDestructive ? AppColors.red600 : AppColors.amber500;
-    ;
+
     final trailingColor = isDestructive ? AppColors.red600 : AppColors.amber500;
     final textColor = isDestructive ? AppColors.red600 : Colors.black;
 

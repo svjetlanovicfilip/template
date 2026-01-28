@@ -5,7 +5,6 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
-import '../../../../config/style/colors.dart';
 import '../../../calendar/ui/widgets/label.dart';
 import '../../../login/data/models/user_model.dart';
 import '../../../users/domain/bloc/users_bloc.dart';

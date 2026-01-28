@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
@@ -33,6 +36,9 @@ class ClientHistoryRemoteDatasource {
 
       return Result.success(snapshot.docs);
     } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       return Result.failure(e);
     }
   }

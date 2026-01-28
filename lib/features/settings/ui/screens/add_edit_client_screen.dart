@@ -50,7 +50,9 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       listener: (context, state) {
         if (state is ClientsFetchingSuccess) {
           final message =
-              _isEditing ? 'Klijent je izmijenjen!' : 'Klijent je uspješno dodat!';
+              _isEditing
+                  ? 'Klijent je izmijenjen!'
+                  : 'Klijent je uspješno dodat!';
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
@@ -90,10 +92,10 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                   const SizedBox(height: 8),
                   ContainerInputField(
                     controller: phoneNumberController,
-                    hintText: 'Broj telefona',
+                    hintText: 'Unesite broj telefona',
                     onChanged: (_) {},
                     maxLines: 1,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.text,
                     inputFormatters: const [],
                   ),
                   const SizedBox(height: 16),

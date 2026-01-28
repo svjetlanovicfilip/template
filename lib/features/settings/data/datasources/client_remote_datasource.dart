@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../../../../common/constants/routes.dart';
 import '../client.dart';
@@ -19,8 +22,14 @@ class ClientRemoteDatasource {
           .orderBy('createdAt', descending: true)
           .get();
     } on FirebaseException catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e.message ?? 'Firestore error');
-    } catch (e) {
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e.toString());
     }
   }
@@ -49,6 +58,9 @@ class ClientRemoteDatasource {
           .doc(client.id)
           .update(client.toJson());
     } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e);
     }
   }
@@ -62,8 +74,14 @@ class ClientRemoteDatasource {
           .doc(clientId)
           .update(<String, dynamic>{'isActive': false});
     } on FirebaseException catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception('${e.code}: ${e.message}');
-    } catch (e) {
+    } on Exception catch (e) {
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
+      );
       throw Exception(e.toString());
     }
   }

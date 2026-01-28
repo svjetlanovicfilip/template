@@ -18,7 +18,7 @@ class ServiceType extends Equatable {
           json['price'] is int
               ? (json['price'] as int).toDouble()
               : json['price'] as double,
-      isActive: json['isActive'] as bool,
+      isActive: json['isActive'] as bool? ?? true,
     );
   }
 
