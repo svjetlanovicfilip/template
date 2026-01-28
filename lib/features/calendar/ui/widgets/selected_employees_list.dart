@@ -101,7 +101,7 @@ class SelectedEmployeesList extends StatelessWidget {
     );
 
     return selectedEmployeeIds.isEmpty
-        ? 'Izaberi zaposlenog'
+        ? 'Izaberite zaposlenog'
         : selectedEmployeeIds
             .map((id) => users.firstWhere((user) => user.id == id))
             .map((user) => '${user.name} ${user.surname}')

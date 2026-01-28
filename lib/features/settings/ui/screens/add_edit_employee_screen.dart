@@ -59,7 +59,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Zaposleni je dodat. Poslan je email za reset lozinke.',
+                'Zaposleni je uspješno dodat. Poslat je email za reset lozinke.',
               ),
             ),
           );
@@ -111,11 +111,11 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Label(title: 'Korisnicko ime'),
+                const Label(title: 'Korisničko ime'),
                 const SizedBox(height: 8),
                 ContainerInputField(
                   controller: usernameController,
-                  hintText: 'Unesite korisnicko ime',
+                  hintText: 'Unesite korisničko ime',
                   keyboardType: TextInputType.text,
                   inputFormatters: const [],
                   maxLines: 1,
@@ -160,42 +160,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                           : null,
                 ),
 
-                // SUBMIT BUTTON
-                // SizedBox(
-                //   height: 48,
-                //   child: BlocBuilder<UsersBloc, UsersState>(
-                //     bloc: usersBloc,
-                //     buildWhen:
-                //         (prev, next) => prev.runtimeType != next.runtimeType,
-                //     builder: (context, state) {
-                //       final isSubmitting = state is UsersFetching;
-
-                //       return ElevatedButton(
-                //         onPressed:
-                //             (isSubmitting || !_canSubmit)
-                //                 ? null
-                //                 : () => _onSubmit(context),
-                //         style: ElevatedButton.styleFrom(
-                //           backgroundColor: AppColors.amber500,
-                //           foregroundColor: Colors.white,
-                //         ),
-                //         child:
-                //             isSubmitting
-                //                 ? const SizedBox(
-                //                   width: 24,
-                //                   height: 24,
-                //                   child: CircularProgressIndicator(
-                //                     strokeWidth: 2,
-                //                     valueColor: AlwaysStoppedAnimation<Color>(
-                //                       Colors.white,
-                //                     ),
-                //                   ),
-                //                 )
-                //                 : const Text('Potvrdi'),
-                //       );
-                //     },
-                //   ),
-                // ),
                 if (!_isFormValid) ...[
                   const SizedBox(height: 12),
                   const Text(
@@ -252,7 +216,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
       setState(() {
         _emailError = _errorEmailMessage;
         if (!_isEmailValid) {
-          _emailError = 'Email nije ispravan';
+          _emailError = 'Email nije validan!';
         } else {
           _emailError = null;
         }

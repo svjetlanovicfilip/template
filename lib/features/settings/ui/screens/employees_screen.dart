@@ -27,7 +27,7 @@ class EmployeesScreen extends StatelessWidget {
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: PrimaryButton(
               icon: Icons.add,
-              title: 'Dodaj zaposlenog',
+              title: 'Dodajte zaposlenog',
               onTap: () {
                 context.pushNamed(Routes.addEditEmployeesScreen);
               },
@@ -70,7 +70,7 @@ class EmployeesScreen extends StatelessWidget {
 
                                     showDeleteDialog(
                                       context: context,
-                                      title: 'Izbriši zaposlenog',
+                                      title: 'Izbrišite zaposlenog',
                                       description:
                                           'Da li ste sigurni da želite da izbrišete ovog zaposlenog?',
                                       onDelete: () {

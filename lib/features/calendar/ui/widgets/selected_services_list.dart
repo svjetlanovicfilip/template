@@ -78,7 +78,7 @@ class SelectedServicesList extends StatelessWidget {
                                   .toList(),
                         )
                         : Text(
-                          'Izaberi uslugu',
+                          'Izaberite uslugu',
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: AppColors.slate500,
                             fontWeight: FontWeight.w400,

@@ -35,7 +35,7 @@ Future<void> showEmployeeFilterMenu({
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Izaberi zaposlenog',
+              'Izaberite zaposlenog',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,

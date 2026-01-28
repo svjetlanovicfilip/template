@@ -24,7 +24,7 @@ class ServiceListScreen extends StatelessWidget {
         appBar: const CustomAppBar(title: Text('Cjenovnik')),
         floatingActionButton: PrimaryButton(
           icon: Icons.add,
-          title: 'Dodaj uslugu',
+          title: 'Dodajte uslugu',
           onTap: () {
             context.pushNamed(Routes.addEditServicesScreen);
           },
@@ -74,7 +74,7 @@ class ServiceListScreen extends StatelessWidget {
                         onDelete: () {
                           showDeleteDialog(
                             context: context,
-                            title: 'Izbrisi uslugu!',
+                            title: 'Izbrisite uslugu!',
                             description:
                                 'Da li ste sigurni da želite da izbrisete ${service.title}?',
                             onDelete: () {

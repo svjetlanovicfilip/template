@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         Text(
-                          'Prijavite se za upravljanje svojim terminima',
+                          'Prijavite se za upravljanje vašim terminima',
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
