@@ -28,7 +28,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: PrimaryButton(
         icon: Icons.add,
-        title: 'Dodaj klijenta',
+        title: 'Dodajte klijenta',
         onTap: () {
           context.pushNamed(Routes.addEditClientsScreen);
         },
@@ -119,9 +119,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           onDelete: () {
                             showDeleteDialog(
                               context: context,
-                              title: 'Izbrisi klijenta!',
+                              title: 'Izbrišite klijenta!',
                               description:
-                                  'Da li ste sigurni da želite da izbrisete ${c.name}?',
+                                  'Da li ste sigurni da želite da izbrišete ${c.name}?',
                               onDelete: () {
                                 getIt<ClientsBloc>().add(
                                   ClientRemoved(clientId: c.id ?? ''),

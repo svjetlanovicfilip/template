@@ -50,7 +50,7 @@ class SelectedClientList extends StatelessWidget {
                         }
 
                         return Text(
-                          'Izaberi klijenta',
+                          'Izaberite klijenta',
                           style: Theme.of(
                             context,
                           ).textTheme.labelMedium?.copyWith(

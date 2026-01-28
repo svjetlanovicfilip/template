@@ -73,7 +73,7 @@ class LoginForm extends StatelessWidget {
                   (context, loginState) => SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: PrimaryButton(
-                      title: 'Prijavi se',
+                      title: 'Prijavite se',
                       onTap: () => loginBloc.add(const LoginSubmitted()),
                       borderRadius: BorderRadius.circular(8),
                       isLoading:

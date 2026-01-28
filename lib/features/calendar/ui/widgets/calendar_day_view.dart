@@ -199,7 +199,7 @@ class CalendarDayView extends StatelessWidget {
           confirmText: 'Potvrdi',
           cancelText: 'Odustani',
           initialDate: date,
-          helpText: 'Odaberi datum',
+          helpText: 'Odaberite datum',
         );
         if (picked == null) return;
         await dayViewKey.currentState?.animateToDate(

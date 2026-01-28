@@ -164,7 +164,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       ],
       child: Scaffold(
         appBar: CustomAppBar(
-          title: Text(isEditing ? 'Uredi termin' : 'Dodaj termin'),
+          title: Text(isEditing ? 'Izmijenite termin' : 'Dodajte termin'),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -203,7 +203,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                                 ),
                               ),
                               Text(
-                                'Ovaj termin je u prošlosti i ne može biti uređen.',
+                                'Termin je već prošao i ne može se izmijeniti.',
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: AppColors.slate600,
                                   fontWeight: FontWeight.w400,
@@ -339,12 +339,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     onTap:
                         () => showDeleteDialog(
                           context: context,
-                          title: 'Izbriši termin',
+                          title: 'Izbrišite termin',
                           description:
                               'Da li ste sigurni da želite da izbrišete ovaj termin?',
                           onDelete: handleDelete,
                         ),
-                    title: 'Izbriši termin',
+                    title: 'Izbrišite termin',
                     borderRadius: BorderRadius.circular(12),
                     backgroundColor: AppColors.red600,
                     padding: const EdgeInsets.all(10),

@@ -48,7 +48,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(title: Text('Dodaj uslugu')),
+      appBar: const CustomAppBar(title: Text('Dodajte uslugu')),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

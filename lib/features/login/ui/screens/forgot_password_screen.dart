@@ -98,7 +98,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             return SizedBox(
                               width: MediaQuery.of(context).size.width,
                               child: PrimaryButton(
-                                title: 'Resetuj lozinku',
+                                title: 'Resetujte lozinku',
                                 onTap:
                                     () => _loginBloc.add(
                                       ForgotPasswordSubmitted(),
@@ -123,7 +123,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 color: AppColors.amber500,
                               ),
                               Text(
-                                'Vrati se na prijavu',
+                                'Vratite se na prijavu',
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(color: AppColors.amber500),
                               ),

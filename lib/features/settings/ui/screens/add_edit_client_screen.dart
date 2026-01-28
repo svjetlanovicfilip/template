@@ -50,7 +50,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       listener: (context, state) {
         if (state is ClientsFetchingSuccess) {
           final message =
-              _isEditing ? 'Klijent je izmijenjen!' : 'Klijent je dodat!';
+              _isEditing ? 'Klijent je izmijenjen!' : 'Klijent je uspješno dodat!';
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
@@ -59,7 +59,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: const CustomAppBar(title: Text('Dodaj klijenta')),
+        appBar: const CustomAppBar(title: Text('Dodajte klijenta')),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(

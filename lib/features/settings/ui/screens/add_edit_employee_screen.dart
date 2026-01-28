@@ -58,7 +58,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Zaposleni je dodat. Poslan je email za reset lozinke.',
+                'Zaposleni je uspješno dodat. Poslat je email za reset lozinke.',
               ),
             ),
           );
@@ -108,11 +108,11 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Label(title: 'Korisnicko ime'),
+                const Label(title: 'Korisničko ime'),
                 const SizedBox(height: 8),
                 ContainerInputField(
                   controller: usernameController,
-                  hintText: 'Unesite korisnicko ime',
+                  hintText: 'Unesite korisničko ime',
                   keyboardType: TextInputType.text,
                   inputFormatters: const [],
                   maxLines: 1,
@@ -189,7 +189,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                 ] else if (!_isEmailValid) ...[
                   const SizedBox(height: 12),
                   const Text(
-                    'Unesite ispravan email format.',
+                    'Unesite validan email format.',
                     style: TextStyle(fontSize: 12, color: Colors.redAccent),
                   ),
                 ],
@@ -242,7 +242,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
       setState(() {
         _emailError = _errorEmailMessage;
         if (!_isEmailValid) {
-          _emailError = 'Email nije ispravan';
+          _emailError = 'Email nije validan!';
         } else {
           _emailError = null;
         }
