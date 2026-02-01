@@ -145,18 +145,27 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-                PrimaryButton(
-                  onTap: !_isFormValid ? null : () => _onSubmit(context),
-                  width: MediaQuery.of(context).size.width,
-                  title: 'Potvrdi',
-                  borderRadius: BorderRadius.circular(12),
-                  padding: const EdgeInsets.all(10),
-                  backgroundColor:
-                      !_isFormValid
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.12)
-                          : null,
+                BlocBuilder<UsersBloc, UsersState>(
+                  bloc: usersBloc,
+                  builder: (context, state) {
+                    return PrimaryButton(
+                      onTap:
+                          !_isFormValid || state is UsersAdding
+                              ? null
+                              : () => _onSubmit(context),
+                      width: MediaQuery.of(context).size.width,
+                      title: 'Potvrdi',
+                      borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.all(10),
+                      isLoading: state is UsersAdding,
+                      backgroundColor:
+                          !_isFormValid
+                              ? Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.12)
+                              : null,
+                    );
+                  },
                 ),
 
                 if (!_isFormValid) ...[
@@ -181,14 +190,6 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeScreen> {
     final lastName = lastNameController.text.trim();
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
-
-    // if (title.isEmpty && price.isEmpty) {
-    //   setState(() {
-    //     _nameError = _errorNameMessage;
-    //     _phoneNumberError = _errorPhoneNumberMessage;
-    //   });
-    //   return;
-    // }
 
     if (name.isEmpty) {
       setState(() {

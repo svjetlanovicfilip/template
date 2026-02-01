@@ -22,6 +22,8 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
   final OrganizationRepository organizationRepository;
   final UserRepository userRepository;
 
+  List<UserModel> get users => _users;
+
   List<UserModel> _users = [];
 
   Future<void> _onUsersFetchRequested(
@@ -44,7 +46,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
   }
 
   Future<void> _onUserAdded(UserAdded event, Emitter<UsersState> emit) async {
-    emit(UsersFetching());
+    emit(UsersAdding());
 
     final result = await userRepository.createEmployee(
       name: event.user.name ?? '',

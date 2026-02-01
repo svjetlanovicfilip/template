@@ -11,6 +11,8 @@ final class UsersInitial extends UsersState {}
 
 class UsersFetching extends UsersState {}
 
+class UsersAdding extends UsersState {}
+
 class UsersFetchingSuccess extends UsersState {
   const UsersFetchingSuccess(this.users);
   final List<UserModel> users;
