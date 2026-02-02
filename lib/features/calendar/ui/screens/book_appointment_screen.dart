@@ -5,17 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
+import '../../../../common/widgets/pickers/custom_time_picker_dialog.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
 import '../../../employees/domain/cubit/employees_picker_cubit.dart';
-import '../../../login/data/models/user_model.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../../settings/domain/cubit/client_picker_cubit.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
-import '../widgets/employee_picker.dart';
 import '../widgets/label.dart';
 import '../widgets/selected_client_list.dart';
 import '../widgets/selected_employees_list.dart';
@@ -119,22 +118,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
-    return showTimePicker(
-      context: context,
-      initialTime: initialTime,
-      helpText: 'Odaberite vrijeme',
-      initialEntryMode: TimePickerEntryMode.inputOnly,
-      hourLabelText: 'Sat',
-      minuteLabelText: 'Minute',
-      confirmText: 'Potvrdi',
-      cancelText: 'Odustani',
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: child!,
-        );
-      },
-    );
+    return showCustomTimePicker(context: context, initialTime: initialTime);
   }
 
   @override
@@ -357,16 +341,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     );
   }
 
-  void showEmployeePickerBottomSheet({
-    required BuildContext context,
-    required List<UserModel> employees,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => EmployeePicker(employees: employees),
-    );
-  }
-
   @override
   void dispose() {
     titleController.dispose();
@@ -415,9 +389,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Future<void> _onStartTimeSelected() async {
     final timeOfDay = TimeOfDay.fromDateTime(selectedStart ?? DateTime.now());
     final picked = await pickTime(timeOfDay);
-
     if (picked == null) return;
-
     setState(() {
       selectedStart = DateTime(
         selectedDate.year,
@@ -427,7 +399,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         picked.minute,
       );
     });
-
     _validateTimeRange();
   }
 
