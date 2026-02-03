@@ -4,6 +4,7 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../data/client.dart';
+import 'add_edit_client_screen.dart';
 
 class ClientListItem extends StatelessWidget {
   const ClientListItem({
@@ -54,7 +55,7 @@ class ClientListItem extends StatelessWidget {
               onTap: () {
                 context.pushNamed(
                   Routes.addEditClientsScreen,
-                  arguments: client,
+                  arguments: AddEditClientScreenArgs(client: client),
                 );
               },
               child: Container(

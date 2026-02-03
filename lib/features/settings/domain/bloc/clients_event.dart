@@ -10,12 +10,13 @@ sealed class ClientsEvent extends Equatable {
 final class ClientsFetchRequested extends ClientsEvent {}
 
 class ClientAdded extends ClientsEvent {
-  const ClientAdded({required this.client});
+  const ClientAdded({required this.client, this.isClientAddedFromAppointment = false});
 
   final Client client;
+  final bool isClientAddedFromAppointment;
 
   @override
-  List<Object?> get props => [client];
+  List<Object?> get props => [client, isClientAddedFromAppointment];
 }
 
 class ClientUpdated extends ClientsEvent {

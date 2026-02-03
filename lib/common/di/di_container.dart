@@ -161,7 +161,7 @@ void setupDependencies() {
       ),
     )
     ..registerLazySingleton<ClientsBloc>(
-      () => ClientsBloc(clientRepository: getIt<ClientRepository>()),
+      () => ClientsBloc(clientRepository: getIt<ClientRepository>(), clientPickerCubit: getIt<ClientPickerCubit>()),
     )
     ..registerFactory<ClientHistoryBloc>(
       () => ClientHistoryBloc(

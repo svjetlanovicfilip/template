@@ -9,10 +9,20 @@ import '../../../calendar/ui/widgets/label.dart';
 import '../../data/client.dart';
 import '../../domain/bloc/clients_bloc.dart';
 
-class AddEditClientScreen extends StatefulWidget {
-  const AddEditClientScreen({required this.client, super.key});
+class AddEditClientScreenArgs {
+  const AddEditClientScreenArgs({
+    this.client,
+    this.isClientAddedFromAppointment = false,
+  });
 
   final Client? client;
+  final bool isClientAddedFromAppointment;
+}
+
+class AddEditClientScreen extends StatefulWidget {
+  const AddEditClientScreen({required this.args, super.key});
+
+  final AddEditClientScreenArgs args;
 
   @override
   State<AddEditClientScreen> createState() => _AddEditClientScreenState();
@@ -36,10 +46,10 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
   @override
   void initState() {
     super.initState();
-    nameController.text = widget.client?.name ?? '';
-    phoneNumberController.text = widget.client?.phoneNumber ?? '';
-    descriptionController.text = widget.client?.description ?? '';
-    _isEditing = widget.client?.id != null;
+    nameController.text = widget.args.client?.name ?? '';
+    phoneNumberController.text = widget.args.client?.phoneNumber ?? '';
+    descriptionController.text = widget.args.client?.description ?? '';
+    _isEditing = widget.args.client?.id != null;
     _isFormValid = nameController.text.isNotEmpty;
   }
 
@@ -95,7 +105,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                     hintText: 'Unesite broj telefona',
                     onChanged: (_) {},
                     maxLines: 1,
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.phone,
                     inputFormatters: const [],
                   ),
                   const SizedBox(height: 16),
@@ -154,7 +164,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
       clientBloc.add(
         ClientUpdated(
           client: Client(
-            id: widget.client?.id,
+            id: widget.args.client?.id,
             name: name,
             phoneNumber: phoneNumber,
             description: description,
@@ -171,6 +181,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
             description: description,
             isActive: true,
           ),
+          isClientAddedFromAppointment: widget.args.isClientAddedFromAppointment
         ),
       );
     }

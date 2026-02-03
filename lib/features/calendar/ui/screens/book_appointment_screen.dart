@@ -2,7 +2,9 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
+import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/pickers/custom_time_picker_dialog.dart';
@@ -12,6 +14,7 @@ import '../../../employees/domain/cubit/employees_picker_cubit.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../../settings/domain/cubit/client_picker_cubit.dart';
+import '../../../settings/ui/screens/add_edit_client_screen.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../../domain/utils/utils.dart';
@@ -273,7 +276,33 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
                 const Label(title: 'Klijent'),
                 const SizedBox(height: 8),
-                SelectedClientList(disabled: isSlotInPast),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        child: SelectedClientList(disabled: isSlotInPast),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap:
+                          isSlotInPast
+                              ? null
+                              : () {
+                                context.pushNamed(Routes.addEditClientsScreen,
+                                arguments: const AddEditClientScreenArgs(isClientAddedFromAppointment: true));
+                              },
+                      child: Icon(
+                        Icons.person_add,
+                        size: 34,
+                        color:
+                            isSlotInPast
+                                ? AppColors.slate400
+                                : AppColors.amber500,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 20),
                 const Label(title: 'Usluga'),
                 const SizedBox(height: 8),

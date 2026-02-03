@@ -163,7 +163,7 @@ class _MyAppState extends State<MyApp> {
               return CupertinoPageRoute(
                 builder:
                     (context) => AddEditClientScreen(
-                      client: settings.arguments as Client?,
+                      args: settings.arguments as AddEditClientScreenArgs,
                     ),
               );
             default:

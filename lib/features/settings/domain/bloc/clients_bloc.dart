@@ -7,12 +7,13 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../../../../common/di/di_container.dart';
 import '../../data/client.dart';
 import '../../data/repositories/client_repository.dart';
+import '../cubit/client_picker_cubit.dart';
 
 part 'clients_event.dart';
 part 'clients_state.dart';
 
 class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
-  ClientsBloc({required this.clientRepository}) : super(ClientsInitial()) {
+  ClientsBloc({required this.clientRepository, required this.clientPickerCubit}) : super(ClientsInitial()) {
     on<ClientsFetchRequested>(_onFetchClients);
     on<ClientAdded>(_onClientAdded);
     on<ClientRemoved>(_onClientRemoved);
@@ -22,6 +23,8 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
   }
 
   final ClientRepository clientRepository;
+
+  final ClientPickerCubit clientPickerCubit;
 
   List<Client> get clients => _clients;
 
@@ -80,6 +83,9 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
       _clients.add(createdClient);
 
+      if(event.isClientAddedFromAppointment){
+        clientPickerCubit.pickClient(client: createdClient);
+      }
       // 3) emit success za UI
       emit(ClientsFetchingSuccess(List.from(_clients)));
     } on Exception catch (_) {

@@ -9,6 +9,7 @@ import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../common/widgets/search_field.dart';
 import '../../domain/bloc/clients_bloc.dart';
+import 'add_edit_client_screen.dart';
 import 'client_list_item.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -30,7 +31,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
         icon: Icons.add,
         title: 'Dodajte klijenta',
         onTap: () {
-          context.pushNamed(Routes.addEditClientsScreen);
+          context.pushNamed(
+            Routes.addEditClientsScreen,
+            arguments: const AddEditClientScreenArgs(),
+          );
         },
         borderRadius: BorderRadius.circular(30),
       ),
