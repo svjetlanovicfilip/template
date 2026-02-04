@@ -32,7 +32,7 @@ class CalendarWeekView extends StatelessWidget {
       key: weekViewKey,
       showHalfHours: true,
       heightPerMinute: 1.5,
-      startHour: 6,
+      startHour: 5,
       timeLineWidth: 80,
       backgroundColor: AppColors.slate50,
       headerStringBuilder:

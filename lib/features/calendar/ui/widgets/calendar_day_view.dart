@@ -31,7 +31,7 @@ class CalendarDayView extends StatelessWidget {
       key: dayViewKey,
       initialDay: dayViewKey.currentState?.currentDate ?? DateTime.now(),
       controller: CalendarControllerProvider.of<Slot>(context).controller,
-      startHour: 6,
+      startHour: 5,
       showHalfHours: true,
       heightPerMinute: 2,
       timeLineWidth: 80,
