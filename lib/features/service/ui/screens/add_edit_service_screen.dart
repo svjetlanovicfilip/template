@@ -90,7 +90,9 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                   },
                   hintText: 'Cijena usluge',
                   maxLines: 1,
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [PositiveDecimalTextInputFormatter()],
                   errorText: _priceError,
                 ),
