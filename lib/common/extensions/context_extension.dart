@@ -18,4 +18,12 @@ extension ContextExtension on BuildContext {
   void replace(String name, {Object? arguments}) {
     _router.pushReplacementNamed(name, arguments: arguments);
   }
+
+  void pushNamedAndRemoveUntil(String name, {Object? arguments}) {
+    _router.pushNamedAndRemoveUntil(
+      name,
+      (route) => false,
+      arguments: arguments,
+    );
+  }
 }

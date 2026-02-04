@@ -10,6 +10,7 @@ import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../login/data/models/user_role.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
+import '../../domain/bloc/clients_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -78,7 +79,8 @@ Future<bool> showLogoutDialog(BuildContext context) async {
     appState.clearState();
     getIt<SlotBloc>().clearState();
     getIt<ServiceBloc>().clearState();
-    context.pushReplacementNamed(Routes.login);
+    getIt<ClientsBloc>().clearState();
+    context.pushNamedAndRemoveUntil(Routes.login);
   }
 
   final result = await showDialog<bool>(
