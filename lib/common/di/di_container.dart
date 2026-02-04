@@ -16,6 +16,10 @@ import '../../features/client_history/data/datasources/client_history_remote_dat
 import '../../features/client_history/data/repositories/client_history_repository.dart';
 import '../../features/client_history/data/repositories/client_history_repository_impl.dart';
 import '../../features/client_history/domain/bloc/client_history_bloc.dart';
+import '../../features/employee_report/data/datasources/employee_report_remote_datasource.dart';
+import '../../features/employee_report/data/repositories/employee_report_repository.dart';
+import '../../features/employee_report/data/repositories/employee_report_repository_impl.dart';
+import '../../features/employee_report/domain/bloc/employee_report_bloc.dart';
 import '../../features/employees/domain/cubit/employees_picker_cubit.dart';
 import '../../features/login/data/datasources/login_remote_datasource.dart';
 import '../../features/login/data/repositories/login_repository.dart';
@@ -91,6 +95,9 @@ void setupDependencies() {
     ..registerSingleton<ClientHistoryRemoteDatasource>(
       ClientHistoryRemoteDatasource(firebaseFirestore: firebaseFirestore),
     )
+    ..registerSingleton<EmployeeReportRemoteDatasource>(
+      EmployeeReportRemoteDatasource(firebaseFirestore: firebaseFirestore),
+    )
     //repositories
     ..registerSingleton<LoginRepository>(
       LoginRepositoryImpl(
@@ -128,6 +135,11 @@ void setupDependencies() {
     ..registerSingleton<ClientHistoryRepository>(
       ClientHistoryRepositoryImpl(
         clientHistoryRemoteDatasource: getIt<ClientHistoryRemoteDatasource>(),
+      ),
+    )
+    ..registerSingleton<EmployeeReportRepository>(
+      EmployeeReportRepositoryImpl(
+        employeeReportRemoteDatasource: getIt<EmployeeReportRemoteDatasource>(),
       ),
     )
     //cubits
@@ -175,6 +187,11 @@ void setupDependencies() {
         serviceBloc: getIt<ServiceBloc>(),
         usersBloc: getIt<UsersBloc>(),
         clientsBloc: getIt<ClientsBloc>(),
+      ),
+    )
+    ..registerLazySingleton<EmployeeReportBloc>(
+      () => EmployeeReportBloc(
+        employeeReportRepository: getIt<EmployeeReportRepository>(),
       ),
     );
 }

@@ -47,14 +47,14 @@ class SettingsScreen extends StatelessWidget {
                     context.pushNamed(Routes.serviceListScreen);
                   },
                 ),
-
-              // _SettingsMenuItem(
-              //   label: 'Promjena lozinke',
-              //   onTap: () {
-              //     context.pushNamed(Routes.changePasswordScreen);
-              //   },
-              // ),
-              // _SettingsDivider(),
+              if (appState.currentUser?.role == UserRole.orgOwner)
+                _SettingsMenuItem(
+                  label: 'Mjesečni izvještaj',
+                  icon: Icons.calendar_month_outlined,
+                  onTap: () {
+                    context.pushNamed(Routes.employeeReport);
+                  },
+                ),
               _SettingsMenuItem(
                 label: 'Odjavite se',
                 icon: Icons.lock_outline,

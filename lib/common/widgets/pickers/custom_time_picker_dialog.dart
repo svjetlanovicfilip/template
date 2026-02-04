@@ -25,9 +25,13 @@ class CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   @override
   void initState() {
     super.initState();
-    _hour = widget.initialHour;
+    // Restrict selectable hours to 05..23
+    _hour = widget.initialHour.clamp(5, 23);
     _minuteIndex = widget.initialMinuteIndex;
-    _hourController = FixedExtentScrollController(initialItem: _hour);
+    final initialHourIndex = _hour - 5; // map hour (5..23) -> index (0..18)
+    _hourController = FixedExtentScrollController(
+      initialItem: initialHourIndex,
+    );
     _minuteController = FixedExtentScrollController(initialItem: _minuteIndex);
   }
 
@@ -75,9 +79,10 @@ class CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
                   children: [
                     _NumberWheel(
                       controller: _hourController,
-                      itemCount: 24,
-                      display: _twoDigits,
-                      onSelectedItemChanged: (i) => setState(() => _hour = i),
+                      itemCount: 19, // 05..23 inclusive
+                      display: (i) => _twoDigits(i + 5),
+                      onSelectedItemChanged:
+                          (i) => setState(() => _hour = i + 5),
                     ),
                     Text(
                       ':',
@@ -185,7 +190,7 @@ Future<TimeOfDay?> showCustomTimePicker({
   required TimeOfDay initialTime,
 }) {
   // Round minutes to nearest 5 for initial position
-  final initialHour = initialTime.hour.clamp(0, 23);
+  final initialHour = initialTime.hour.clamp(5, 23);
   final initialMinute = (initialTime.minute / 5).round() * 5;
   final initialMinuteIndex = (initialMinute % 60) ~/ 5;
 

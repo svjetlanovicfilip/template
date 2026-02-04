@@ -17,6 +17,8 @@ import 'features/calendar/data/models/slot.dart';
 import 'features/calendar/ui/screens/book_appointment_screen.dart';
 import 'features/calendar/ui/screens/home_screen.dart';
 import 'features/client_history/ui/screens/client_history_screen.dart';
+import 'features/employee_report/ui/screens/employee_report_screen.dart';
+import 'features/employee_report/ui/screens/slot_list_screen.dart';
 import 'features/login/ui/screens/forgot_password_screen.dart';
 import 'features/login/ui/screens/login_screen.dart';
 import 'features/service/data/models/service_type.dart';
@@ -165,6 +167,14 @@ class _MyAppState extends State<MyApp> {
                     (context) => AddEditClientScreen(
                       args: settings.arguments as AddEditClientScreenArgs,
                     ),
+              );
+            case Routes.employeeReport:
+              return CupertinoPageRoute(
+                builder: (context) => const EmployeeReportScreen(),
+              );
+            case Routes.slotListScreen:
+              return CupertinoPageRoute(
+                builder: (context) => const SlotListScreen(),
               );
             default:
               return MaterialPageRoute(

@@ -15,6 +15,8 @@ class Routes {
   static const String clientsScreen = '/clientsScreen';
   static const String addEditClientsScreen = '/addEditClientsScreen';
   static const String clientHistory = '/clientHistory';
+  static const String employeeReport = '/employeeReport';
+  static const String slotListScreen = '/slotListScreen';
 }
 
 const String organizationsCollection = 'organizations';
