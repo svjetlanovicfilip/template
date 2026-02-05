@@ -186,7 +186,8 @@ class CalendarTefterViewState extends State<CalendarTefterView> {
                     // Fill left corner under header with white to avoid dark rectangle
                     Container(width: _timeLineWidth, color: AppColors.white),
                     Expanded(
-                      child: SingleChildScrollView(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
                         controller: _hHeaderController,
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -241,6 +242,7 @@ class CalendarTefterViewState extends State<CalendarTefterView> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: _vController,
+                  physics: const ClampingScrollPhysics(),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -283,9 +285,10 @@ class CalendarTefterViewState extends State<CalendarTefterView> {
                       Expanded(
                         child: Scrollbar(
                           controller: _hBodyController,
-                          child: SingleChildScrollView(
+                        child: SingleChildScrollView(
                             controller: _hBodyController,
                             scrollDirection: Axis.horizontal,
+                            physics: const ClampingScrollPhysics(),
                             child: SizedBox(
                               width: tableWidth,
                               child: BlocBuilder<
