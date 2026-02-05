@@ -173,6 +173,7 @@ class CalendarDayView extends StatelessWidget {
         }
       },
       onDateTap: (date) {
+        // generateTestData();
         if (date.isBefore(DateTime.now())) {
           return;
         }

@@ -17,6 +17,7 @@ import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../modals/employee_dropdown_menu.dart';
 import '../widgets/calendar_day_view.dart';
+import '../widgets/calendar_tefter_view.dart';
 import '../widgets/calendar_week_view.dart';
 import 'book_appointment_screen.dart';
 
@@ -245,7 +246,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       child:
                           state == CalendarType.day
                               ? CalendarDayView(dayViewKey: _dayViewKey)
-                              : CalendarWeekView(weekViewKey: _weekViewKey),
+                              : state == CalendarType.week
+                              ? CalendarWeekView(weekViewKey: _weekViewKey)
+                              : const CalendarTefterView(),
                     );
                   },
                 ),

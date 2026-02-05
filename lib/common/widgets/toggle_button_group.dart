@@ -55,6 +55,18 @@ class _ToggleButtonGroupState extends State<ToggleButtonGroup> {
               },
             ),
           ),
+
+          Expanded(
+            child: ToggleButton(
+              title: 'Tefter',
+              isActive: widget.selectedCalendarType == CalendarType.employees,
+              onTap: () {
+                if (widget.selectedCalendarType != CalendarType.employees) {
+                  widget.onSelectionChanged?.call(CalendarType.employees);
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

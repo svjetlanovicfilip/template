@@ -28,7 +28,7 @@ class Client extends Equatable {
       'phoneNumber': phoneNumber,
       'description': description,
       'isActive': isActive,
-      // 'createdAt': createdAt,
+      'createdAt': createdAt,
       // 'id' ne moraš čuvati u dokumentu, id ti je doc.id
     };
   }
@@ -41,5 +41,12 @@ class Client extends Equatable {
   final bool isActive;
 
   @override
-  List<Object?> get props => [name, phoneNumber, id, description, createdAt, isActive];
+  List<Object?> get props => [
+    name,
+    phoneNumber,
+    id,
+    description,
+    createdAt,
+    isActive,
+  ];
 }
