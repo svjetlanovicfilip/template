@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../config/style/colors.dart';
-
 const weekdays = [
   'Ponedeljak',
   'Utorak',
@@ -51,38 +49,23 @@ Size textSize(String text, TextStyle style, {int maxLines = 2}) {
   return textPainter.size;
 }
 
-// Build a deterministic palette of at least 50 colors derived from brand accents.
-// We derive lightened variants of the base colors to reach >= 50 unique colors.
+// Vraća ~30 jasno različitih boja. Boje su generisane ravnomjernim rasporedom po HSL nijansi,
+// uz fiksnu saturaciju i svjetlinu – izbjegavamo nijanse iste boje.
 List<Color> buildDeterministicPalette() {
-  // Use the first 15 colors exactly as defined in possibleEventColors.
-  // Note: possibleEventColors currently lists 16 colors; we take the first 15.
-  const allBases = AppColors.possibleEventColors;
-  final first15 = allBases.take(15).toList(growable: false);
-
-  // For the remaining 35, generate distinct darker variants to avoid washed-out look.
-  // Avoid factor = 0.0 to not duplicate original colors.
-  final darkenSteps = <double>[0.1, 0.2, 0.3, 0.4];
-  final rest = <Color>[];
-  outer:
-  for (final base in allBases) {
-    for (final t in darkenSteps) {
-      rest.add(_darken(base, t));
-      if (first15.length + rest.length >= 50) {
-        break outer;
-      }
-    }
+  const count = 32; // ~30 boja
+  const saturation = 0.70;
+  const lightness = 0.52;
+  final colors = <Color>[];
+  // Golden ratio raspored daje dobro razdvajanje boja
+  double h = 0;
+  const goldenRatioConjugate = 0.61803398875;
+  for (var i = 0; i < count; i++) {
+    h = (h + goldenRatioConjugate) % 1.0;
+    final color =
+        HSLColor.fromAHSL(1, h * 360.0, saturation, lightness).toColor();
+    colors.add(color);
   }
-
-  final palette = <Color>[...first15, ...rest];
-  return palette.length >= 50 ? palette.sublist(0, 50) : palette;
-}
-
-Color _darken(Color color, double t) {
-  // Linear interpolation towards black by factor t
-  final r = (color.red * (1 - t)).clamp(0, 255).toInt();
-  final g = (color.green * (1 - t)).clamp(0, 255).toInt();
-  final b = (color.blue * (1 - t)).clamp(0, 255).toInt();
-  return Color.fromARGB(color.alpha, r, g, b);
+  return colors;
 }
 
 int stableIndex(String key, int modulo) {

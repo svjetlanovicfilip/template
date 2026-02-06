@@ -44,7 +44,7 @@ class EmployeesGridWithEvents extends StatelessWidget {
 
     // Build userId -> column index map for current header order
     final usersState = getIt<UsersBloc>().state;
-    final Map<String, int> userIdToColumn = {};
+    final userIdToColumn = <String, int>{};
     if (usersState is UsersFetchingSuccess) {
       for (var i = 0; i < usersState.users.length; i++) {
         final u = usersState.users[i];
