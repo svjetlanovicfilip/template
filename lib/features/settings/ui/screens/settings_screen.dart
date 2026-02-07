@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common/constants/routes.dart';
+import '../../../../common/cubits/calendar_type_view/calendar_type_view_cubit.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../config/style/colors.dart';
 import '../../../authentication/domain/bloc/authentication_bloc.dart';
+import '../../../calendar/domain/bloc/employees_calendar_bloc.dart';
 import '../../../calendar/domain/bloc/slot_bloc.dart';
 import '../../../login/data/models/user_role.dart';
 import '../../../service/domain/bloc/service_bloc.dart';
@@ -80,6 +82,8 @@ Future<bool> showLogoutDialog(BuildContext context) async {
     getIt<SlotBloc>().clearState();
     getIt<ServiceBloc>().clearState();
     getIt<ClientsBloc>().clearState();
+    getIt<EmployeesCalendarBloc>().clearState();
+    getIt<CalendarTypeViewCubit>().clear();
     context.pushNamedAndRemoveUntil(Routes.login);
   }
 

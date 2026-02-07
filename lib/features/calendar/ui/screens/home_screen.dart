@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
-                  return const SizedBox.shrink();
+                  return _buildEmptyWidget();
                 },
               ),
               GestureDetector(
@@ -253,28 +253,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       return _buildEmptyWidget();
                     }
 
-                    return SliverToBoxAdapter(
-                      child: BlocBuilder<UsersBloc, UsersState>(
-                        bloc: _usersBloc,
-                        buildWhen:
-                            (previous, current) => current is UserSelected,
-                        builder: (context, userState) {
-                          UserModel? selectedUser;
-                          if (userState is UserSelected) {
-                            selectedUser = userState.user;
-                          } else {
-                            selectedUser =
-                                appState.currentSelectedUserId != null
-                                    ? _usersBloc.users.firstWhereOrNull(
-                                      (user) =>
-                                          user.id ==
-                                          appState.currentSelectedUserId,
-                                    )
-                                    : null;
-                          }
+                    return BlocBuilder<UsersBloc, UsersState>(
+                      bloc: _usersBloc,
+                      buildWhen: (previous, current) => current is UserSelected,
+                      builder: (context, userState) {
+                        UserModel? selectedUser;
+                        if (userState is UserSelected) {
+                          selectedUser = userState.user;
+                        } else {
+                          selectedUser =
+                              appState.currentSelectedUserId != null
+                                  ? _usersBloc.users.firstWhereOrNull(
+                                    (user) =>
+                                        user.id ==
+                                        appState.currentSelectedUserId,
+                                  )
+                                  : null;
+                        }
 
-                          if (selectedUser != null) {
-                            return Center(
+                        if (selectedUser != null) {
+                          return SliverToBoxAdapter(
+                            child: Center(
                               child: Text(
                                 '${selectedUser.name ?? ''} ${selectedUser.surname ?? ''}',
                                 style: Theme.of(
@@ -285,12 +284,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontSize: 18,
                                 ),
                               ),
-                            );
-                          }
+                            ),
+                          );
+                        }
 
-                          return _buildEmptyWidget();
-                        },
-                      ),
+                        return _buildEmptyWidget();
+                      },
                     );
                   },
                 ),

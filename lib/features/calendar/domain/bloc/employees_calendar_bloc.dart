@@ -161,11 +161,10 @@ class EmployeesCalendarBloc
     emit(EmployeesCalendarLoaded(slots: List.unmodifiable(_slots)));
   }
 
-  @override
-  Future<void> close() async {
-    for (final s in _subs) {
-      await s.cancel();
-    }
-    return super.close();
+  void clearState() {
+    _subs.clear();
+    _slots.clear();
+    _loadedStart = null;
+    _loadedEnd = null;
   }
 }
