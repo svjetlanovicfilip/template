@@ -18,7 +18,7 @@ class EmployeesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(
-      bloc: _usersBloc,
+      bloc: _usersBloc..add(UsersFetchRequested()),
       buildWhen:
           (previous, current) =>
               current is UsersFetchingSuccess || current is UsersFetching,

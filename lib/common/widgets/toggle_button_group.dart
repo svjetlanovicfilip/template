@@ -59,10 +59,10 @@ class _ToggleButtonGroupState extends State<ToggleButtonGroup> {
           Expanded(
             child: ToggleButton(
               title: 'Tefter',
-              isActive: widget.selectedCalendarType == CalendarType.employees,
+              isActive: widget.selectedCalendarType == CalendarType.tefter,
               onTap: () {
-                if (widget.selectedCalendarType != CalendarType.employees) {
-                  widget.onSelectionChanged?.call(CalendarType.employees);
+                if (widget.selectedCalendarType != CalendarType.tefter) {
+                  widget.onSelectionChanged?.call(CalendarType.tefter);
                 }
               },
             ),

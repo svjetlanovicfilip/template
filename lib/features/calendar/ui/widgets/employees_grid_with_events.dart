@@ -5,6 +5,7 @@ import '../../../../common/constants/routes.dart';
 import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
 import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/slot.dart';
@@ -15,6 +16,7 @@ import 'calendar_tefter_view.dart';
 class EmployeesGridWithEvents extends StatelessWidget {
   const EmployeesGridWithEvents({
     required this.employeesCount,
+    required this.employees,
     required this.colWidth,
     required this.rowHeight,
     required this.rowsCount,
@@ -24,6 +26,7 @@ class EmployeesGridWithEvents extends StatelessWidget {
   });
 
   final int employeesCount;
+  final List<UserModel> employees;
   final double colWidth;
   final double rowHeight;
   final int rowsCount;
@@ -32,6 +35,10 @@ class EmployeesGridWithEvents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (employees.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final totalHeight = rowsCount * rowHeight;
     final displayDate =
         context
@@ -42,134 +49,13 @@ class EmployeesGridWithEvents extends StatelessWidget {
     // px per minute
     final pxPerMinute = rowHeight / 30; // 30 min = rowHeight
 
-    // Build userId -> column index map for current header order
-    final usersState = getIt<UsersBloc>().state;
     final userIdToColumn = <String, int>{};
-    if (usersState is UsersFetchingSuccess) {
-      for (var i = 0; i < usersState.users.length; i++) {
-        final u = usersState.users[i];
-        if (u.id != null && u.id!.isNotEmpty) {
-          userIdToColumn[u.id!] = i;
-        }
+    final users = employees;
+    for (var i = 0; i < users.length; i++) {
+      final u = users[i];
+      if (u.id != null && u.id!.isNotEmpty) {
+        userIdToColumn[u.id!] = i;
       }
-    }
-    // Deterministic palette and stable color mapping per userId
-    final palette = buildDeterministicPalette();
-    Color colorForUser(String userId) {
-      final idx = stableIndex(userId, palette.length);
-      return palette[idx];
-    }
-
-    List<Widget> buildGridRows() {
-      return List.generate(rowsCount, (row) {
-        return SizedBox(
-          height: rowHeight,
-          child: Row(
-            children: [
-              for (var i = 0; i < employeesCount; i++)
-                Container(
-                  width: colWidth,
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    border: Border(
-                      top: BorderSide(color: AppColors.slate500),
-                      right: BorderSide(color: AppColors.slate500),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      });
-    }
-
-    List<Widget> buildEventWidgets() {
-      if (userIdToColumn.isEmpty) return const [];
-
-      return slots
-          .where((s) => DateUtils.isSameDay(s.startDateTime, displayDate))
-          .map((s) {
-            final start = s.startDateTime;
-            final end =
-                s.endDateTime ??
-                s.startDateTime.add(const Duration(minutes: 30));
-            final startMinutes = ((start.hour - startHour) * 60) + start.minute;
-            final durationMinutes = end
-                .difference(start)
-                .inMinutes
-                .clamp(15, 24 * 60);
-            const double inset = 2;
-            final rawTop = startMinutes * pxPerMinute;
-            final rawHeight = durationMinutes * pxPerMinute;
-            final top = rawTop + inset;
-            final double heightRaw = rawHeight - (inset * 2);
-            final double height = heightRaw < 4 ? 4 : heightRaw;
-            // resolve client name
-            var title = s.title ?? '';
-            final client = getIt<ClientsBloc>().clients.firstWhereOrNull(
-              (c) => c.id == s.clientId,
-            );
-            if (client != null && client.name.isNotEmpty) {
-              title = client.name;
-            }
-            final bool showText = height >= 18;
-            // Create a tile per employee that belongs to this slot and is visible
-            final tiles = <Widget>[];
-            for (final userId in s.employeeIds) {
-              final colIndex = userIdToColumn[userId];
-              if (colIndex == null) continue;
-              final left = (colIndex * colWidth) + inset;
-              final width = (colWidth - 1) - (inset * 2);
-              tiles.add(
-                Positioned(
-                  left: left,
-                  top: top,
-                  width: width,
-                  height: height,
-                  child: InkWell(
-                    onTap: () {
-                      final slot = s;
-                      context.pushNamed(
-                        Routes.bookAppointment,
-                        arguments: BookAppointmentScreenArguments(slot: slot),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorForUser(userId),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      child:
-                          !showText
-                              ? const SizedBox.shrink()
-                              : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Stack(children: tiles);
-          })
-          .toList();
     }
 
     return SizedBox(
@@ -239,9 +125,142 @@ class EmployeesGridWithEvents extends StatelessWidget {
             ),
           ),
           // Events overlay (single user for now)
-          ...buildEventWidgets(),
+          ...buildEventWidgets(
+            userIdToColumn,
+            displayDate,
+            pxPerMinute,
+            context,
+          ),
         ],
       ),
     );
+  }
+
+  List<Widget> buildGridRows() {
+    return List.generate(rowsCount, (row) {
+      return SizedBox(
+        height: rowHeight,
+        child: Row(
+          children: [
+            for (var i = 0; i < employeesCount; i++)
+              Container(
+                width: colWidth,
+                decoration: const BoxDecoration(
+                  color: AppColors.slate50,
+                  border: Border(
+                    top: BorderSide(color: AppColors.slate500),
+                    right: BorderSide(color: AppColors.slate500),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  List<Widget> buildEventWidgets(
+    Map<String, int> userIdToColumn,
+    DateTime displayDate,
+    double pxPerMinute,
+    BuildContext context,
+  ) {
+    if (userIdToColumn.isEmpty) return const [];
+
+    return slots
+        .where((s) => DateUtils.isSameDay(s.startDateTime, displayDate))
+        .map((s) {
+          final start = s.startDateTime;
+          final end =
+              s.endDateTime ?? s.startDateTime.add(const Duration(minutes: 30));
+          final startMinutes = ((start.hour - startHour) * 60) + start.minute;
+          final durationMinutes = end
+              .difference(start)
+              .inMinutes
+              .clamp(15, 24 * 60);
+          const double inset = 2;
+          final rawTop = startMinutes * pxPerMinute;
+          final rawHeight = durationMinutes * pxPerMinute;
+          final top = rawTop + inset;
+          final double heightRaw = rawHeight - (inset * 2);
+          final double height = heightRaw < 4 ? 4 : heightRaw;
+          var title = s.title ?? '';
+          final fontSize =
+              (durationMinutes <= 15 ? durationMinutes - 4 - 2 : 14)
+                  .toDouble(); // 4px padding
+
+          // resolve client name
+
+          final client = getIt<ClientsBloc>().clients.firstWhereOrNull(
+            (c) => c.id == s.clientId,
+          );
+          if (client != null && client.name.isNotEmpty) {
+            title = client.name;
+          }
+          final showText = height >= 18;
+          // Create a tile per employee that belongs to this slot and is visible
+          final tiles = <Widget>[];
+          for (final userId in s.employeeIds) {
+            final colIndex = userIdToColumn[userId];
+            if (colIndex == null) continue;
+            final left = (colIndex * colWidth) + inset;
+            final width = (colWidth - 1) - (inset * 2);
+            final bg = colorForColumn(colIndex);
+            const textColor = AppColors.white;
+            tiles.add(
+              Positioned(
+                left: left,
+                top: top,
+                width: width,
+                height: height,
+                child: InkWell(
+                  onTap: () {
+                    context.pushNamed(
+                      Routes.bookAppointment,
+                      arguments: BookAppointmentScreenArguments(slot: s),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child:
+                        !showText
+                            ? const SizedBox.shrink()
+                            : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: fontSize,
+                                  ),
+                                ),
+                              ],
+                            ),
+                  ),
+                ),
+              ),
+            );
+          }
+          return Stack(children: tiles);
+        })
+        .toList();
+  }
+
+  Color colorForColumn(int columnIndex) {
+    final palette = buildDeterministicPalette();
+    if (palette.isEmpty) return Colors.blue;
+    return palette[columnIndex % palette.length];
   }
 }

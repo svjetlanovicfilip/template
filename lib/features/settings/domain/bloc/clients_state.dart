@@ -19,6 +19,8 @@ class ClientsFetchingSuccess extends ClientsState {
   List<Object> get props => [clients];
 }
 
+class ClientsAdding extends ClientsState {}
+
 class ClientsSearchSuccess extends ClientsState {
   const ClientsSearchSuccess(this.clients);
   final List<Client> clients;

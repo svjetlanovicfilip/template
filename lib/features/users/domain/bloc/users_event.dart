@@ -18,3 +18,8 @@ class UserRemoved extends UsersEvent {
   const UserRemoved({required this.userId});
   final String userId;
 }
+
+class SelectUser extends UsersEvent {
+  const SelectUser({required this.userId});
+  final String userId;
+}

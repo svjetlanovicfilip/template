@@ -24,7 +24,10 @@ class SelectedEmployeesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(
-      bloc: getIt<UsersBloc>(),
+      bloc: getIt<UsersBloc>()..add(UsersFetchRequested()),
+      buildWhen:
+          (previous, current) =>
+              current is UsersFetchingSuccess || current is UsersFetching,
       builder: (context, state) {
         if (state is UsersFetchingSuccess && state.users.isNotEmpty) {
           return GestureDetector(

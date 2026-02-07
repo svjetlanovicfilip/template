@@ -106,27 +106,27 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
                                 ),
                               ],
                             ),
-
-                            Row(
-                              spacing: 16,
-                              children: [
-                                const Icon(
-                                  Icons.phone_outlined,
-                                  color: AppColors.white,
-                                  size: 24,
-                                ),
-                                Text(
-                                  widget.client.phoneNumber,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                            if (widget.client.phoneNumber.isNotEmpty)
+                              Row(
+                                spacing: 16,
+                                children: [
+                                  const Icon(
+                                    Icons.phone_outlined,
                                     color: AppColors.white,
-                                    fontSize: 16,
+                                    size: 24,
                                   ),
-                                ),
-                              ],
-                            ),
+                                  Text(
+                                    widget.client.phoneNumber,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ],

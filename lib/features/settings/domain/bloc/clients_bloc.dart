@@ -13,7 +13,8 @@ part 'clients_event.dart';
 part 'clients_state.dart';
 
 class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
-  ClientsBloc({required this.clientRepository, required this.clientPickerCubit}) : super(ClientsInitial()) {
+  ClientsBloc({required this.clientRepository, required this.clientPickerCubit})
+    : super(ClientsInitial()) {
     on<ClientsFetchRequested>(_onFetchClients);
     on<ClientAdded>(_onClientAdded);
     on<ClientRemoved>(_onClientRemoved);
@@ -59,7 +60,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     ClientAdded event,
     Emitter<ClientsState> emit,
   ) async {
-    emit(ClientsFetching());
+    emit(ClientsAdding());
 
     final orgId = appState.organizationId;
 
@@ -83,7 +84,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
       _clients.add(createdClient);
 
-      if(event.isClientAddedFromAppointment){
+      if (event.isClientAddedFromAppointment) {
         clientPickerCubit.pickClient(client: createdClient);
       }
       // 3) emit success za UI
@@ -99,7 +100,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     ClientUpdated event,
     Emitter<ClientsState> emit,
   ) async {
-    emit(ClientsFetching());
+    emit(ClientsAdding());
 
     final orgId = appState.organizationId;
     if (orgId == null) {

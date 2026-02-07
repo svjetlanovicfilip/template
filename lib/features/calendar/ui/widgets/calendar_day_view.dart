@@ -76,6 +76,7 @@ class CalendarDayView extends StatelessWidget {
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
         var isEventLessThan20Minutes = false;
         var canFitHeightForTime = false;
+        var canFitHeightForNote = false;
 
         final clientId = events.first.event?.clientId;
         final client = _clients.firstWhereOrNull(
@@ -89,9 +90,9 @@ class CalendarDayView extends StatelessWidget {
             .map((service) => service?.title)
             .join(', ');
 
-        final title =
-            client?.name ?? services ?? events.first.event?.title ?? '';
+        final title = client?.name ?? services ?? '';
         final timeRange = formatDateRange(startDuration, endDuration);
+        final note = events.first.event?.title;
         final color = events.first.event?.color;
 
         const titleStyle = TextStyle(
@@ -103,18 +104,27 @@ class CalendarDayView extends StatelessWidget {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+        const noteStyle = TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
 
         // Layout constants used both for rendering and measurement
         const double horizontalPadding = 8;
         const double verticalPadding = 4;
         const double verticalSpacing = 4;
 
-        if (endDuration.difference(startDuration).inMinutes <= 20) {
+        final duration = endDuration.difference(startDuration).inMinutes;
+
+        final noteHeight = textSize(note ?? '', noteStyle).height;
+
+        // Available sizes inside the tile (content box)
+        final eventHeight = boundary.shortestSide - verticalPadding;
+
+        if (duration <= 20) {
           isEventLessThan20Minutes = true;
         } else {
-          // Available sizes inside the tile (content box)
-          final eventHeight = boundary.shortestSide - verticalPadding;
-
           // Title: always render, single line
           final titleHeight = textSize(title, titleStyle).height;
           final timeHeight = textSize(timeRange, timeStyle).height;
@@ -122,6 +132,16 @@ class CalendarDayView extends StatelessWidget {
           // Check vertical fit for time: it must fit under title (with spacing)
           canFitHeightForTime =
               eventHeight > (titleHeight + verticalSpacing + timeHeight + 10);
+
+          if (note != null && note.isNotEmpty && duration >= 60) {
+            canFitHeightForNote =
+                eventHeight >
+                (titleHeight +
+                    verticalSpacing * 2 +
+                    timeHeight +
+                    noteHeight +
+                    10);
+          }
         }
 
         return Container(
@@ -148,6 +168,16 @@ class CalendarDayView extends StatelessWidget {
                 if (canFitHeightForTime) ...[
                   const SizedBox(height: verticalSpacing),
                   Text(timeRange, maxLines: 1, style: timeStyle),
+                ],
+                if (canFitHeightForNote && note != null && note.isNotEmpty) ...[
+                  const SizedBox(height: verticalSpacing),
+                  Text(
+                    note,
+                    maxLines: 2,
+                    style: noteStyle,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
                 ],
               ],
             ],

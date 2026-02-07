@@ -27,13 +27,13 @@ class EmployeeReportBody extends StatelessWidget {
               spacing: 16,
               children: [
                 EmployeeReportCard(
-                  title: 'Zarada',
+                  title: 'Ukupan prihod',
                   value: '${report.totalEarnings.toStringAsFixed(2)} KM',
                   icon: Icons.attach_money_outlined,
                 ),
 
                 EmployeeReportCard(
-                  title: 'Klijenti',
+                  title: 'Jedinstveni klijenti',
                   value: report.totalClients.toString(),
                   icon: Icons.group_outlined,
                 ),

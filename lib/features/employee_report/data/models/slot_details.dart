@@ -6,8 +6,10 @@ class SlotDetails {
     required this.startDateTime,
     required this.endDateTime,
     required this.services,
+    required this.earnings,
     this.client,
     this.title,
+    this.employeeIds = const [],
   });
 
   final DateTime startDateTime;
@@ -15,4 +17,6 @@ class SlotDetails {
   final List<ServiceType> services;
   final Client? client;
   final String? title;
+  final List<String> employeeIds;
+  final double earnings;
 }

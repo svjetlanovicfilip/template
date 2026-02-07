@@ -1,1 +1,1 @@
-enum CalendarType { day, week, employees }
+enum CalendarType { day, week, tefter }
