@@ -81,8 +81,10 @@ class EmployeeReportBloc
 
     double totalEarnings = 0;
     final totalSlots = slots.length;
-    var totalClients = 0;
     var totalServices = 0;
+
+    // total clients are the number of unique client ids in the slots
+    final totalClients = slots.map((slot) => slot.clientId).toSet().length;
 
     // clear the slots list
     _slots.clear();
@@ -95,9 +97,10 @@ class EmployeeReportBloc
           .reduce((a, b) => a + b);
 
       //earnings are divided by the number of employees
-      totalEarnings += totalServicePrice / slot.employeeIds.length;
+      final earnings = totalServicePrice / slot.employeeIds.length;
 
-      totalClients += 1;
+      totalEarnings += earnings;
+
       totalServices += services.length;
 
       _slots.add(
@@ -109,6 +112,8 @@ class EmployeeReportBloc
             (client) => client.id == slot.clientId,
           ),
           title: slot.title,
+          employeeIds: slot.employeeIds,
+          earnings: earnings,
         ),
       );
     }

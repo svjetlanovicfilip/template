@@ -4,13 +4,12 @@ import '../../../../common/models/result.dart';
 import '../models/slot.dart';
 
 abstract class CalendarRepository {
-  Future<Result<List<Slot>, Exception>> fetchRangeSlots({
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChanges({
     required String userId,
     required DateTime from,
     required DateTime to,
   });
-  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChanges({
-    required String userId,
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChangesByDateRange({
     required DateTime from,
     required DateTime to,
   });

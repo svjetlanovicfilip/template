@@ -17,12 +17,14 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     on<UsersFetchRequested>(_onUsersFetchRequested);
     on<UserAdded>(_onUserAdded);
     on<UserRemoved>(_onUserRemoved);
+    on<SelectUser>(_onUserSelected);
   }
 
   final OrganizationRepository organizationRepository;
   final UserRepository userRepository;
 
   List<UserModel> get users => _users;
+  UserModel? _selectedUser;
 
   List<UserModel> _users = [];
 
@@ -30,6 +32,11 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     UsersFetchRequested event,
     Emitter<UsersState> emit,
   ) async {
+    if (_users.isNotEmpty) {
+      emit(UsersFetchingSuccess(List.from(_users)));
+      return;
+    }
+
     emit(UsersFetching());
 
     final users = await organizationRepository.getOrganizationUsers(
@@ -82,7 +89,13 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     }
   }
 
+  void _onUserSelected(SelectUser event, Emitter<UsersState> emit) {
+    _selectedUser = _users.firstWhere((user) => user.id == event.userId);
+    emit(UserSelected(user: _selectedUser!));
+  }
+
   void clearState() {
     _users.clear();
+    _selectedUser = null;
   }
 }

@@ -8,4 +8,8 @@ class CalendarTypeViewCubit extends Cubit<CalendarType> {
   void toggleCalendarType(CalendarType calendarType) {
     emit(calendarType);
   }
+
+  void clear() {
+    emit(CalendarType.day);
+  }
 }

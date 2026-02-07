@@ -48,3 +48,34 @@ Size textSize(String text, TextStyle style, {int maxLines = 2}) {
   )..layout();
   return textPainter.size;
 }
+
+// Vraća ~30 jasno različitih boja. Boje su generisane ravnomjernim rasporedom po HSL nijansi,
+// uz fiksnu saturaciju i svjetlinu – izbjegavamo nijanse iste boje.
+List<Color> buildDeterministicPalette() {
+  // 10 “normalnih” i čitkih boja (bez fluorescentnog izgleda),
+  // stabilan redoslijed za mapiranje po indeksu kolone.
+  return const <Color>[
+    Colors.blue, // 1. kolona
+    Colors.orange, // 5.
+    Colors.green, // 4.
+    Colors.deepOrange, // 6.
+    Colors.indigo, // 2.
+    Colors.red, // 7.
+    Colors.purple, // 8.
+    Colors.teal, // 3.
+    Colors.brown, // 9.
+    Colors.blueGrey, // 10.
+  ];
+}
+
+int stableIndex(String key, int modulo) {
+  // FNV-1a 32-bit hash yields stable mapping across sessions
+  const fnvPrime = 0x01000193;
+  const fnvOffset = 0x811C9DC5;
+  var hash = fnvOffset;
+  for (final unit in key.codeUnits) {
+    hash ^= unit;
+    hash = (hash * fnvPrime) & 0xFFFFFFFF;
+  }
+  return hash % modulo;
+}

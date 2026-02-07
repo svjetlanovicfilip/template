@@ -29,11 +29,13 @@ class BookAppointmentScreenArguments {
     this.slot,
     this.selectedDate,
     this.selectedStart,
+    this.preselectedEmployeeIds,
   });
 
   final Slot? slot;
   final DateTime? selectedDate;
   final DateTime? selectedStart;
+  final List<String>? preselectedEmployeeIds;
 }
 
 class BookAppointmentScreen extends StatefulWidget {
@@ -99,11 +101,23 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           isPicked: true,
         );
       }
+    } else if ((args?.preselectedEmployeeIds ?? []).isNotEmpty) {
+      for (final employeeId in args!.preselectedEmployeeIds!) {
+        if (employeeId.isNotEmpty) {
+          _employeesPickerCubit.pickEmployee(
+            employeeId: employeeId,
+            isPicked: true,
+          );
+        }
+      }
     } else {
-      _employeesPickerCubit.pickEmployee(
-        employeeId: appState.currentSelectedUserId ?? '',
-        isPicked: true,
-      );
+      final fallback = appState.currentSelectedUserId ?? '';
+      if (fallback.isNotEmpty) {
+        _employeesPickerCubit.pickEmployee(
+          employeeId: fallback,
+          isPicked: true,
+        );
+      }
     }
     _serviceBloc.add(AttachService(serviceIds: args?.slot?.serviceIds ?? []));
     if (args?.slot?.clientId != null) {
@@ -289,8 +303,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                           isSlotInPast
                               ? null
                               : () {
-                                context.pushNamed(Routes.addEditClientsScreen,
-                                arguments: const AddEditClientScreenArgs(isClientAddedFromAppointment: true));
+                                context.pushNamed(
+                                  Routes.addEditClientsScreen,
+                                  arguments: const AddEditClientScreenArgs(
+                                    isClientAddedFromAppointment: true,
+                                  ),
+                                );
                               },
                       child: Icon(
                         Icons.person_add,

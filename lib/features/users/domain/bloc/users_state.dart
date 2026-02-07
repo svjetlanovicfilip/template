@@ -20,3 +20,11 @@ class UsersFetchingSuccess extends UsersState {
   @override
   List<Object> get props => [users];
 }
+
+class UserSelected extends UsersState {
+  const UserSelected({required this.user});
+  final UserModel user;
+
+  @override
+  List<Object> get props => [user];
+}

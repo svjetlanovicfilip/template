@@ -1,6 +1,7 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:collection/collection.dart';
 
 import '../../../../common/constants/routes.dart';
 import '../../../../common/cubits/calendar_type_view/calendar_type_view_cubit.dart';
@@ -11,12 +12,14 @@ import '../../../../common/widgets/logo_widget.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../common/widgets/toggle_button_group.dart';
 import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/calendar_type_enum.dart';
 import '../../data/models/slot.dart';
 import '../../domain/bloc/slot_bloc.dart';
 import '../modals/employee_dropdown_menu.dart';
 import '../widgets/calendar_day_view.dart';
+import '../widgets/calendar_tefter_view.dart';
 import '../widgets/calendar_week_view.dart';
 import 'book_appointment_screen.dart';
 
@@ -34,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getIt<CalendarTypeViewCubit>();
 
   final SlotBloc _slotBloc = getIt<SlotBloc>();
+  final UsersBloc _usersBloc = getIt<UsersBloc>();
   final _dayViewKey = GlobalKey<DayViewState>();
   final _weekViewKey = GlobalKey<WeekViewState>();
   final _filterIconKey = GlobalKey();
@@ -118,7 +122,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             actions: [
               BlocBuilder<UsersBloc, UsersState>(
-                bloc: getIt<UsersBloc>(),
+                bloc: _usersBloc,
+                buildWhen:
+                    (previous, current) =>
+                        current is UsersFetchingSuccess ||
+                        current is UsersFetching,
                 builder: (context, state) {
                   if (state is UsersFetchingSuccess && state.users.isNotEmpty) {
                     return GestureDetector(
@@ -127,18 +135,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             context: context,
 
                             filterIconKey: _filterIconKey,
-                            onSelected:
-                                (userId) => getIt<SlotBloc>().add(
-                                  UserChanged(
-                                    userId: userId,
-                                    currentDisplayedDate:
-                                        _dayViewKey.currentState?.currentDate ??
-                                        _weekViewKey
-                                            .currentState
-                                            ?.currentDate ??
-                                        DateTime.now(),
-                                  ),
+                            onSelected: (userId) {
+                              _usersBloc.add(SelectUser(userId: userId));
+                              _slotBloc.add(
+                                UserChanged(
+                                  userId: userId,
+                                  currentDisplayedDate:
+                                      _dayViewKey.currentState?.currentDate ??
+                                      _weekViewKey.currentState?.currentDate ??
+                                      DateTime.now(),
                                 ),
+                              );
+                            },
                             users: state.users,
                           ),
                       child: Container(
@@ -158,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
-                  return const SizedBox.shrink();
+                  return _buildEmptyWidget();
                 },
               ),
               GestureDetector(
@@ -220,24 +228,72 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CustomScrollView(
               physics: const NeverScrollableScrollPhysics(),
               slivers: [
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: BlocBuilder<CalendarTypeViewCubit, CalendarType>(
                       bloc: _calendarTypeViewCubit,
-                      builder: (context, state) {
+                      builder: (context, calendarCubitState) {
                         return ToggleButtonGroup(
                           onSelectionChanged: (value) {
                             _calendarTypeViewCubit.toggleCalendarType(value);
                           },
-                          selectedCalendarType: state,
+                          selectedCalendarType: calendarCubitState,
                         );
                       },
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                BlocBuilder<CalendarTypeViewCubit, CalendarType>(
+                  bloc: _calendarTypeViewCubit,
+                  builder: (context, cubitState) {
+                    if (cubitState == CalendarType.tefter) {
+                      return _buildEmptyWidget();
+                    }
+
+                    return BlocBuilder<UsersBloc, UsersState>(
+                      bloc: _usersBloc,
+                      buildWhen: (previous, current) => current is UserSelected,
+                      builder: (context, userState) {
+                        UserModel? selectedUser;
+                        if (userState is UserSelected) {
+                          selectedUser = userState.user;
+                        } else {
+                          selectedUser =
+                              appState.currentSelectedUserId != null
+                                  ? _usersBloc.users.firstWhereOrNull(
+                                    (user) =>
+                                        user.id ==
+                                        appState.currentSelectedUserId,
+                                  )
+                                  : null;
+                        }
+
+                        if (selectedUser != null) {
+                          return SliverToBoxAdapter(
+                            child: Center(
+                              child: Text(
+                                '${selectedUser.name ?? ''} ${selectedUser.surname ?? ''}',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return _buildEmptyWidget();
+                      },
+                    );
+                  },
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
                 BlocBuilder<CalendarTypeViewCubit, CalendarType>(
                   bloc: _calendarTypeViewCubit,
                   builder: (context, state) {
@@ -245,7 +301,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       child:
                           state == CalendarType.day
                               ? CalendarDayView(dayViewKey: _dayViewKey)
-                              : CalendarWeekView(weekViewKey: _weekViewKey),
+                              : state == CalendarType.week
+                              ? CalendarWeekView(weekViewKey: _weekViewKey)
+                              : BlocBuilder<UsersBloc, UsersState>(
+                                bloc: _usersBloc,
+                                buildWhen:
+                                    (previous, current) =>
+                                        current is UsersFetchingSuccess ||
+                                        current is UsersFetching,
+                                builder: (context, userState) {
+                                  return CalendarTefterView(
+                                    employees:
+                                        userState is UsersFetchingSuccess
+                                            ? userState.users
+                                            : getIt<UsersBloc>().users,
+                                  );
+                                },
+                              ),
                     );
                   },
                 ),
@@ -255,5 +327,9 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  Widget _buildEmptyWidget() {
+    return const SliverToBoxAdapter(child: SizedBox.shrink());
   }
 }

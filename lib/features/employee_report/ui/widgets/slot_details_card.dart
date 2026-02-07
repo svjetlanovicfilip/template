@@ -54,6 +54,10 @@ class SlotDetailsCard extends StatelessWidget {
               title: slotDetails.client!.name,
               icon: Icons.person_outline,
             ),
+          ClientVisitInfo(
+            title: 'Zarada = ${slotDetails.earnings.toStringAsFixed(2)} KM',
+            icon: Icons.attach_money_outlined,
+          ),
         ],
       ),
     );

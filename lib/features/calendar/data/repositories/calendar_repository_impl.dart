@@ -24,26 +24,13 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<Result<List<Slot>, Exception>> fetchRangeSlots({
-    required String userId,
+  Stream<QuerySnapshot<Map<String, dynamic>>> listenForNewChangesByDateRange({
     required DateTime from,
     required DateTime to,
-  }) async {
-    final result = await calendarRemoteDatasource.fetchRangeSlots(
-      userId: userId,
+  }) {
+    return calendarRemoteDatasource.listenForNewChangesByDateRange(
       from: from,
       to: to,
-    );
-
-    if (result.isFailure) {
-      return Result.failure(result.failure as Exception);
-    }
-
-    return Result.success(
-      result.success?.docs
-              .map((doc) => Slot.fromJson(doc.data(), doc.id))
-              .toList() ??
-          [],
     );
   }
 

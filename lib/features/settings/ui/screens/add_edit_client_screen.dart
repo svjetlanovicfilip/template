@@ -120,24 +120,36 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
                     onChanged: (_) {},
                   ),
                   const SizedBox(height: 30),
-                  PrimaryButton(
-                    onTap: !_isFormValid ? null : _onSubmit,
-                    width: MediaQuery.of(context).size.width,
-                    title: 'Potvrdi',
-                    borderRadius: BorderRadius.circular(12),
-                    padding: const EdgeInsets.all(10),
-                    backgroundColor:
-                        !_isFormValid
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.12)
-                            : null,
-                    textColor:
-                        !_isFormValid
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.38)
-                            : null,
+                  BlocBuilder<ClientsBloc, ClientsState>(
+                    bloc: clientBloc,
+                    buildWhen:
+                        (previous, current) =>
+                            current is ClientsAdding ||
+                            current is ClientsFetchingSuccess,
+                    builder: (context, state) {
+                      return PrimaryButton(
+                        onTap:
+                            !_isFormValid || state is ClientsAdding
+                                ? null
+                                : _onSubmit,
+                        width: MediaQuery.of(context).size.width,
+                        title: 'Potvrdi',
+                        borderRadius: BorderRadius.circular(12),
+                        padding: const EdgeInsets.all(10),
+                        backgroundColor:
+                            !_isFormValid
+                                ? Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.12)
+                                : null,
+                        textColor:
+                            !_isFormValid
+                                ? Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.38)
+                                : null,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -181,7 +193,8 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
             description: description,
             isActive: true,
           ),
-          isClientAddedFromAppointment: widget.args.isClientAddedFromAppointment
+          isClientAddedFromAppointment:
+              widget.args.isClientAddedFromAppointment,
         ),
       );
     }
