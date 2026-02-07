@@ -66,7 +66,7 @@ class EmployeesGridWithEvents extends StatelessWidget {
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTapDown: (details) {
+              onTapUp: (details) {
                 final local = details.localPosition;
                 final row = (local.dy / rowHeight).floor().clamp(
                   0,
