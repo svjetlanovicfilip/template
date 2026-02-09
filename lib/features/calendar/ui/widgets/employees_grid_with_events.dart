@@ -6,6 +6,7 @@ import '../../../../common/di/di_container.dart';
 import '../../../../common/extensions/context_extension.dart';
 import '../../../../config/style/colors.dart';
 import '../../../login/data/models/user_model.dart';
+import '../../../service/domain/bloc/service_bloc.dart';
 import '../../../settings/domain/bloc/clients_bloc.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 import '../../data/models/slot.dart';
@@ -196,6 +197,10 @@ class EmployeesGridWithEvents extends StatelessWidget {
           );
           if (client != null && client.name.isNotEmpty) {
             title = client.name;
+          } else {
+            title = s.serviceIds
+                .map((id) => getIt<ServiceBloc>().getServiceById(id)?.title)
+                .join(', ');
           }
           final showText = height >= 18;
           // Create a tile per employee that belongs to this slot and is visible

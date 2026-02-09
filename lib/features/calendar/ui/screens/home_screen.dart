@@ -117,7 +117,12 @@ class _HomeScreenState extends State<HomeScreen> {
               spacing: 8,
               children: [
                 const LogoWidget(),
-                Text(appState.userOrganization?.title ?? 'Tefter'),
+                Expanded(
+                  child: Text(
+                    appState.userOrganization?.title ?? 'Tefter',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             actions: [

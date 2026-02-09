@@ -556,6 +556,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       setState(() {
         isTimeRangeValid = false;
       });
+    } else if (selectedEnd != null &&
+        selectedStart != null &&
+        (selectedEnd!.isAtSameMomentAs(selectedStart!))) {
+      setState(() {
+        isTimeRangeValid = false;
+      });
     } else {
       setState(() {
         isTimeRangeValid = true;

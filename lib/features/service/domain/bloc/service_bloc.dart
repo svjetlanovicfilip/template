@@ -34,6 +34,12 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
   final List<ServiceType> _services = [];
   final List<ServiceType> _selectedServices = [];
 
+  List<ServiceType> get services => List.from(_services);
+
+  ServiceType? getServiceById(String id) {
+    return _services.firstWhereOrNull((service) => service.id == id);
+  }
+
   void _onInitServiceListener(
     InitServiceListener event,
     Emitter<ServiceState> emit,

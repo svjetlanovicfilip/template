@@ -29,6 +29,7 @@ class CalendarWeekView extends StatelessWidget {
   Widget build(BuildContext context) {
     return WeekView<Slot>(
       initialDay: weekViewKey.currentState?.currentDate ?? DateTime.now(),
+      scrollPhysics: const ClampingScrollPhysics(),
       key: weekViewKey,
       showHalfHours: true,
       heightPerMinute: 1.5,
@@ -64,7 +65,7 @@ class CalendarWeekView extends StatelessWidget {
         );
       },
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
-        var isEventLessThan30Minutes = false;
+        var isEventLessThan15Minutes = false;
         var lines = 1;
         const double padding = 2;
         final clientId = events.first.event?.clientId;
@@ -82,13 +83,22 @@ class CalendarWeekView extends StatelessWidget {
                 .join(', ') ??
             '';
         final color = events.first.event?.color;
-        const titleStyle = TextStyle(color: AppColors.white, fontSize: 12);
+        var titleStyle = const TextStyle(color: AppColors.white, fontSize: 12);
+
+        final titleHeight = textSize(title, titleStyle).height;
 
         final duration = endDuration.difference(startDuration);
 
-        if (duration.inMinutes >= 30) {
+        if (duration.inMinutes >= 15 && duration.inMinutes < 30) {
           final contentHeight = boundary.height - (padding * 2);
-          final titleHeight = textSize(title, titleStyle, maxLines: 3).height;
+
+          if (contentHeight > titleHeight) {
+            titleStyle = titleStyle.copyWith(fontSize: 10);
+          } else {
+            isEventLessThan15Minutes = true;
+          }
+        } else if (duration.inMinutes >= 30) {
+          final contentHeight = boundary.height - (padding * 2);
 
           if (contentHeight >= titleHeight * 3) {
             lines = 3;
@@ -98,7 +108,7 @@ class CalendarWeekView extends StatelessWidget {
             lines = 1;
           }
         } else {
-          isEventLessThan30Minutes = true;
+          isEventLessThan15Minutes = true;
         }
 
         return Container(
@@ -109,7 +119,7 @@ class CalendarWeekView extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: padding),
           padding: const EdgeInsets.all(padding),
           child:
-              isEventLessThan30Minutes
+              isEventLessThan15Minutes
                   ? const SizedBox.shrink()
                   : Text(
                     title,

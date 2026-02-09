@@ -32,6 +32,7 @@ class CalendarDayView extends StatelessWidget {
       initialDay: dayViewKey.currentState?.currentDate ?? DateTime.now(),
       controller: CalendarControllerProvider.of<Slot>(context).controller,
       startHour: 5,
+      scrollPhysics: const ClampingScrollPhysics(),
       showHalfHours: true,
       heightPerMinute: 2,
       timeLineWidth: 80,
@@ -74,7 +75,7 @@ class CalendarDayView extends StatelessWidget {
       },
 
       eventTileBuilder: (date, events, boundary, startDuration, endDuration) {
-        var isEventLessThan20Minutes = false;
+        var isEventLessThan15Minutes = false;
         var canFitHeightForTime = false;
         var canFitHeightForNote = false;
 
@@ -95,7 +96,7 @@ class CalendarDayView extends StatelessWidget {
         final note = events.first.event?.title;
         final color = events.first.event?.color;
 
-        const titleStyle = TextStyle(
+        TextStyle titleStyle = TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
         );
@@ -122,16 +123,20 @@ class CalendarDayView extends StatelessWidget {
         // Available sizes inside the tile (content box)
         final eventHeight = boundary.shortestSide - verticalPadding;
 
-        if (duration <= 20) {
-          isEventLessThan20Minutes = true;
+        final titleHeight = textSize(title, titleStyle).height;
+
+        if (duration <= 20 && duration >= 15) {
+          final contentHeight = eventHeight - titleHeight;
+          if (contentHeight > 5) {
+            titleStyle = titleStyle.copyWith(fontSize: 12);
+          }
+        } else if (duration < 15) {
+          isEventLessThan15Minutes = true;
         } else {
-          // Title: always render, single line
-          final titleHeight = textSize(title, titleStyle).height;
           final timeHeight = textSize(timeRange, timeStyle).height;
 
           // Check vertical fit for time: it must fit under title (with spacing)
-          canFitHeightForTime =
-              eventHeight > (titleHeight + verticalSpacing + timeHeight + 10);
+          canFitHeightForTime = eventHeight > (titleHeight + timeHeight + 10);
 
           if (note != null && note.isNotEmpty && duration >= 60) {
             canFitHeightForNote =
@@ -157,7 +162,7 @@ class CalendarDayView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!isEventLessThan20Minutes) ...[
+              if (!isEventLessThan15Minutes) ...[
                 Text(
                   title,
                   style: titleStyle,
