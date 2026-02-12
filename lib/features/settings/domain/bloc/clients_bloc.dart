@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
@@ -15,6 +16,7 @@ part 'clients_state.dart';
 class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
   ClientsBloc({required this.clientRepository, required this.clientPickerCubit})
     : super(ClientsInitial()) {
+    on<ClientsInitListener>(_onInitListener);
     on<ClientsFetchRequested>(_onFetchClients);
     on<ClientAdded>(_onClientAdded);
     on<ClientRemoved>(_onClientRemoved);
@@ -27,12 +29,14 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
   final ClientPickerCubit clientPickerCubit;
 
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _clientsListener;
+
   List<Client> get clients => _clients;
 
   final List<Client> _clients = [];
 
-  Future<void> _onFetchClients(
-    ClientsFetchRequested event,
+  Future<void> _onInitListener(
+    ClientsInitListener event,
     Emitter<ClientsState> emit,
   ) async {
     emit(ClientsFetching());
@@ -42,19 +46,37 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
       return;
     }
 
-    final result = await clientRepository.fetchClients(organizationId: orgId);
+    _clientsListener = clientRepository
+        .fetchClients(organizationId: orgId)
+        .listen((snapshot) {
+          for (final change in snapshot.docChanges) {
+            final id = change.doc.id;
+            final client = Client.fromJson(change.doc.data() ?? {}, id);
 
-    if (result.isFailure) {
-      emit(ClientsFetchingSuccess(List.from(_clients)));
-      return;
-    }
+            switch (change.type) {
+              case DocumentChangeType.added:
+                _clients.add(client);
+                break;
+              case DocumentChangeType.modified:
+                final index = _clients.indexWhere((c) => c.id == id);
+                if (index != -1) {
+                  _clients[index] = client;
+                }
+                break;
+              case DocumentChangeType.removed:
+                _clients.removeWhere((c) => c.id == id);
+                break;
+            }
+          }
 
-    _clients
-      ..clear()
-      ..addAll(result.success ?? []);
-
-    emit(ClientsFetchingSuccess(List.from(_clients)));
+          add(ClientsFetchRequested());
+        });
   }
+
+  Future<void> _onFetchClients(
+    ClientsFetchRequested event,
+    Emitter<ClientsState> emit,
+  ) async => emit(ClientsFetchingSuccess(List.from(_clients)));
 
   Future<void> _onClientAdded(
     ClientAdded event,
@@ -69,10 +91,8 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     }
 
     try {
-      // 1) create u bazi -> dobijemo docId
       final clientId = await clientRepository.createClient(event.client, orgId);
 
-      // 2) dodaj u lokalnu listu (sa id-jem)
       final createdClient = Client(
         id: clientId,
         name: event.client.name,
@@ -82,13 +102,10 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
         isActive: event.client.isActive,
       );
 
-      _clients.add(createdClient);
-
+      //if client is added from appointment, pick it
       if (event.isClientAddedFromAppointment) {
         clientPickerCubit.pickClient(client: createdClient);
       }
-      // 3) emit success za UI
-      emit(ClientsFetchingSuccess(List.from(_clients)));
     } on Exception catch (_) {
       // Ako želiš: dodaj ClientsFailure state
       // Za sada možeš bar vratiti prethodno stanje ili prazan:
@@ -118,30 +135,8 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     }
 
     try {
-      // 1) update u bazi
+      // 1) update in databse and listen for changes
       await clientRepository.updateClient(updated, orgId);
-
-      // 2) update lokalne liste
-      final index = _clients.indexWhere((c) => c.id == updatedId);
-      if (index != -1) {
-        // zadrži createdAt iz lokalnog (server timestamp je već tamo),
-        // osim ako ti baš šalješ novi createdAt (obično ne treba)
-        final prev = _clients[index];
-
-        final merged = Client(
-          id: updatedId,
-          name: updated.name,
-          phoneNumber: updated.phoneNumber,
-          description: updated.description,
-          createdAt: prev.createdAt,
-          isActive: updated.isActive,
-        );
-
-        _clients[index] = merged;
-      }
-
-      // 3) emit za UI
-      emit(ClientsFetchingSuccess(List.from(_clients)));
     } on Exception catch (_) {
       // bez Failure state-a, vraćamo trenutno stanje
       emit(ClientsFetchingSuccess(List.from(_clients)));
@@ -155,29 +150,9 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     final organizationId = appState.organizationId;
     if (organizationId == null) return;
 
-    // opcionalno: prikaži loader
-    emit(ClientsFetching());
-
     try {
       // 1) prvo soft-delete na backendu
       await clientRepository.deleteClient(event.clientId, organizationId);
-
-      // 2) tek onda lokalno markiraj isActive=false
-      final index = _clients.indexWhere((c) => c.id == event.clientId);
-      if (index != -1) {
-        final old = _clients[index];
-
-        _clients[index] = Client(
-          id: old.id,
-          name: old.name,
-          phoneNumber: old.phoneNumber,
-          description: old.description,
-          createdAt: old.createdAt,
-          isActive: false,
-        );
-      }
-
-      emit(ClientsFetchingSuccess(List.from(_clients)));
     } on Exception catch (e) {
       unawaited(
         FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
@@ -189,6 +164,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
   void clearState() {
     _clients.clear();
+    _clientsListener?.cancel();
   }
 
   void _onClientsSearched(ClientsSearched event, Emitter<ClientsState> emit) {

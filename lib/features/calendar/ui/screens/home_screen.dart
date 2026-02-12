@@ -1,7 +1,7 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:collection/collection.dart';
 
 import '../../../../common/constants/routes.dart';
 import '../../../../common/cubits/calendar_type_view/calendar_type_view_cubit.dart';

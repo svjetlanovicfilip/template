@@ -1,4 +1,5 @@
-import '../../../../common/models/result.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../client.dart';
 import '../datasources/client_remote_datasource.dart';
 import 'client_repository.dart';
@@ -9,20 +10,9 @@ class ClientRepositoryImpl implements ClientRepository {
   final ClientRemoteDatasource clientRemoteDatasource;
 
   @override
-  Future<Result<List<Client>, Exception>> fetchClients({
+  Stream<QuerySnapshot<Map<String, dynamic>>> fetchClients({
     required String organizationId,
-  }) async {
-    try {
-      final qs = await clientRemoteDatasource.fetchClients(organizationId);
-
-      final clients =
-          qs.docs.map((doc) => Client.fromJson(doc.data(), doc.id)).toList();
-
-      return Result.success(clients);
-    } on Exception catch (e) {
-      return Result.failure(Exception(e.toString()));
-    }
-  }
+  }) => clientRemoteDatasource.fetchClients(organizationId);
 
   @override
   Future<String> createClient(Client client, String organizationId) async {

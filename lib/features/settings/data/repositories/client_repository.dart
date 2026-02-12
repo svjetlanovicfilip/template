@@ -1,8 +1,9 @@
-import '../../../../common/models/result.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../client.dart';
 
 abstract class ClientRepository {
-   Future<Result<List<Client>, Exception>> fetchClients({
+  Stream<QuerySnapshot<Map<String, dynamic>>> fetchClients({
     required String organizationId,
   });
 

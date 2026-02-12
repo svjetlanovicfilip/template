@@ -96,7 +96,7 @@ class CalendarDayView extends StatelessWidget {
         final note = events.first.event?.title;
         final color = events.first.event?.color;
 
-        TextStyle titleStyle = TextStyle(
+        var titleStyle = const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
         );

@@ -11,16 +11,16 @@ class ClientRemoteDatasource {
 
   final FirebaseFirestore firebaseFirestore;
 
-  Future<QuerySnapshot<Map<String, dynamic>>> fetchClients(
+  Stream<QuerySnapshot<Map<String, dynamic>>> fetchClients(
     String organizationId,
-  ) async {
+  ) {
     try {
-      return await firebaseFirestore
+      return firebaseFirestore
           .collection(organizationsCollection)
           .doc(organizationId)
           .collection(clientsCollection)
           .orderBy('createdAt', descending: true)
-          .get();
+          .snapshots();
     } on FirebaseException catch (e) {
       unawaited(
         FirebaseCrashlytics.instance.recordError(e, StackTrace.current),
