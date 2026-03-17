@@ -8,95 +8,113 @@ import '../../../../common/modals/delete_dialog.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
 import '../../../../config/style/colors.dart';
+import '../../../login/data/models/user_model.dart';
 import '../../../users/domain/bloc/users_bloc.dart';
 
-class EmployeesScreen extends StatelessWidget {
+class EmployeesScreen extends StatefulWidget {
   const EmployeesScreen({super.key});
 
-  UsersBloc get _usersBloc => getIt<UsersBloc>();
+  @override
+  State<EmployeesScreen> createState() => _EmployeesScreenState();
+}
+
+class _EmployeesScreenState extends State<EmployeesScreen> {
+  late final UsersBloc _usersBloc;
+
+  // final List<UserModel> _localUsers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _usersBloc = getIt<UsersBloc>();
+    _usersBloc.add(UsersFetchRequested());
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+
+    _usersBloc.add(UsersReordered(oldIndex: oldIndex, newIndex: newIndex));
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(
-      bloc: _usersBloc..add(UsersFetchRequested()),
+      bloc: _usersBloc,
       buildWhen:
           (previous, current) =>
-              current is UsersFetchingSuccess || current is UsersFetching,
-      builder:
-          (context, state) => Scaffold(
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-            floatingActionButton: PrimaryButton(
-              icon: Icons.add,
-              title: 'Dodajte zaposlenog',
-              onTap: () {
-                context.pushNamed(Routes.addEditEmployeesScreen);
-              },
-              borderRadius: BorderRadius.circular(30),
-            ),
-            appBar: const CustomAppBar(title: Text('Zaposleni')),
-            body:
-                state is UsersFetchingSuccess
-                    ? ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+              (current is UsersFetchingSuccess && current.shouldRefreshUsersList) || current is UsersFetching,
+      builder: (context, state) {
+        // final isLoading = state is UsersFetching;
 
-                      itemCount: state.users.length,
-                      separatorBuilder:
-                          (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final user = state.users[index];
-                        final fullName =
-                            '${user.name ?? ''} ${user.surname ?? ''}'.trim();
+        return Scaffold(
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButton: PrimaryButton(
+            icon: Icons.add,
+            title: 'Dodajte zaposlenog',
+            onTap: () => context.pushNamed(Routes.addEditEmployeesScreen),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          appBar: const CustomAppBar(title: Text('Zaposleni')),
+          body:
+              state is UsersFetchingSuccess 
+                  ? ReorderableListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                    itemCount: state.users.length,
+                    onReorder: _onReorder,
+                    proxyDecorator: (child, index, animation) {
+                      return Material(
+                        elevation: 6,
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: child,
+                      );
+                    },
+                    itemBuilder: (context, index) {
+                      final user = state.users[index];
+                      final fullName =
+                          '${user.name ?? ''} ${user.surname ?? ''}'.trim();
+                      final uid = user.id ?? '';
 
-                        return _EmployeeItem(
+                      return Padding(
+                        key: ValueKey(uid.isNotEmpty ? uid : 'index_$index'),
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _EmployeeItem(
+                          index: index,
                           name: fullName.isEmpty ? 'Bez imena' : fullName,
                           onDelete:
-                              user.id != null &&
-                                      appState.currentUser?.id == user.id
+                              uid.isEmpty || appState.currentUser?.id == uid
                                   ? null
                                   : () {
-                                    final uid = user.id ?? '';
-                                    if (uid.isEmpty) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Nedostaje ID korisnika.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-
                                     showDeleteDialog(
                                       context: context,
                                       title: 'Izbrišite zaposlenog',
                                       description:
                                           'Da li ste sigurni da želite da izbrišete ovog zaposlenog?',
                                       onDelete: () {
-                                        getIt<UsersBloc>().add(
+                                        _usersBloc.add(
                                           UserRemoved(userId: uid),
                                         );
                                         context.pop();
                                       },
                                     );
                                   },
-                        );
-                      },
-                    )
-                    : const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.amber500,
-                      ),
-                    ),
-          ),
+                        ),
+                      );
+                    },
+                  )
+                  : const Center(
+                    child: CircularProgressIndicator(color: AppColors.amber500),
+                  ),
+        );
+      },
     );
   }
 }
 
 class _EmployeeItem extends StatelessWidget {
-  const _EmployeeItem({required this.name, this.onDelete});
+  const _EmployeeItem({required this.index, required this.name, this.onDelete});
 
+  final int index;
   final String name;
   final VoidCallback? onDelete;
 
@@ -110,14 +128,16 @@ class _EmployeeItem extends StatelessWidget {
       ),
       child: Row(
         children: [
+          ReorderableDragStartListener(
+            index: index,
+            child: const Icon(Icons.drag_handle, color: Colors.grey),
+          ),
+          const SizedBox(width: 8),
           Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                name,
-                style: const TextStyle(fontSize: 16, color: Colors.black),
-                overflow: TextOverflow.ellipsis,
-              ),
+            child: Text(
+              name,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           if (onDelete != null)
