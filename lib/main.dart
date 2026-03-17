@@ -10,6 +10,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'common/constants/routes.dart';
 import 'common/di/di_container.dart';
+import 'common/shared_prefs/shared_prefs_service.dart';
 import 'common/widgets/screens/splash_screen.dart';
 import 'common/widgets/screens/update_screen.dart';
 import 'config/style/theme.dart';
@@ -37,6 +38,8 @@ Future<void> mainApp(FirebaseOptions options) async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(options: options);
+
+  await SharedPrefsService.instance.init();
 
   setupDependencies();
 

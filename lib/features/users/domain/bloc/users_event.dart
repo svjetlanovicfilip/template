@@ -23,3 +23,15 @@ class SelectUser extends UsersEvent {
   const SelectUser({required this.userId});
   final String userId;
 }
+
+
+/// NOVO: reorder event
+class UsersReordered extends UsersEvent {
+  const UsersReordered({required this.oldIndex, required this.newIndex});
+
+final int oldIndex;
+final int newIndex;
+
+  @override
+  List<Object> get props => [oldIndex, newIndex];
+}

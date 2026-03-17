@@ -25,6 +25,19 @@ class UserModel {
     );
   }
 
+ Map<String, dynamic> toJson() {
+  return {
+    'id': id,
+    'email': email,
+    'isActive': isActive,
+    'name': name,
+    'surname': surname,
+    'username': username,
+    'orgId': organizationId,
+    'role': role?.toString(), // "ORG_OWNER" / "ORG_EMPLOYEE"
+  };
+}
+
   final String? id;
   final String email;
   final bool isActive;
