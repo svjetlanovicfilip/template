@@ -43,6 +43,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
 
     final orgId = appState.organizationId;
     if (orgId == null) {
+      emit(ClientsFetchingSuccess(_clients));
       return;
     }
 
@@ -135,7 +136,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     }
 
     try {
-      // 1) update in databse and listen for changes
+      // 1) update in database and listen for changes
       await clientRepository.updateClient(updated, orgId);
     } on Exception catch (_) {
       // bez Failure state-a, vraćamo trenutno stanje
