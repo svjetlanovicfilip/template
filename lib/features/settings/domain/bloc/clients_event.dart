@@ -7,10 +7,15 @@ sealed class ClientsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+final class ClientsInitListener extends ClientsEvent {}
+
 final class ClientsFetchRequested extends ClientsEvent {}
 
 class ClientAdded extends ClientsEvent {
-  const ClientAdded({required this.client, this.isClientAddedFromAppointment = false});
+  const ClientAdded({
+    required this.client,
+    this.isClientAddedFromAppointment = false,
+  });
 
   final Client client;
   final bool isClientAddedFromAppointment;

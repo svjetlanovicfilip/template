@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../common/di/di_container.dart';
+import '../../../../common/extensions/context_extension.dart';
 import '../../../../common/widgets/container_input_field.dart';
 import '../../../../common/widgets/custom_app_bar.dart';
 import '../../../../common/widgets/primary_button.dart';
@@ -57,6 +58,9 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ClientsBloc, ClientsState>(
       bloc: clientBloc,
+      listenWhen:
+          (previous, current) =>
+              previous is ClientsAdding && current is ClientsFetchingSuccess,
       listener: (context, state) {
         if (state is ClientsFetchingSuccess) {
           final message =
@@ -66,7 +70,7 @@ class _AddEditClientScreenState extends State<AddEditClientScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
-          Navigator.of(context).pop(nameController.text.trim());
+          context.pop();
         }
       },
       child: Scaffold(
