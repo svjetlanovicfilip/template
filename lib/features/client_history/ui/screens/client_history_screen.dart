@@ -242,7 +242,17 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
                         },
                       );
                     }
-                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+                    return const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.amber500,
+                          ),
+                        ),
+                      ),
+                    );
                   },
                 ),
                 BlocBuilder<ClientHistoryBloc, ClientHistoryState>(

@@ -20,7 +20,7 @@ class ClientHistoryBloc extends Bloc<ClientHistoryEvent, ClientHistoryState> {
   final List<ClientSlot> _slots = [];
   DocumentSnapshot<Map<String, dynamic>>? _lastDocument;
   bool _hasMore = true;
-  final int _pageSize = 5;
+  final int _pageSize = 12;
   bool _isLoading = false;
 
   Future<void> _onClientHistoryFetchRequested(

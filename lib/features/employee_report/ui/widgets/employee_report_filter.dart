@@ -227,7 +227,7 @@ class __EmployeePickerState extends State<_EmployeePicker> {
           children: [
             Text(
               _selectedEmployeeName.isEmpty
-                  ? 'Izaberite zaposlenog'
+                  ? 'Zaposleni'
                   : _selectedEmployeeName,
               style: Theme.of(context).textTheme.labelMedium,
               overflow: TextOverflow.ellipsis,

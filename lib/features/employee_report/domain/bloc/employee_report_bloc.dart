@@ -38,7 +38,7 @@ class EmployeeReportBloc
 
   final List<SlotDetails> _slots = [];
 
-  final _pageSize = 10;
+  final _pageSize = 20;
   int _currentPage = 0;
 
   bool _isInitial = true;
@@ -165,7 +165,11 @@ class EmployeeReportBloc
 
     _selectedMonth = event.month;
 
-    if (_isInitial || !isEverythingSelected()) {
+    if (_isInitial) {
+      return;
+    }
+
+    if (!isEverythingSelected()) {
       emit(EmployeeReportInitial());
       return;
     }
@@ -185,7 +189,11 @@ class EmployeeReportBloc
 
     _selectedYear = event.year;
 
-    if (_isInitial || !isEverythingSelected()) {
+    if (_isInitial) {
+      return;
+    }
+
+    if (!isEverythingSelected()) {
       emit(EmployeeReportInitial());
       return;
     }
