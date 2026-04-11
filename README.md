@@ -14,3 +14,10 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+## Prod IOS ipa file
+flutter build ipa --release --flavor=prod --target=lib/main_prod.dart
+
+## Prod Andorid aab file
+flutter build appbundle --release --flavor prod --target lib/main_prod.dart
